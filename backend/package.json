@@ -1,0 +1,8 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "Spring Boot Backend Runner",
+  "scripts": {
+    "spring-boot": ".\\mvnw.cmd spring-boot:run"
+  }
+}

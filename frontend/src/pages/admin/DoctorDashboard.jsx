@@ -1,0 +1,180 @@
+import React, { useState, useEffect, useContext } from 'react';
+import { AuthContext } from '../../context/AuthContext';
+import { getDoctorByUserId } from '../../api/adminApi';
+import { getDoctorAppointments } from '../../api/appointmentApi';
+import { CheckCircle, ClipboardList, Calendar } from 'lucide-react';
+import ScheduleManager from './ScheduleManager';
+import DoctorDiagnoseModal from './DoctorDiagnoseModal';
+
+const DoctorDashboard = () => {
+    const { user } = useContext(AuthContext);
+    const [doctor, setDoctor] = useState(null);
+    const [appointments, setAppointments] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [diagnosingApt, setDiagnosingApt] = useState(null);
+    const [activeTab, setActiveTab] = useState('appointments'); // 'appointments' or 'schedule'
+
+    useEffect(() => {
+        if (user && user.role === 'DOCTOR') {
+            fetchDoctorAndAppointments();
+        }
+    }, [user]);
+
+    const fetchDoctorAndAppointments = async () => {
+        try {
+            setLoading(true);
+            const docData = await getDoctorByUserId(user.id);
+            setDoctor(docData);
+
+            const aptData = await getDoctorAppointments(docData.id);
+            aptData.sort((a, b) => new Date(a.scheduleDate) - new Date(b.scheduleDate));
+            setAppointments(aptData);
+        } catch (error) {
+            console.error("Failed to load doctor dashboard data", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleComplete = (apt) => {
+        setDiagnosingApt(apt);
+    };
+
+    const getStatusStyle = (status) => {
+        switch (status) {
+            case 'PENDING': return { bg: '#fef3c7', color: '#d97706' };
+            case 'CONFIRMED': return { bg: '#dbeafe', color: '#2563eb' };
+            case 'CHECKED_IN': return { bg: '#e0e7ff', color: '#4f46e5' };
+            case 'COMPLETED': return { bg: '#d1fae5', color: '#059669' };
+            case 'CANCELLED': return { bg: '#fee2e2', color: '#dc2626' };
+            default: return { bg: '#f3f4f6', color: '#4b5563' };
+        }
+    };
+
+    if (loading) return <div style={{ padding: '2rem' }}>Loading schedule...</div>;
+
+    if (!doctor) {
+        return (
+            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                Doctor profile not found for this user account. Please contact Admin.
+            </div>
+        );
+    }
+
+    // Filter to show active appointments at top, completed at bottom
+    const activeAppointments = appointments.filter(a => ['CONFIRMED', 'CHECKED_IN'].includes(a.status));
+    const otherAppointments = appointments.filter(a => !['CONFIRMED', 'CHECKED_IN'].includes(a.status));
+
+    const renderTable = (apts, title) => (
+        <div className="table-container" style={{ marginBottom: '2rem' }}>
+            <h3 style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <ClipboardList size={20} /> {title}
+            </h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Patient</th>
+                        <th>Date & Time</th>
+                        <th>Symptoms</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {apts.map((apt) => {
+                        const statusStyle = getStatusStyle(apt.status);
+                        return (
+                            <tr key={apt.id}>
+                                <td style={{ fontWeight: 500 }}>{apt.patientName}</td>
+                                <td>
+                                    <div>{apt.scheduleDate}</div>
+                                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>{apt.timeSlot}</div>
+                                </td>
+                                <td>{apt.symptom}</td>
+                                <td>
+                                    <span style={{ 
+                                        backgroundColor: statusStyle.bg, color: statusStyle.color, 
+                                        padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 600 
+                                    }}>
+                                        {apt.status}
+                                    </span>
+                                </td>
+                                <td>
+                                    {apt.status === 'CHECKED_IN' && (
+                                        <button 
+                                            className="btn-primary" 
+                                            style={{ padding: '0.5rem 1rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#059669' }}
+                                            onClick={() => handleComplete(apt)}
+                                        >
+                                            <CheckCircle size={16} /> Diagnose
+                                        </button>
+                                    )}
+                                </td>
+                            </tr>
+                        );
+                    })}
+                    {apts.length === 0 && (
+                        <tr>
+                            <td colSpan="5" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
+                                No appointments found in this category.
+                            </td>
+                        </tr>
+                    )}
+                </tbody>
+            </table>
+        </div>
+    );
+
+    return (
+        <div>
+            <div className="page-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem', marginBottom: '2rem' }}>
+                <div>
+                    <h2>Doctor Dashboard</h2>
+                    <div style={{ color: 'var(--text-secondary)' }}>
+                        Doctor: {doctor.fullName} | {doctor.specialtyName}
+                    </div>
+                </div>
+                
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                    <button 
+                        onClick={() => setActiveTab('appointments')}
+                        className={`btn-primary`}
+                        style={{ backgroundColor: activeTab === 'appointments' ? 'var(--primary-color)' : 'white', color: activeTab === 'appointments' ? 'white' : 'var(--text-color)', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                    >
+                        <ClipboardList size={18} /> Appointments
+                    </button>
+                    <button 
+                        onClick={() => setActiveTab('schedule')}
+                        className={`btn-primary`}
+                        style={{ backgroundColor: activeTab === 'schedule' ? 'var(--primary-color)' : 'white', color: activeTab === 'schedule' ? 'white' : 'var(--text-color)', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                    >
+                        <Calendar size={18} /> Working Schedule
+                    </button>
+                </div>
+            </div>
+
+            {activeTab === 'appointments' ? (
+                <>
+                    {renderTable(activeAppointments, "Waiting & In-Progress Patients (CHECKED_IN / CONFIRMED)")}
+                    {renderTable(otherAppointments, "Other Appointments (PENDING / COMPLETED / CANCELLED)")}
+                </>
+            ) : (
+                <ScheduleManager doctorId={doctor.id} />
+            )}
+
+            {diagnosingApt && (
+                <DoctorDiagnoseModal 
+                    appointment={diagnosingApt}
+                    doctorId={doctor.id}
+                    onClose={() => setDiagnosingApt(null)}
+                    onSuccess={() => {
+                        setDiagnosingApt(null);
+                        fetchDoctorAndAppointments();
+                    }}
+                />
+            )}
+        </div>
+    );
+};
+
+export default DoctorDashboard;
