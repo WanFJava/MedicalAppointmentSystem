@@ -8,11 +8,17 @@ import com.smartclinic.backend.entity.Doctor;
 import com.smartclinic.backend.entity.Patient;
 import com.smartclinic.backend.entity.Schedule;
 import com.smartclinic.backend.entity.User;
+import com.smartclinic.backend.entity.Prescription;
+import com.smartclinic.backend.entity.PrescriptionDetail;
 import com.smartclinic.backend.repository.AppointmentRepository;
 import com.smartclinic.backend.repository.DoctorRepository;
 import com.smartclinic.backend.repository.ScheduleRepository;
 import com.smartclinic.backend.repository.UserRepository;
 import com.smartclinic.backend.repository.PatientRepository;
+import com.smartclinic.backend.repository.BillRepository;
+import com.smartclinic.backend.repository.MedicalRecordRepository;
+import com.smartclinic.backend.repository.PrescriptionRepository;
+import com.smartclinic.backend.repository.PrescriptionDetailRepository;
 import com.smartclinic.backend.service.AppointmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Sort;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +37,10 @@ public class AppointmentServiceImpl implements AppointmentService {
     private final DoctorRepository doctorRepository;
     private final ScheduleRepository scheduleRepository;
     private final PatientRepository patientRepository;
+    private final BillRepository billRepository;
+    private final MedicalRecordRepository medicalRecordRepository;
+    private final PrescriptionRepository prescriptionRepository;
+    private final PrescriptionDetailRepository prescriptionDetailRepository;
 
     @Override
     @Transactional
@@ -64,31 +75,24 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         Appointment savedAppointment = appointmentRepository.save(appointment);
 
-        // Mark schedule as booked
-        schedule.setCurrentPatient(schedule.getCurrentPatient() + 1);
-        if (schedule.getCurrentPatient() >= schedule.getMaxPatient()) {
-            schedule.setStatus("FULL");
-        }
-        scheduleRepository.save(schedule);
-
         return mapToDto(savedAppointment);
     }
 
     @Override
     public List<AppointmentDto> getPatientAppointments(Long patientId) {
-        return appointmentRepository.findByPatient_UserId(patientId).stream()
+        return appointmentRepository.findByPatient_UserIdOrderByIdDesc(patientId).stream()
                 .map(this::mapToDto).collect(Collectors.toList());
     }
 
     @Override
     public List<AppointmentDto> getDoctorAppointments(Long doctorId) {
-        return appointmentRepository.findByDoctorId(doctorId).stream()
+        return appointmentRepository.findByDoctorIdOrderByIdDesc(doctorId).stream()
                 .map(this::mapToDto).collect(Collectors.toList());
     }
 
     @Override
     public List<AppointmentDto> getAllAppointments() {
-        return appointmentRepository.findAll().stream()
+        return appointmentRepository.findAll(Sort.by(Sort.Direction.DESC, "id")).stream()
                 .map(this::mapToDto).collect(Collectors.toList());
     }
 
@@ -98,10 +102,24 @@ public class AppointmentServiceImpl implements AppointmentService {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
         
+        AppointmentStatus oldStatus = appointment.getStatus();
         appointment.setStatus(status);
 
-        // If cancelled, free up the schedule
-        if (status == AppointmentStatus.CANCELLED) {
+        // If confirmed from pending, occupy the schedule
+        if (status == AppointmentStatus.CONFIRMED && oldStatus == AppointmentStatus.PENDING) {
+            Schedule schedule = appointment.getSchedule();
+            if (schedule.getCurrentPatient() >= schedule.getMaxPatient()) {
+                throw new RuntimeException("Schedule is already full, cannot confirm this appointment");
+            }
+            schedule.setCurrentPatient(schedule.getCurrentPatient() + 1);
+            if (schedule.getCurrentPatient() >= schedule.getMaxPatient()) {
+                schedule.setStatus("FULL");
+            }
+            scheduleRepository.save(schedule);
+        }
+
+        // If cancelled from a non-pending state (like confirmed), free up the schedule
+        if (status == AppointmentStatus.CANCELLED && oldStatus != AppointmentStatus.PENDING) {
             Schedule schedule = appointment.getSchedule();
             schedule.setCurrentPatient(Math.max(0, schedule.getCurrentPatient() - 1));
             schedule.setStatus("AVAILABLE");
@@ -110,6 +128,35 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         Appointment updatedAppointment = appointmentRepository.save(appointment);
         return mapToDto(updatedAppointment);
+    }
+
+    @Override
+    @Transactional
+    public void deleteAppointment(Long appointmentId) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+        
+        // If the appointment was occupying a schedule spot, free it up before deleting
+        if (appointment.getStatus() != AppointmentStatus.PENDING && appointment.getStatus() != AppointmentStatus.CANCELLED) {
+            Schedule schedule = appointment.getSchedule();
+            schedule.setCurrentPatient(Math.max(0, schedule.getCurrentPatient() - 1));
+            schedule.setStatus("AVAILABLE");
+            scheduleRepository.save(schedule);
+        }
+        
+        // Cascading delete
+        billRepository.findByAppointmentId(appointmentId).ifPresent(billRepository::delete);
+        
+        medicalRecordRepository.findByAppointmentId(appointmentId).ifPresent(record -> {
+            prescriptionRepository.findByMedicalRecordId(record.getId()).forEach(prescription -> {
+                List<PrescriptionDetail> details = prescriptionDetailRepository.findByPrescriptionId(prescription.getId());
+                prescriptionDetailRepository.deleteAll(details);
+                prescriptionRepository.delete(prescription);
+            });
+            medicalRecordRepository.delete(record);
+        });
+        
+        appointmentRepository.delete(appointment);
     }
 
     private AppointmentDto mapToDto(Appointment appointment) {

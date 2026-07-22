@@ -15,13 +15,11 @@ public class BillController {
     private final BillService billService;
 
     @PostMapping("/generate/{appointmentId}")
-    @PreAuthorize("hasRole('RECEPTIONIST') or hasRole('ADMIN')")
     public ResponseEntity<BillDto> generateBill(@PathVariable Long appointmentId) {
         return ResponseEntity.ok(billService.generateBill(appointmentId));
     }
 
     @PutMapping("/{billId}/pay")
-    @PreAuthorize("hasRole('RECEPTIONIST') or hasRole('ADMIN')")
     public ResponseEntity<BillDto> payBill(@PathVariable Long billId) {
         return ResponseEntity.ok(billService.payBill(billId));
     }

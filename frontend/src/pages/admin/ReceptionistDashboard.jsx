@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
-import { getAllAppointments, updateAppointmentStatus } from '../../api/appointmentApi';
-import { CheckCircle, XCircle, UserCheck } from 'lucide-react';
+import { getAllAppointments, updateAppointmentStatus, deleteAppointment } from '../../api/appointmentApi';
+import { CheckCircle, XCircle, UserCheck, Trash2 } from 'lucide-react';
 import BillModal from './BillModal';
 
 const ReceptionistDashboard = () => {
@@ -34,6 +34,17 @@ const ReceptionistDashboard = () => {
             fetchAppointments();
         } catch (error) {
             alert("Failed to update status");
+        }
+    };
+
+    const handleDelete = async (id) => {
+        if (window.confirm("Are you sure you want to completely delete this appointment? This action cannot be undone.")) {
+            try {
+                await deleteAppointment(id);
+                fetchAppointments();
+            } catch (error) {
+                alert("Failed to delete appointment");
+            }
         }
     };
 
@@ -131,6 +142,14 @@ const ReceptionistDashboard = () => {
                                                 </button>
                                             )}
                                             {/* Note: DOCTOR will change status to COMPLETED */}
+                                            {user?.role === 'ADMIN' && (
+                                                <button 
+                                                    title="Delete Appointment Permanently"
+                                                    onClick={() => handleDelete(apt.id)}
+                                                    style={{ padding: '0.5rem', backgroundColor: '#fca5a5', color: '#991b1b', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', marginLeft: '0.5rem' }}>
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>

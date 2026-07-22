@@ -227,24 +227,26 @@ const BookingPage = () => {
                             ) : Object.keys(schedulesByDate).length === 0 ? (
                                 <p style={{ color: '#ef4444' }}>This doctor has no available schedules.</p>
                             ) : (
-                                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
-                                    {Object.keys(schedulesByDate).sort().map(date => (
-                                        <button 
-                                            key={date}
-                                            onClick={() => handleDateChange(date)}
-                                            style={{
-                                                padding: '0.5rem 1rem', 
-                                                borderRadius: '0.5rem',
-                                                border: `1px solid ${selectedDate === date ? '#4f46e5' : '#d1d5db'}`,
-                                                backgroundColor: selectedDate === date ? '#4f46e5' : 'white',
-                                                color: selectedDate === date ? 'white' : '#374151',
-                                                cursor: 'pointer',
-                                                fontWeight: 500
-                                            }}
-                                        >
-                                            {date}
-                                        </button>
-                                    ))}
+                                <div style={{ marginBottom: '1.5rem' }}>
+                                    <input 
+                                        type="date"
+                                        value={selectedDate}
+                                        onChange={(e) => handleDateChange(e.target.value)}
+                                        style={{
+                                            padding: '0.75rem', 
+                                            borderRadius: '0.5rem',
+                                            border: '1px solid #d1d5db',
+                                            width: '100%',
+                                            maxWidth: '300px',
+                                            fontSize: '1rem',
+                                            cursor: 'pointer'
+                                        }}
+                                    />
+                                    {selectedDate && !schedulesByDate[selectedDate] && (
+                                        <p style={{ color: '#ef4444', marginTop: '0.5rem', fontSize: '0.875rem' }}>
+                                            No time slots available on this date. Please select another date.
+                                        </p>
+                                    )}
                                 </div>
                             )}
                         </div>

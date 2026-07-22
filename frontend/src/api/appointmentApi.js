@@ -45,7 +45,12 @@ export const getAllAppointments = async () => {
     return response.data;
 };
 
-export const updateAppointmentStatus = async (appointmentId, status) => {
-    const response = await api.put(`/appointments/${appointmentId}/status?status=${status}`);
+export const updateAppointmentStatus = async (id, status) => {
+    const response = await api.put(`/appointments/${id}/status`, null, { params: { status } });
+    return response.data;
+};
+
+export const deleteAppointment = async (id) => {
+    const response = await api.delete(`/appointments/${id}`);
     return response.data;
 };

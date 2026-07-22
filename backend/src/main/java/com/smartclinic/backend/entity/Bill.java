@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "bills")
+@Table(name = "invoices")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -22,12 +22,27 @@ public class Bill {
     @JoinColumn(name = "appointment_id", nullable = false)
     private Appointment appointment;
 
+    @Column(name = "consultation_fee", nullable = false)
+    private BigDecimal consultationFee = BigDecimal.ZERO;
+
+    @Column(name = "medicine_fee", nullable = false)
+    private BigDecimal medicineFee = BigDecimal.ZERO;
+
+    @Column(name = "discount")
+    private BigDecimal discount = BigDecimal.ZERO;
+
     @Column(name = "total_amount", nullable = false)
-    private BigDecimal totalAmount;
+    private BigDecimal totalAmount = BigDecimal.ZERO;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "payment_status")
     private BillStatus status;
+
+    @Column(name = "payment_method")
+    private String paymentMethod;
+
+    @Column(name = "paid_at")
+    private LocalDateTime paidAt;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

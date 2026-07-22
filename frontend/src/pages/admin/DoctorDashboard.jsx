@@ -2,7 +2,8 @@ import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
 import { getDoctorByUserId } from '../../api/adminApi';
 import { getDoctorAppointments } from '../../api/appointmentApi';
-import { CheckCircle, ClipboardList, Calendar } from 'lucide-react';
+import { getPatientProfile } from '../../api/patientApi';
+import { CheckCircle, ClipboardList, Calendar, Info, X } from 'lucide-react';
 import ScheduleManager from './ScheduleManager';
 import DoctorDiagnoseModal from './DoctorDiagnoseModal';
 
@@ -12,6 +13,7 @@ const DoctorDashboard = () => {
     const [appointments, setAppointments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [diagnosingApt, setDiagnosingApt] = useState(null);
+    const [viewingPatient, setViewingPatient] = useState(null);
     const [activeTab, setActiveTab] = useState('appointments'); // 'appointments' or 'schedule'
 
     useEffect(() => {
@@ -38,6 +40,16 @@ const DoctorDashboard = () => {
 
     const handleComplete = (apt) => {
         setDiagnosingApt(apt);
+    };
+
+    const handleViewPatient = async (patientId) => {
+        try {
+            const profile = await getPatientProfile(patientId);
+            setViewingPatient(profile);
+        } catch (error) {
+            console.error("Failed to load patient profile", error);
+            alert("Failed to load patient profile data.");
+        }
     };
 
     const getStatusStyle = (status) => {
@@ -99,11 +111,20 @@ const DoctorDashboard = () => {
                                         {apt.status}
                                     </span>
                                 </td>
-                                <td>
+                                <td style={{ display: 'flex', gap: '0.5rem' }}>
+                                    {['CHECKED_IN', 'CONFIRMED'].includes(apt.status) && (
+                                        <button 
+                                            className="btn-primary" 
+                                            style={{ padding: '0.5rem 0.75rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#3b82f6' }}
+                                            onClick={() => handleViewPatient(apt.patientId)}
+                                        >
+                                            <Info size={16} /> Info
+                                        </button>
+                                    )}
                                     {apt.status === 'CHECKED_IN' && (
                                         <button 
                                             className="btn-primary" 
-                                            style={{ padding: '0.5rem 1rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#059669' }}
+                                            style={{ padding: '0.5rem 0.75rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#059669' }}
                                             onClick={() => handleComplete(apt)}
                                         >
                                             <CheckCircle size={16} /> Diagnose
@@ -172,6 +193,47 @@ const DoctorDashboard = () => {
                         fetchDoctorAndAppointments();
                     }}
                 />
+            )}
+
+            {/* Patient Info Modal */}
+            {viewingPatient && (
+                <div className="modal-overlay">
+                    <div className="modal-content" style={{ maxWidth: '500px' }}>
+                        <div className="modal-header">
+                            <h3>Patient Information</h3>
+                            <button className="close-btn" onClick={() => setViewingPatient(null)}><X size={20}/></button>
+                        </div>
+                        <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '0.5rem' }}>
+                                <strong style={{ color: 'var(--text-secondary)' }}>Full Name:</strong>
+                                <span>{viewingPatient.fullName}</span>
+                                
+                                <strong style={{ color: 'var(--text-secondary)' }}>Gender:</strong>
+                                <span>{viewingPatient.gender || 'N/A'}</span>
+                                
+                                <strong style={{ color: 'var(--text-secondary)' }}>Birthday:</strong>
+                                <span>{viewingPatient.birthday || 'N/A'}</span>
+                                
+                                <strong style={{ color: 'var(--text-secondary)' }}>Phone:</strong>
+                                <span>{viewingPatient.phone || 'N/A'}</span>
+                                
+                                <strong style={{ color: 'var(--text-secondary)' }}>Address:</strong>
+                                <span>{viewingPatient.address || 'N/A'}</span>
+                                
+                                <strong style={{ color: 'var(--text-secondary)' }}>Blood Group:</strong>
+                                <span>{viewingPatient.bloodGroup || 'N/A'}</span>
+                                
+                                <strong style={{ color: 'var(--text-secondary)' }}>Allergies:</strong>
+                                <span style={{ color: viewingPatient.allergy ? '#dc2626' : 'inherit' }}>
+                                    {viewingPatient.allergy || 'None reported'}
+                                </span>
+                            </div>
+                        </div>
+                        <div className="modal-footer">
+                            <button className="btn-secondary" onClick={() => setViewingPatient(null)}>Close</button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

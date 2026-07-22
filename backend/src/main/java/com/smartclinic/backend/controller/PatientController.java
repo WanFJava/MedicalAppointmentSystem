@@ -15,7 +15,7 @@ public class PatientController {
     private final PatientService patientService;
 
     @GetMapping("/profile/{userId}")
-    @PreAuthorize("hasRole('PATIENT') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('PATIENT') or hasRole('ADMIN') or hasRole('DOCTOR')")
     public ResponseEntity<PatientDto> getPatientProfile(@PathVariable Long userId) {
         return ResponseEntity.ok(patientService.getPatientProfileByUserId(userId));
     }
