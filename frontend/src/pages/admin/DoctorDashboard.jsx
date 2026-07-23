@@ -112,15 +112,13 @@ const DoctorDashboard = () => {
                                     </span>
                                 </td>
                                 <td style={{ display: 'flex', gap: '0.5rem' }}>
-                                    {['CHECKED_IN', 'CONFIRMED'].includes(apt.status) && (
-                                        <button 
-                                            className="btn-primary" 
-                                            style={{ padding: '0.5rem 0.75rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#3b82f6' }}
-                                            onClick={() => handleViewPatient(apt.patientId)}
-                                        >
-                                            <Info size={16} /> Info
-                                        </button>
-                                    )}
+                                    <button 
+                                        className="btn-primary" 
+                                        style={{ padding: '0.5rem 0.75rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#3b82f6' }}
+                                        onClick={() => handleViewPatient(apt.patientId)}
+                                    >
+                                        <Info size={16} /> Info
+                                    </button>
                                     {apt.status === 'CHECKED_IN' && (
                                         <button 
                                             className="btn-primary" 
