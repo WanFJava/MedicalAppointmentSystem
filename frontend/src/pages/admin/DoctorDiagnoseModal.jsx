@@ -35,12 +35,23 @@ const DoctorDiagnoseModal = ({ appointment, doctorId, onClose, onSuccess }) => {
         if (!selectedMedicineId || !dosage || !quantity) return;
         const medicine = medicines.find(m => m.id.toString() === selectedMedicineId);
         
+        const parsedQuantity = parseInt(quantity);
+        const existingQty = prescriptions
+            .filter(p => p.medicineId === medicine.id)
+            .reduce((sum, p) => sum + p.quantity, 0);
+
+        if (medicine.quantity < (parsedQuantity + existingQty)) {
+            alert(`Thuốc ${medicine.name} không đủ số lượng trong kho. Tổng còn lại: ${medicine.quantity} (Đã kê: ${existingQty})`);
+            return;
+        }
+
         const newPrescription = {
             medicineId: parseInt(selectedMedicineId),
             medicineName: medicine.name,
             dosage,
             instruction,
-            quantity: parseInt(quantity)
+            quantity: parsedQuantity,
+            stock: medicine.quantity
         };
         
         setPrescriptions([...prescriptions, newPrescription]);
@@ -146,7 +157,7 @@ const DoctorDiagnoseModal = ({ appointment, doctorId, onClose, onSuccess }) => {
                                     >
                                         <option value="">Select Medicine</option>
                                         {medicines.map(m => (
-                                            <option key={m.id} value={m.id}>{m.name} - ${m.price}</option>
+                                            <option key={m.id} value={m.id}>{m.name} - ${m.price} (Kho: {m.quantity})</option>
                                         ))}
                                     </select>
                                 </div>
@@ -198,6 +209,7 @@ const DoctorDiagnoseModal = ({ appointment, doctorId, onClose, onSuccess }) => {
                                             <th style={{ padding: '0.5rem', textAlign: 'left' }}>Dosage</th>
                                             <th style={{ padding: '0.5rem', textAlign: 'left' }}>Instruction</th>
                                             <th style={{ padding: '0.5rem', textAlign: 'center' }}>Qty</th>
+                                            <th style={{ padding: '0.5rem', textAlign: 'center' }}>Stock</th>
                                             <th style={{ padding: '0.5rem', textAlign: 'center' }}>Action</th>
                                         </tr>
                                     </thead>
@@ -208,6 +220,7 @@ const DoctorDiagnoseModal = ({ appointment, doctorId, onClose, onSuccess }) => {
                                                 <td style={{ padding: '0.5rem' }}>{p.dosage}</td>
                                                 <td style={{ padding: '0.5rem' }}>{p.instruction}</td>
                                                 <td style={{ padding: '0.5rem', textAlign: 'center' }}>{p.quantity}</td>
+                                                <td style={{ padding: '0.5rem', textAlign: 'center' }}>{p.stock}</td>
                                                 <td style={{ padding: '0.5rem', textAlign: 'center' }}>
                                                     <button 
                                                         type="button" 
