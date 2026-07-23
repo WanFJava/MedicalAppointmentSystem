@@ -5,6 +5,7 @@ D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\controller\AuthController.java
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\controller\BillController.java
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\controller\DoctorController.java
+D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\controller\FeedbackController.java
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\controller\MedicalRecordController.java
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\controller\MedicineController.java
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\controller\PatientController.java
@@ -18,6 +19,7 @@ D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\dto\DashboardDto.java
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\dto\DiagnosisRequestDto.java
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\dto\DoctorDto.java
+D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\dto\FeedbackDto.java
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\dto\JwtAuthResponse.java
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\dto\LoginDto.java
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\dto\MedicalRecordDto.java
@@ -33,6 +35,7 @@ D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\entity\Bill.java
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\entity\BillStatus.java
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\entity\Doctor.java
+D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\entity\Feedback.java
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\entity\MedicalRecord.java
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\entity\Medicine.java
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\entity\Patient.java
@@ -48,6 +51,7 @@ D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\repository\AppointmentRepository.java
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\repository\BillRepository.java
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\repository\DoctorRepository.java
+D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\repository\FeedbackRepository.java
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\repository\MedicalRecordRepository.java
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\repository\MedicineRepository.java
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\repository\PatientRepository.java
@@ -65,10 +69,12 @@ D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\service\AuthService.java
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\service\BillService.java
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\service\DoctorService.java
+D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\service\FeedbackService.java
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\service\impl\AppointmentServiceImpl.java
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\service\impl\AuthServiceImpl.java
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\service\impl\BillServiceImpl.java
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\service\impl\DoctorServiceImpl.java
+D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\service\impl\FeedbackServiceImpl.java
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\service\impl\MedicalRecordServiceImpl.java
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\service\impl\MedicineServiceImpl.java
 D:\LuyenReactJS\SmartPrivateClinic\backend\src\main\java\com\smartclinic\backend\service\impl\PatientServiceImpl.java
