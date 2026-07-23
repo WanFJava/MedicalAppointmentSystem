@@ -170,7 +170,8 @@ public class AppointmentServiceImpl implements AppointmentService {
                 appointment.getSchedule().getDate(),
                 appointment.getSchedule().getStartTime() + " - " + appointment.getSchedule().getEndTime(),
                 appointment.getSymptom(),
-                appointment.getStatus()
+                appointment.getStatus(),
+                appointment.getIsReviewed()
         );
     }
 }

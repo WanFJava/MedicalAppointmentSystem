@@ -31,4 +31,10 @@ public class Doctor {
     private Integer experience;
 
     private BigDecimal consultationFee;
+
+    @Column(name = "average_rating")
+    private BigDecimal averageRating = BigDecimal.ZERO;
+
+    @Column(name = "total_reviews")
+    private Integer totalReviews = 0;
 }

@@ -34,4 +34,7 @@ public class Appointment {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private AppointmentStatus status;
+
+    @Column(name = "is_reviewed")
+    private Boolean isReviewed = false;
 }

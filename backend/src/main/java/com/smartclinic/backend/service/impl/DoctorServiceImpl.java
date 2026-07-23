@@ -129,6 +129,8 @@ public class DoctorServiceImpl implements DoctorService {
         dto.setDegree(doctor.getDegree());
         dto.setExperience(doctor.getExperience());
         dto.setConsultationFee(doctor.getConsultationFee());
+        dto.setAverageRating(doctor.getAverageRating());
+        dto.setTotalReviews(doctor.getTotalReviews());
         return dto;
     }
 }
