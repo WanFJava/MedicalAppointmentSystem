@@ -17,8 +17,10 @@ public class Specialty {
     private Long id;
 
     @Column(nullable = false, unique = true)
+    @org.hibernate.annotations.Nationalized
     private String name;
 
     @Column(length = 1000)
+    @org.hibernate.annotations.Nationalized
     private String description;
 }
