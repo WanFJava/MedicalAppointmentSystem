@@ -59,6 +59,14 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
                 Medicine medicine = medicineRepository.findById(item.getMedicineId())
                         .orElseThrow(() -> new ResourceNotFoundException("Medicine", "id", item.getMedicineId()));
                 
+                if (medicine.getQuantity() < item.getQuantity()) {
+                    throw new IllegalArgumentException("Thuốc " + medicine.getName() + " không đủ số lượng trong kho. Còn lại: " + medicine.getQuantity());
+                }
+                
+                // Deduct stock
+                medicine.setQuantity(medicine.getQuantity() - item.getQuantity());
+                medicineRepository.save(medicine);
+
                 PrescriptionDetail detail = new PrescriptionDetail();
                 detail.setPrescription(savedPrescription);
                 detail.setMedicine(medicine);
