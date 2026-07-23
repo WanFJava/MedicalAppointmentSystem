@@ -21,6 +21,8 @@ import com.smartclinic.backend.repository.PrescriptionRepository;
 import com.smartclinic.backend.repository.PrescriptionDetailRepository;
 import com.smartclinic.backend.service.AppointmentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -103,6 +105,18 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
         
         AppointmentStatus oldStatus = appointment.getStatus();
+
+        // Enforce patient rules
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_PATIENT"))) {
+            if (oldStatus != AppointmentStatus.PENDING) {
+                throw new RuntimeException("Patients can only cancel appointments that are in PENDING status.");
+            }
+            if (status != AppointmentStatus.CANCELLED) {
+                throw new RuntimeException("Patients can only cancel appointments, not change to other statuses.");
+            }
+        }
+
         appointment.setStatus(status);
 
         // If confirmed from pending, occupy the schedule
