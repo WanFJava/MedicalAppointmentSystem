@@ -45,7 +45,7 @@ public class AppointmentController {
     }
 
     @PutMapping("/{appointmentId}/status")
-    @PreAuthorize("hasAnyRole('RECEPTIONIST', 'ADMIN', 'DOCTOR')")
+    @PreAuthorize("hasAnyRole('RECEPTIONIST', 'ADMIN', 'DOCTOR', 'PATIENT')")
     public ResponseEntity<AppointmentDto> updateAppointmentStatus(
             @PathVariable Long appointmentId,
             @RequestParam AppointmentStatus status) {
