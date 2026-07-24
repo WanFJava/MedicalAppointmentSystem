@@ -2,8 +2,9 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getDoctorById } from '../api/adminApi';
 import { getAvailableSchedules } from '../api/appointmentApi';
+import { getFeedbacksByDoctor } from '../api/feedbackApi';
 import { AuthContext } from '../context/AuthContext';
-import { Star, Clock, MapPin, Activity, Stethoscope, Calendar as CalendarIcon } from 'lucide-react';
+import { Star, Clock, MapPin, Activity, Stethoscope, Calendar as CalendarIcon, MessageSquare } from 'lucide-react';
 
 const DoctorProfile = () => {
     const { id } = useParams();
@@ -15,6 +16,7 @@ const DoctorProfile = () => {
     const [schedulesByDate, setSchedulesByDate] = useState({});
     const [selectedDate, setSelectedDate] = useState('');
     const [selectedSchedule, setSelectedSchedule] = useState(null);
+    const [feedbacks, setFeedbacks] = useState([]);
 
     useEffect(() => {
         const fetchDoctor = async () => {
@@ -30,11 +32,17 @@ const DoctorProfile = () => {
                     acc[curr.date].push(curr);
                     return acc;
                 }, {});
+                
                 setSchedulesByDate(grouped);
-                const availableDates = Object.keys(grouped).sort();
-                if (availableDates.length > 0) {
-                    setSelectedDate(availableDates[0]);
+                const dates = Object.keys(grouped).sort();
+                if (dates.length > 0) {
+                    setSelectedDate(dates[0]);
                 }
+
+                // Fetch feedbacks
+                const fbs = await getFeedbacksByDoctor(id);
+                setFeedbacks(fbs.slice(0, 10)); // Top 10 recent
+
             } catch (error) {
                 console.error("Error fetching doctor details:", error);
             } finally {
@@ -209,6 +217,51 @@ const DoctorProfile = () => {
                                 </button>
                             </div>
                         </div>
+                    </div>
+
+                    {/* FEEDBACKS SECTION */}
+                    <div style={{ marginTop: '3rem', backgroundColor: 'white', padding: '2.5rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+                        <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <MessageSquare size={28} color="#4f46e5" /> 
+                            Recent Patient Feedbacks ({feedbacks.length})
+                        </h3>
+
+                        {feedbacks.length === 0 ? (
+                            <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+                                No feedbacks available for this doctor yet.
+                            </div>
+                        ) : (
+                            <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth > 768 ? '1fr 1fr' : '1fr', gap: '1.5rem' }}>
+                                {feedbacks.map(fb => (
+                                    <div key={fb.id} style={{ 
+                                        backgroundColor: '#f8fafc', padding: '1.5rem', borderRadius: '0.5rem', 
+                                        border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '0.75rem' 
+                                    }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                            <div>
+                                                <div style={{ fontWeight: 'bold', color: '#1f2937' }}>{fb.patientName}</div>
+                                                <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
+                                                    {new Date(fb.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                                </div>
+                                            </div>
+                                            <div style={{ display: 'flex', gap: '0.25rem' }}>
+                                                {[1, 2, 3, 4, 5].map(star => (
+                                                    <Star 
+                                                        key={star} 
+                                                        size={16} 
+                                                        fill={star <= fb.rating ? '#fbbf24' : 'none'} 
+                                                        color={star <= fb.rating ? '#fbbf24' : '#cbd5e1'} 
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <p style={{ margin: 0, color: '#334155', lineHeight: '1.5', fontStyle: 'italic' }}>
+                                            "{fb.comment}"
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

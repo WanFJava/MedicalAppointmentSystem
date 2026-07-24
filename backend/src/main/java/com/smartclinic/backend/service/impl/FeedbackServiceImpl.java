@@ -59,11 +59,12 @@ public class FeedbackServiceImpl implements FeedbackService {
         appointmentRepository.save(appointment);
 
         // Update doctor rating
-        int newTotalReviews = doctor.getTotalReviews() + 1;
+        int currentTotal = doctor.getTotalReviews() != null ? doctor.getTotalReviews() : 0;
+        int newTotalReviews = currentTotal + 1;
         BigDecimal currentAverage = doctor.getAverageRating() != null ? doctor.getAverageRating() : BigDecimal.ZERO;
         
         // newAverage = (currentAverage * currentTotal + newRating) / newTotal
-        BigDecimal totalScore = currentAverage.multiply(new BigDecimal(doctor.getTotalReviews())).add(new BigDecimal(dto.getRating()));
+        BigDecimal totalScore = currentAverage.multiply(new BigDecimal(currentTotal)).add(new BigDecimal(dto.getRating()));
         BigDecimal newAverage = totalScore.divide(new BigDecimal(newTotalReviews), 2, RoundingMode.HALF_UP);
 
         doctor.setTotalReviews(newTotalReviews);

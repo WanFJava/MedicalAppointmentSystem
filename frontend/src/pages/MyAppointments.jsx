@@ -1,14 +1,18 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { getPatientAppointments, updateAppointmentStatus } from '../api/appointmentApi';
-import { Calendar, Clock, Stethoscope, FileText } from 'lucide-react';
+import { Calendar, Clock, Stethoscope, FileText, Info, MessageSquare, Star } from 'lucide-react';
 import PatientRecordModal from './PatientRecordModal';
+import ViewBookingModal from './ViewBookingModal';
+import FeedbackModal from './FeedbackModal';
 
 const MyAppointments = () => {
     const { user } = useContext(AuthContext);
     const [appointments, setAppointments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [viewingRecordApt, setViewingRecordApt] = useState(null);
+    const [viewingBookingApt, setViewingBookingApt] = useState(null);
+    const [feedbackApt, setFeedbackApt] = useState(null);
 
     useEffect(() => {
         if (user) {
@@ -72,7 +76,7 @@ const MyAppointments = () => {
                                 boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0',
                                 display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem'
                             }}>
-                                <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
+                                <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', flex: 1 }}>
                                     <div>
                                         <div style={{ color: '#6b7280', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.25rem' }}>
                                             <Calendar size={14} /> Date
@@ -102,29 +106,59 @@ const MyAppointments = () => {
                                     </div>
                                 </div>
                                 
-                                {apt.status === 'PENDING' && (
+                                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
                                     <button 
-                                        onClick={() => handleCancel(apt.id)}
+                                        onClick={() => setViewingBookingApt(apt)}
                                         style={{ 
-                                            padding: '0.5rem 1rem', backgroundColor: '#fee2e2', color: '#dc2626', 
-                                            border: 'none', borderRadius: '0.5rem', fontWeight: 500, cursor: 'pointer' 
-                                        }}
-                                    >
-                                        Cancel
-                                    </button>
-                                )}
-                                {['COMPLETED', 'PAID'].includes(apt.status) && (
-                                    <button 
-                                        onClick={() => setViewingRecordApt(apt)}
-                                        style={{ 
-                                            padding: '0.5rem 1rem', backgroundColor: '#e0e7ff', color: '#4f46e5', 
+                                            padding: '0.5rem 1rem', backgroundColor: '#f1f5f9', color: '#475569', 
                                             border: 'none', borderRadius: '0.5rem', fontWeight: 500, cursor: 'pointer',
                                             display: 'flex', alignItems: 'center', gap: '0.5rem'
                                         }}
+                                        title="View Booking Info"
                                     >
-                                        <FileText size={16} /> View Record
+                                        <Info size={16} /> Details
                                     </button>
-                                )}
+
+                                    {apt.status === 'PENDING' && (
+                                        <button 
+                                            onClick={() => handleCancel(apt.id)}
+                                            style={{ 
+                                                padding: '0.5rem 1rem', backgroundColor: '#fee2e2', color: '#dc2626', 
+                                                border: 'none', borderRadius: '0.5rem', fontWeight: 500, cursor: 'pointer' 
+                                            }}
+                                        >
+                                            Cancel
+                                        </button>
+                                    )}
+                                    
+                                    {['COMPLETED', 'PAID'].includes(apt.status) && (
+                                        <button 
+                                            onClick={() => setViewingRecordApt(apt)}
+                                            style={{ 
+                                                padding: '0.5rem 1rem', backgroundColor: '#e0e7ff', color: '#4f46e5', 
+                                                border: 'none', borderRadius: '0.5rem', fontWeight: 500, cursor: 'pointer',
+                                                display: 'flex', alignItems: 'center', gap: '0.5rem'
+                                            }}
+                                        >
+                                            <FileText size={16} /> Record
+                                        </button>
+                                    )}
+
+                                    {['COMPLETED', 'PAID'].includes(apt.status) && (
+                                        <button 
+                                            onClick={() => setFeedbackApt(apt)}
+                                            style={{ 
+                                                padding: '0.5rem 1rem', 
+                                                backgroundColor: apt.isReviewed ? '#f3f4f6' : '#fef9c3', 
+                                                color: apt.isReviewed ? '#6b7280' : '#854d0e', 
+                                                border: 'none', borderRadius: '0.5rem', fontWeight: 500, cursor: 'pointer',
+                                                display: 'flex', alignItems: 'center', gap: '0.5rem'
+                                            }}
+                                        >
+                                            {apt.isReviewed ? <><Star size={16} /> View Feedback</> : <><MessageSquare size={16} /> Leave Feedback</>}
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         );
                     })}
@@ -135,6 +169,24 @@ const MyAppointments = () => {
                 <PatientRecordModal 
                     appointment={viewingRecordApt} 
                     onClose={() => setViewingRecordApt(null)} 
+                />
+            )}
+
+            {viewingBookingApt && (
+                <ViewBookingModal 
+                    appointment={viewingBookingApt} 
+                    onClose={() => setViewingBookingApt(null)} 
+                />
+            )}
+
+            {feedbackApt && (
+                <FeedbackModal 
+                    appointment={feedbackApt}
+                    isReadOnly={feedbackApt.isReviewed}
+                    onClose={() => setFeedbackApt(null)}
+                    onFeedbackSubmitted={() => {
+                        fetchAppointments(); // refresh to show "View Feedback"
+                    }}
                 />
             )}
         </div>

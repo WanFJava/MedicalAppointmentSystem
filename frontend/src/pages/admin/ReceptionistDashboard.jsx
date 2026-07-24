@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
 import { getAllAppointments, updateAppointmentStatus, deleteAppointment } from '../../api/appointmentApi';
-import { CheckCircle, XCircle, UserCheck, Trash2 } from 'lucide-react';
+import { CheckCircle, XCircle, UserCheck, Trash2, Star } from 'lucide-react';
 import BillModal from './BillModal';
+import FeedbackModal from '../FeedbackModal';
 
 const ReceptionistDashboard = () => {
     const { user } = useContext(AuthContext);
     const [appointments, setAppointments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [billingApt, setBillingApt] = useState(null);
+    const [feedbackApt, setFeedbackApt] = useState(null);
 
     useEffect(() => {
         fetchAppointments();
@@ -139,6 +141,14 @@ const ReceptionistDashboard = () => {
                                                     Bill & Pay
                                                 </button>
                                             )}
+                                            {apt.status === 'COMPLETED' && apt.isReviewed && (
+                                                <button 
+                                                    title="View Patient Feedback"
+                                                    onClick={() => setFeedbackApt(apt)}
+                                                    style={{ padding: '0.5rem', backgroundColor: '#fef9c3', color: '#854d0e', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>
+                                                    <Star size={16} />
+                                                </button>
+                                            )}
                                             {/* Note: DOCTOR will change status to COMPLETED */}
                                             {user?.role === 'ADMIN' && (
                                                 <button 
@@ -170,6 +180,14 @@ const ReceptionistDashboard = () => {
                         setBillingApt(null);
                         fetchAppointments();
                     }} 
+                />
+            )}
+
+            {feedbackApt && (
+                <FeedbackModal 
+                    appointment={feedbackApt}
+                    isReadOnly={true}
+                    onClose={() => setFeedbackApt(null)}
                 />
             )}
         </div>

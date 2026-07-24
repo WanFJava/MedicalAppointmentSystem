@@ -3,9 +3,11 @@ import { AuthContext } from '../../context/AuthContext';
 import { getDoctorByUserId } from '../../api/adminApi';
 import { getDoctorAppointments } from '../../api/appointmentApi';
 import { getPatientProfile } from '../../api/patientApi';
-import { CheckCircle, ClipboardList, Calendar, Info, X } from 'lucide-react';
+import { CheckCircle, ClipboardList, Calendar, Info, X, Star, FileText } from 'lucide-react';
 import ScheduleManager from './ScheduleManager';
 import DoctorDiagnoseModal from './DoctorDiagnoseModal';
+import FeedbackModal from '../FeedbackModal';
+import PatientRecordModal from '../PatientRecordModal';
 
 const DoctorDashboard = () => {
     const { user } = useContext(AuthContext);
@@ -14,6 +16,8 @@ const DoctorDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [diagnosingApt, setDiagnosingApt] = useState(null);
     const [viewingPatient, setViewingPatient] = useState(null);
+    const [feedbackApt, setFeedbackApt] = useState(null);
+    const [viewingRecordApt, setViewingRecordApt] = useState(null);
     const [activeTab, setActiveTab] = useState('appointments'); // 'appointments' or 'schedule'
 
     useEffect(() => {
@@ -127,6 +131,26 @@ const DoctorDashboard = () => {
                                             <CheckCircle size={16} /> Diagnose
                                         </button>
                                     )}
+                                    {apt.status === 'COMPLETED' && apt.isReviewed && (
+                                        <button 
+                                            className="btn-secondary" 
+                                            style={{ padding: '0.5rem 0.75rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#fef9c3', color: '#854d0e', border: 'none' }}
+                                            onClick={() => setFeedbackApt(apt)}
+                                            title="View Patient Feedback"
+                                        >
+                                            <Star size={16} /> Feedback
+                                        </button>
+                                    )}
+                                    {['COMPLETED', 'PAID'].includes(apt.status) && (
+                                        <button 
+                                            className="btn-primary" 
+                                            style={{ padding: '0.5rem 0.75rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#4f46e5' }}
+                                            onClick={() => setViewingRecordApt(apt)}
+                                            title="View Medical Record"
+                                        >
+                                            <FileText size={16} /> Record
+                                        </button>
+                                    )}
                                 </td>
                             </tr>
                         );
@@ -231,6 +255,22 @@ const DoctorDashboard = () => {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Feedback Modal */}
+            {feedbackApt && (
+                <FeedbackModal 
+                    appointment={feedbackApt}
+                    isReadOnly={true}
+                    onClose={() => setFeedbackApt(null)}
+                />
+            )}
+
+            {viewingRecordApt && (
+                <PatientRecordModal 
+                    appointment={viewingRecordApt} 
+                    onClose={() => setViewingRecordApt(null)} 
+                />
             )}
         </div>
     );
