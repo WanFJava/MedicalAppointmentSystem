@@ -15,6 +15,7 @@ import Home from './pages/Home';
 import BookingPage from './pages/BookingPage';
 import MyAppointments from './pages/MyAppointments';
 import PatientProfile from './pages/PatientProfile';
+import SearchPage from './pages/SearchPage';
 
 function App() {
   const { user } = useContext(AuthContext);
@@ -24,6 +25,7 @@ function App() {
       {/* Public / Patient Routes with Header & Footer */}
       <Route element={<MainLayout />}>
         <Route path="/" element={<Home />} />
+        <Route path="/search" element={<SearchPage />} />
         <Route path="/login" element={user ? (['ADMIN', 'RECEPTIONIST', 'DOCTOR'].includes(user.role) ? <Navigate to="/admin" /> : <Navigate to="/" />) : <Login />} />
         <Route path="/register" element={user ? (['ADMIN', 'RECEPTIONIST', 'DOCTOR'].includes(user.role) ? <Navigate to="/admin" /> : <Navigate to="/" />) : <Register />} />
         <Route path="/book" element={<BookingPage />} />
