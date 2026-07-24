@@ -29,7 +29,6 @@ const DoctorDashboard = () => {
             setDoctor(docData);
 
             const aptData = await getDoctorAppointments(docData.id);
-            aptData.sort((a, b) => new Date(a.scheduleDate) - new Date(b.scheduleDate));
             setAppointments(aptData);
         } catch (error) {
             console.error("Failed to load doctor dashboard data", error);
@@ -74,8 +73,8 @@ const DoctorDashboard = () => {
     }
 
     // Filter to show active appointments at top, completed at bottom
-    const activeAppointments = appointments.filter(a => ['CONFIRMED', 'CHECKED_IN'].includes(a.status));
-    const otherAppointments = appointments.filter(a => !['CONFIRMED', 'CHECKED_IN'].includes(a.status));
+    const activeAppointments = appointments.filter(a => ['PENDING', 'CONFIRMED', 'CHECKED_IN'].includes(a.status));
+    const otherAppointments = appointments.filter(a => !['PENDING', 'CONFIRMED', 'CHECKED_IN'].includes(a.status));
 
     const renderTable = (apts, title) => (
         <div className="table-container" style={{ marginBottom: '2rem' }}>
@@ -174,8 +173,8 @@ const DoctorDashboard = () => {
 
             {activeTab === 'appointments' ? (
                 <>
-                    {renderTable(activeAppointments, "Waiting & In-Progress Patients (CHECKED_IN / CONFIRMED)")}
-                    {renderTable(otherAppointments, "Other Appointments (PENDING / COMPLETED / CANCELLED)")}
+                    {renderTable(activeAppointments, "Waiting & In-Progress Patients (PENDING / CHECKED_IN / CONFIRMED)")}
+                    {renderTable(otherAppointments, "Other Appointments (COMPLETED / CANCELLED)")}
                 </>
             ) : (
                 <ScheduleManager doctorId={doctor.id} />

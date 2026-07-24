@@ -67,7 +67,7 @@ const DoctorProfile = () => {
 
     return (
         <div style={{ backgroundColor: '#f8fafc', minHeight: '100vh', padding: '3rem 1rem' }}>
-            <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+            <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
                 
                 <button 
                     onClick={() => navigate(-1)} 
@@ -79,47 +79,55 @@ const DoctorProfile = () => {
                 <div style={{ backgroundColor: 'white', borderRadius: '1rem', overflow: 'hidden', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column' }}>
                     <div style={{ background: 'linear-gradient(to right, #4f46e5, #3b82f6)', height: '150px' }}></div>
                     
-                    <div style={{ padding: '0 2rem 2rem 2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '-75px' }}>
-                        <div style={{ width: '150px', height: '150px', borderRadius: '50%', border: '5px solid white', backgroundColor: '#f3f4f6', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
-                            {doctor.avatar ? (
-                                <img src={doctor.avatar} alt={doctor.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            ) : (
-                                <div style={{ width: '100%', height: '100%', backgroundColor: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: '3rem', fontWeight: 'bold' }}>
-                                    {doctor.fullName?.charAt(0)}
+                    <div style={{ padding: '0 2rem 2rem 2rem', display: 'flex', flexDirection: 'row', gap: '3rem', alignItems: 'flex-start', marginTop: '-60px' }}>
+                        
+                        {/* LEFT COLUMN: Doctor Info */}
+                        <div style={{ flex: '1', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            <div style={{ width: '150px', height: '150px', borderRadius: '50%', border: '5px solid white', backgroundColor: '#f3f4f6', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+                                {doctor.avatar ? (
+                                    <img src={doctor.avatar} alt={doctor.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                ) : (
+                                    <div style={{ width: '100%', height: '100%', backgroundColor: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: '3rem', fontWeight: 'bold' }}>
+                                        {doctor.fullName?.charAt(0)}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div style={{ textAlign: 'center', marginTop: '1.5rem', width: '100%' }}>
+                                <h1 style={{ fontSize: '2rem', fontWeight: '800', color: '#1f2937', marginBottom: '0.5rem' }}>
+                                    {doctor.degree} {doctor.fullName}
+                                </h1>
+                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', color: '#4f46e5', fontWeight: '600', fontSize: '1.125rem', marginBottom: '1.5rem' }}>
+                                    <Stethoscope size={20} />
+                                    <span>{doctor.specialtyName}</span>
                                 </div>
-                            )}
+
+                                <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2.5rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#fef3c7', padding: '0.5rem 1rem', borderRadius: '2rem' }}>
+                                        <Star size={20} color="#d97706" fill="#d97706" />
+                                        <span style={{ color: '#92400e', fontWeight: '700', fontSize: '1rem' }}>{doctor.averageRating?.toFixed(1) || '0.0'} Rating</span>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#e0e7ff', padding: '0.5rem 1rem', borderRadius: '2rem' }}>
+                                        <Clock size={20} color="#4f46e5" />
+                                        <span style={{ color: '#3730a3', fontWeight: '600', fontSize: '1rem' }}>{doctor.experience} Years Exp</span>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#d1fae5', padding: '0.5rem 1rem', borderRadius: '2rem' }}>
+                                        <Activity size={20} color="#059669" />
+                                        <span style={{ color: '#065f46', fontWeight: '600', fontSize: '1rem' }}>Fee: ${doctor.consultationFee}</span>
+                                    </div>
+                                </div>
+                                
+                                {doctor.bio && (
+                                    <div style={{ backgroundColor: '#f9fafb', padding: '2rem', borderRadius: '0.75rem', textAlign: 'left', marginBottom: '2.5rem', border: '1px solid #f3f4f6' }}>
+                                        <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1f2937', marginBottom: '1rem' }}>About Dr. {doctor.fullName}</h3>
+                                        <p style={{ color: '#4b5563', lineHeight: '1.8' }}>{doctor.bio}</p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
-                        <div style={{ textAlign: 'center', marginTop: '1.5rem', width: '100%' }}>
-                            <h1 style={{ fontSize: '2rem', fontWeight: '800', color: '#1f2937', marginBottom: '0.5rem' }}>
-                                {doctor.degree} {doctor.fullName}
-                            </h1>
-                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', color: '#4f46e5', fontWeight: '600', fontSize: '1.125rem', marginBottom: '1.5rem' }}>
-                                <Stethoscope size={20} />
-                                <span>{doctor.specialtyName}</span>
-                            </div>
-
-                            <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '1.5rem', marginBottom: '2.5rem' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#fef3c7', padding: '0.5rem 1rem', borderRadius: '2rem' }}>
-                                    <Star size={20} color="#d97706" fill="#d97706" />
-                                    <span style={{ color: '#92400e', fontWeight: '700', fontSize: '1rem' }}>{doctor.averageRating?.toFixed(1) || '0.0'} Rating</span>
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#e0e7ff', padding: '0.5rem 1rem', borderRadius: '2rem' }}>
-                                    <Clock size={20} color="#4f46e5" />
-                                    <span style={{ color: '#3730a3', fontWeight: '600', fontSize: '1rem' }}>{doctor.experience} Years Exp</span>
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#d1fae5', padding: '0.5rem 1rem', borderRadius: '2rem' }}>
-                                    <Activity size={20} color="#059669" />
-                                    <span style={{ color: '#065f46', fontWeight: '600', fontSize: '1rem' }}>Consultation Fee: ${doctor.consultationFee}</span>
-                                </div>
-                            </div>
-                            
-                            {doctor.bio && (
-                                <div style={{ backgroundColor: '#f9fafb', padding: '2rem', borderRadius: '0.75rem', textAlign: 'left', marginBottom: '2.5rem', border: '1px solid #f3f4f6' }}>
-                                    <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1f2937', marginBottom: '1rem' }}>About Dr. {doctor.fullName}</h3>
-                                    <p style={{ color: '#4b5563', lineHeight: '1.8' }}>{doctor.bio}</p>
-                                </div>
-                            )}
+                        {/* RIGHT COLUMN: Booking & Schedule */}
+                        <div style={{ flex: '1', width: '100%', marginTop: '60px' }}>
 
                             <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '0.75rem', textAlign: 'left', marginBottom: '2.5rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
                                 <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1f2937', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -180,30 +188,30 @@ const DoctorProfile = () => {
                                 )}
                             </div>
 
-                            <button 
-                                className="btn-primary" 
-                                style={{ 
-                                    padding: '1.25rem 3rem', fontSize: '1.25rem', borderRadius: '0.75rem', 
-                                    boxShadow: '0 4px 6px -1px rgba(79, 70, 229, 0.4)',
-                                    opacity: !selectedSchedule ? 0.5 : 1,
-                                    cursor: !selectedSchedule ? 'not-allowed' : 'pointer'
-                                }}
-                                disabled={!selectedSchedule}
-                                onClick={() => {
-                                    if (user) {
-                                        navigate('/book', { state: { preselectDoctor: doctor.id, selectedDate, selectedSchedule } });
-                                    } else {
-                                        navigate('/login');
-                                    }
-                                }}
-                            >
-                                {selectedSchedule ? 'Book Appointment Now' : 'Select a Time Slot to Book'}
-                            </button>
+                                <button 
+                                    className="btn-primary" 
+                                    style={{ 
+                                        width: '100%', padding: '1.25rem', fontSize: '1.125rem', borderRadius: '0.75rem', 
+                                        boxShadow: '0 4px 6px -1px rgba(79, 70, 229, 0.4)',
+                                        opacity: !selectedSchedule ? 0.5 : 1,
+                                        cursor: !selectedSchedule ? 'not-allowed' : 'pointer'
+                                    }}
+                                    disabled={!selectedSchedule}
+                                    onClick={() => {
+                                        if (user) {
+                                            navigate('/book', { state: { preselectDoctor: doctor.id, selectedDate, selectedSchedule } });
+                                        } else {
+                                            navigate('/login');
+                                        }
+                                    }}
+                                >
+                                    {selectedSchedule ? 'Book Appointment Now' : 'Select a Time Slot to Book'}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
     );
 };
 

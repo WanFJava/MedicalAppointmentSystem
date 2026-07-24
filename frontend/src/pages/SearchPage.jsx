@@ -8,10 +8,10 @@ const SearchPage = () => {
     const { user } = useContext(AuthContext);
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
-    
+
     const initialQuery = searchParams.get("q") || "";
     const [searchQuery, setSearchQuery] = useState(initialQuery);
-    
+
     const [doctors, setDoctors] = useState([]);
     const [specialties, setSpecialties] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -40,12 +40,12 @@ const SearchPage = () => {
 
     const currentQuery = searchParams.get("q") || "";
 
-    const filteredDoctors = doctors.filter(d => 
-        d.fullName?.toLowerCase().includes(currentQuery.toLowerCase()) || 
+    const filteredDoctors = doctors.filter(d =>
+        d.fullName?.toLowerCase().includes(currentQuery.toLowerCase()) ||
         d.specialtyName?.toLowerCase().includes(currentQuery.toLowerCase())
     );
-    
-    const filteredSpecialties = specialties.filter(s => 
+
+    const filteredSpecialties = specialties.filter(s =>
         s.name?.toLowerCase().includes(currentQuery.toLowerCase()) ||
         s.description?.toLowerCase().includes(currentQuery.toLowerCase())
     );
@@ -53,13 +53,13 @@ const SearchPage = () => {
     return (
         <div style={{ backgroundColor: '#f8fafc', minHeight: '100vh', padding: '2rem' }}>
             <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-                <h1 style={{ fontSize: '2.5rem', fontWeight: '800', color: '#1f2937', marginBottom: '2rem', textAlign: 'center' }}>Search Results</h1>
-                
+                <h1 style={{ fontSize: '2.5rem', fontWeight: '800', color: '#1f2937', marginBottom: '2rem', textAlign: 'center' }}>Search </h1>
+
                 <form onSubmit={handleSearch} style={{ position: 'relative', maxWidth: '600px', margin: '0 auto 3rem auto', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', borderRadius: '0.5rem' }}>
                     <Search style={{ position: 'absolute', left: '16px', top: '16px', color: '#9ca3af' }} size={24} />
-                    <input 
-                        type="text" 
-                        placeholder="Search doctors, specialties..." 
+                    <input
+                        type="text"
+                        placeholder="Search doctors, specialties..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         style={{
@@ -100,18 +100,18 @@ const SearchPage = () => {
                                         transition: 'transform 0.2s, boxShadow 0.2s',
                                         cursor: 'pointer'
                                     }}
-                                    onMouseOver={(e) => { e.currentTarget.style.transform = 'translateX(5px)'; e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)'; }}
-                                    onMouseOut={(e) => { e.currentTarget.style.transform = 'translateX(0)'; e.currentTarget.style.boxShadow = '0 2px 4px -1px rgba(0, 0, 0, 0.05)'; }}
+                                        onMouseOver={(e) => { e.currentTarget.style.transform = 'translateX(5px)'; e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)'; }}
+                                        onMouseOut={(e) => { e.currentTarget.style.transform = 'translateX(0)'; e.currentTarget.style.boxShadow = '0 2px 4px -1px rgba(0, 0, 0, 0.05)'; }}
                                     >
-                                        <div style={{ 
-                                            backgroundColor: '#e0e7ff', 
-                                            color: '#4f46e5', 
-                                            width: '60px', 
-                                            height: '60px', 
+                                        <div style={{
+                                            backgroundColor: '#e0e7ff',
+                                            color: '#4f46e5',
+                                            width: '60px',
+                                            height: '60px',
                                             minWidth: '60px',
-                                            borderRadius: '50%', 
-                                            display: 'flex', 
-                                            alignItems: 'center', 
+                                            borderRadius: '50%',
+                                            display: 'flex',
+                                            alignItems: 'center',
                                             justifyContent: 'center'
                                         }}>
                                             <Activity size={28} />
@@ -151,9 +151,9 @@ const SearchPage = () => {
                                         gap: '2rem',
                                         cursor: 'pointer'
                                     }}
-                                    onClick={() => navigate(`/doctor/${doc.id}`)}
-                                    onMouseOver={(e) => { e.currentTarget.style.transform = 'translateX(5px)'; e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)'; }}
-                                    onMouseOut={(e) => { e.currentTarget.style.transform = 'translateX(0)'; e.currentTarget.style.boxShadow = '0 2px 4px -1px rgba(0, 0, 0, 0.05)'; }}
+                                        onClick={() => navigate(`/doctor/${doc.id}`)}
+                                        onMouseOver={(e) => { e.currentTarget.style.transform = 'translateX(5px)'; e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)'; }}
+                                        onMouseOut={(e) => { e.currentTarget.style.transform = 'translateX(0)'; e.currentTarget.style.boxShadow = '0 2px 4px -1px rgba(0, 0, 0, 0.05)'; }}
                                     >
                                         <div style={{ width: '120px', height: '120px', minWidth: '120px', borderRadius: '50%', backgroundColor: '#f3f4f6', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }}>
                                             {doc.avatar ? (
@@ -173,7 +173,7 @@ const SearchPage = () => {
                                                 </div>
                                             </div>
                                             <p style={{ color: '#4f46e5', fontWeight: '500', marginBottom: '0.75rem' }}>{doc.specialtyName}</p>
-                                            
+
                                             <div style={{ display: 'flex', gap: '2rem', color: '#6b7280', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                                                     <Clock size={16} /> {doc.experience} Years Experience
@@ -184,8 +184,8 @@ const SearchPage = () => {
                                             </div>
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center' }}>
-                                            <button 
-                                                className="btn-primary" 
+                                            <button
+                                                className="btn-primary"
                                                 style={{ padding: '0.75rem 1.5rem', width: 'auto', whiteSpace: 'nowrap' }}
                                                 onClick={(e) => {
                                                     e.stopPropagation();

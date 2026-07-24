@@ -37,7 +37,11 @@ function App() {
       
       {/* Admin Protected routes */}
       <Route path="/admin" element={['ADMIN', 'RECEPTIONIST', 'DOCTOR'].includes(user?.role) ? <AdminLayout /> : <Navigate to="/" />}>
-        <Route index element={<Dashboard />} />
+        <Route index element={
+          user?.role === 'RECEPTIONIST' ? <Navigate to="/admin/appointments" replace /> :
+          user?.role === 'DOCTOR' ? <Navigate to="/admin/my-schedule" replace /> :
+          <Dashboard />
+        } />
         <Route path="specialties" element={<SpecialtyManager />} />
         <Route path="doctors" element={<DoctorManager />} />
         <Route path="appointments" element={<ReceptionistDashboard />} />

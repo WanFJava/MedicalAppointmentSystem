@@ -18,8 +18,6 @@ const ReceptionistDashboard = () => {
         try {
             setLoading(true);
             const data = await getAllAppointments();
-            // Optional: sort by date and time
-            data.sort((a, b) => new Date(a.scheduleDate) - new Date(b.scheduleDate));
             setAppointments(data);
         } catch (error) {
             console.error("Failed to fetch appointments", error);

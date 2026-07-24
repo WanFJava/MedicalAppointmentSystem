@@ -46,7 +46,7 @@ export const getAllAppointments = async () => {
 };
 
 export const updateAppointmentStatus = async (id, status) => {
-    const response = await api.put(`/appointments/${id}/status`, null, { params: { status } });
+    const response = await api.put(`/appointments/${id}/status`, {}, { params: { status } });
     return response.data;
 };
 
