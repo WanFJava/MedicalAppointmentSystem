@@ -1,13 +1,18 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { getSpecialties, getDoctors } from '../api/adminApi';
 import { getAvailableSchedules, bookAppointment } from '../api/appointmentApi';
+import { getPatientProfile } from '../api/patientApi';
 import { Calendar, User, Stethoscope, Clock, CheckCircle } from 'lucide-react';
 
 const BookingPage = () => {
     const { user } = useContext(AuthContext);
     const navigate = useNavigate();
+    const location = useLocation();
+    const preselectDoctorId = location.state?.preselectDoctor;
+    const initialSelectedDate = location.state?.selectedDate;
+    const initialSelectedSchedule = location.state?.selectedSchedule;
 
     const [specialties, setSpecialties] = useState([]);
     const [doctors, setDoctors] = useState([]);
@@ -20,6 +25,7 @@ const BookingPage = () => {
     const [selectedDate, setSelectedDate] = useState('');
     const [selectedSchedule, setSelectedSchedule] = useState(null);
     const [symptom, setSymptom] = useState('');
+    const [patientProfile, setPatientProfile] = useState(null);
     
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
@@ -35,9 +41,35 @@ const BookingPage = () => {
 
     const fetchInitialData = async () => {
         try {
+            // Check if profile is complete
+            const profile = await getPatientProfile(user.id);
+            if (!profile.birthday || !profile.gender || !profile.address || !profile.bloodGroup || !profile.phone) {
+                alert("Please complete your profile information (Phone, Birthday, Gender, Address, Blood Group) before booking an appointment.");
+                navigate('/profile');
+                return;
+            }
+            setPatientProfile(profile);
+
             const [specs, docs] = await Promise.all([getSpecialties(), getDoctors()]);
             setSpecialties(specs);
             setDoctors(docs);
+            
+            if (preselectDoctorId) {
+                const doc = docs.find(d => d.id === preselectDoctorId);
+                if (doc) {
+                    setSelectedSpec(doc.specialtyId);
+                    setSelectedDoctor(doc);
+                    
+                    if (initialSelectedDate && initialSelectedSchedule) {
+                        setSelectedDate(initialSelectedDate);
+                        setSelectedSchedule(initialSelectedSchedule);
+                        setStep(4);
+                    } else {
+                        fetchSchedules(doc.id);
+                        setStep(3);
+                    }
+                }
+            }
         } catch (error) {
             console.error("Failed to load specialties and doctors", error);
         }
@@ -274,10 +306,11 @@ const BookingPage = () => {
                         <h2 style={{ fontSize: '1.25rem', marginBottom: '1.5rem' }}>Confirm Details</h2>
                         
                         <div style={{ backgroundColor: '#f8fafc', padding: '1.5rem', borderRadius: '0.75rem', marginBottom: '2rem', border: '1px solid #e2e8f0' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#1f2937', marginBottom: '1rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem' }}>Appointment Details</h3>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
                                 <div>
                                     <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>Doctor</div>
-                                    <div style={{ fontWeight: 600, color: '#1f2937' }}>{selectedDoctor.fullName}</div>
+                                    <div style={{ fontWeight: 600, color: '#1f2937' }}>{selectedDoctor?.fullName}</div>
                                 </div>
                                 <div>
                                     <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>Specialty</div>
@@ -290,6 +323,26 @@ const BookingPage = () => {
                                 <div>
                                     <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>Time</div>
                                     <div style={{ fontWeight: 600, color: '#1f2937' }}>{formatTime(selectedSchedule?.startTime)} - {formatTime(selectedSchedule?.endTime)}</div>
+                                </div>
+                            </div>
+
+                            <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#1f2937', marginBottom: '1rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem' }}>Patient Details</h3>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div>
+                                    <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>Patient Name</div>
+                                    <div style={{ fontWeight: 600, color: '#1f2937' }}>{patientProfile?.fullName}</div>
+                                </div>
+                                <div>
+                                    <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>Phone</div>
+                                    <div style={{ fontWeight: 600, color: '#1f2937' }}>{patientProfile?.phone}</div>
+                                </div>
+                                <div>
+                                    <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>Gender / Blood</div>
+                                    <div style={{ fontWeight: 600, color: '#1f2937' }}>{patientProfile?.gender} / {patientProfile?.bloodGroup}</div>
+                                </div>
+                                <div>
+                                    <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>Allergies</div>
+                                    <div style={{ fontWeight: 600, color: '#1f2937' }}>{patientProfile?.allergy || 'None'}</div>
                                 </div>
                             </div>
                         </div>

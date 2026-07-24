@@ -205,6 +205,7 @@ const Home = () => {
                                 display: 'flex',
                                 flexDirection: 'column'
                             }}
+                            onClick={() => navigate(`/doctor/${doc.id}`)}
                             onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; }}
                             onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
                             >
@@ -238,7 +239,8 @@ const Home = () => {
                                     <button 
                                         className="btn-primary" 
                                         style={{ marginTop: '1.25rem', width: '100%' }}
-                                        onClick={() => {
+                                        onClick={(e) => {
+                                            e.stopPropagation();
                                             if (user) {
                                                 navigate('/book', { state: { preselectDoctor: doc.id } });
                                             } else {

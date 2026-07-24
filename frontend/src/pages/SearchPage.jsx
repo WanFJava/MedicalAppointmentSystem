@@ -148,8 +148,10 @@ const SearchPage = () => {
                                         flexDirection: 'row',
                                         alignItems: 'center',
                                         padding: '1.5rem',
-                                        gap: '2rem'
+                                        gap: '2rem',
+                                        cursor: 'pointer'
                                     }}
+                                    onClick={() => navigate(`/doctor/${doc.id}`)}
                                     onMouseOver={(e) => { e.currentTarget.style.transform = 'translateX(5px)'; e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)'; }}
                                     onMouseOut={(e) => { e.currentTarget.style.transform = 'translateX(0)'; e.currentTarget.style.boxShadow = '0 2px 4px -1px rgba(0, 0, 0, 0.05)'; }}
                                     >
