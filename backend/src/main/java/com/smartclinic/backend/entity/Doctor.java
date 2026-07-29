@@ -37,4 +37,7 @@ public class Doctor {
 
     @Column(name = "total_reviews")
     private Integer totalReviews = 0;
+
+    @Column(name = "biography", columnDefinition = "NVARCHAR(MAX)")
+    private String biography;
 }

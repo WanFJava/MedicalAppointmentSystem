@@ -17,6 +17,7 @@ import BookingPage from './pages/BookingPage';
 import MyAppointments from './pages/MyAppointments';
 import PatientProfile from './pages/PatientProfile';
 import SearchPage from './pages/SearchPage';
+import SpecialtyDoctorsPage from './pages/SpecialtyDoctorsPage';
 
 function App() {
   const { user } = useContext(AuthContext);
@@ -27,6 +28,7 @@ function App() {
       <Route element={<MainLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/search" element={<SearchPage />} />
+        <Route path="/specialty/:id" element={<SpecialtyDoctorsPage />} />
         <Route path="/doctor/:id" element={<DoctorProfile />} />
         <Route path="/login" element={user ? (['ADMIN', 'RECEPTIONIST', 'DOCTOR'].includes(user.role) ? <Navigate to="/admin" /> : <Navigate to="/" />) : <Login />} />
         <Route path="/register" element={user ? (['ADMIN', 'RECEPTIONIST', 'DOCTOR'].includes(user.role) ? <Navigate to="/admin" /> : <Navigate to="/" />) : <Register />} />

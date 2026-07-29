@@ -78,7 +78,13 @@ const DoctorProfile = () => {
             <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
                 
                 <button 
-                    onClick={() => navigate(-1)} 
+                    onClick={() => {
+                        if (window.history.state && window.history.state.idx > 0) {
+                            navigate(-1);
+                        } else {
+                            navigate('/');
+                        }
+                    }} 
                     style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '500' }}
                 >
                     ← Back
@@ -103,18 +109,23 @@ const DoctorProfile = () => {
 
                             <div style={{ textAlign: 'center', marginTop: '1.5rem', width: '100%' }}>
                                 <h1 style={{ fontSize: '2rem', fontWeight: '800', color: '#1f2937', marginBottom: '0.5rem' }}>
-                                    {doctor.degree} {doctor.fullName}
+                                    {doctor.fullName}
                                 </h1>
+                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#fef3c7', padding: '0.25rem 1rem', borderRadius: '2rem' }}>
+                                        <Star size={18} color="#d97706" fill="#d97706" />
+                                        <span style={{ color: '#92400e', fontWeight: '700', fontSize: '1rem' }}>{doctor.averageRating?.toFixed(1) || '0.0'} Rating</span>
+                                    </div>
+                                </div>
+                                <div style={{ fontSize: '1.125rem', color: '#6b7280', fontWeight: '500', marginBottom: '1.5rem' }}>
+                                    {doctor.degree}
+                                </div>
                                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', color: '#4f46e5', fontWeight: '600', fontSize: '1.125rem', marginBottom: '1.5rem' }}>
                                     <Stethoscope size={20} />
                                     <span>{doctor.specialtyName}</span>
                                 </div>
 
                                 <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2.5rem' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#fef3c7', padding: '0.5rem 1rem', borderRadius: '2rem' }}>
-                                        <Star size={20} color="#d97706" fill="#d97706" />
-                                        <span style={{ color: '#92400e', fontWeight: '700', fontSize: '1rem' }}>{doctor.averageRating?.toFixed(1) || '0.0'} Rating</span>
-                                    </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#e0e7ff', padding: '0.5rem 1rem', borderRadius: '2rem' }}>
                                         <Clock size={20} color="#4f46e5" />
                                         <span style={{ color: '#3730a3', fontWeight: '600', fontSize: '1rem' }}>{doctor.experience} Years Exp</span>
@@ -125,10 +136,10 @@ const DoctorProfile = () => {
                                     </div>
                                 </div>
                                 
-                                {doctor.bio && (
+                                {doctor.biography && (
                                     <div style={{ backgroundColor: '#f9fafb', padding: '2rem', borderRadius: '0.75rem', textAlign: 'left', marginBottom: '2.5rem', border: '1px solid #f3f4f6' }}>
                                         <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1f2937', marginBottom: '1rem' }}>About Dr. {doctor.fullName}</h3>
-                                        <p style={{ color: '#4b5563', lineHeight: '1.8' }}>{doctor.bio}</p>
+                                        <p style={{ color: '#4b5563', lineHeight: '1.8', whiteSpace: 'pre-wrap' }}>{doctor.biography}</p>
                                     </div>
                                 )}
                             </div>

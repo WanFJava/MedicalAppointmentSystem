@@ -33,10 +33,7 @@ const SearchPage = () => {
         fetchData();
     }, []);
 
-    const handleSearch = (e) => {
-        e.preventDefault();
-        setSearchParams({ q: searchQuery });
-    };
+
 
     const currentQuery = searchParams.get("q") || "";
 
@@ -55,25 +52,30 @@ const SearchPage = () => {
             <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
                 <h1 style={{ fontSize: '2.5rem', fontWeight: '800', color: '#1f2937', marginBottom: '2rem', textAlign: 'center' }}>Search </h1>
 
-                <form onSubmit={handleSearch} style={{ position: 'relative', maxWidth: '600px', margin: '0 auto 3rem auto', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', borderRadius: '0.5rem' }}>
+                <form onSubmit={(e) => e.preventDefault()} style={{ position: 'relative', maxWidth: '600px', margin: '0 auto 3rem auto', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', borderRadius: '0.5rem' }}>
                     <Search style={{ position: 'absolute', left: '16px', top: '16px', color: '#9ca3af' }} size={24} />
                     <input
                         type="text"
                         placeholder="Search doctors, specialties..."
                         value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onChange={(e) => {
+                            const val = e.target.value;
+                            setSearchQuery(val);
+                            if (val) {
+                                setSearchParams({ q: val });
+                            } else {
+                                setSearchParams({});
+                            }
+                        }}
                         style={{
                             width: '100%',
-                            padding: '1rem 7rem 1rem 3.5rem',
+                            padding: '1rem 1.5rem 1rem 3.5rem',
                             borderRadius: '0.5rem',
                             border: '1px solid #d1d5db',
                             outline: 'none',
                             fontSize: '1.125rem'
                         }}
                     />
-                    <button type="submit" className="btn-primary" style={{ position: 'absolute', right: '0.5rem', top: '0.5rem', bottom: '0.5rem', padding: '0 1.5rem', borderRadius: '0.375rem', width: 'auto' }}>
-                        Search
-                    </button>
                 </form>
 
                 {loading ? (

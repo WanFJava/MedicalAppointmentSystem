@@ -6,7 +6,7 @@ const DoctorManager = () => {
     const [doctors, setDoctors] = useState([]);
     const [specialties, setSpecialties] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [formData, setFormData] = useState({ userId: '', email: '', password: '', fullName: '', phone: '', specialtyId: '', degree: '', experience: 0, consultationFee: 0 });
+    const [formData, setFormData] = useState({ userId: '', email: '', password: '', fullName: '', phone: '', specialtyId: '', degree: '', experience: 0, consultationFee: 0, biography: '' });
     const [editingId, setEditingId] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -40,11 +40,12 @@ const DoctorManager = () => {
                 specialtyId: doctor.specialtyId, 
                 degree: doctor.degree,
                 experience: doctor.experience,
-                consultationFee: doctor.consultationFee
+                consultationFee: doctor.consultationFee,
+                biography: doctor.biography || ''
             });
             setEditingId(doctor.id);
         } else {
-            setFormData({ userId: '', email: '', password: '', fullName: '', phone: '', specialtyId: specialties[0]?.id || '', degree: '', experience: 0, consultationFee: 0 });
+            setFormData({ userId: '', email: '', password: '', fullName: '', phone: '', specialtyId: specialties[0]?.id || '', degree: '', experience: 0, consultationFee: 0, biography: '' });
             setEditingId(null);
         }
         setIsModalOpen(true);
@@ -96,6 +97,7 @@ const DoctorManager = () => {
                             <th>Degree</th>
                             <th>Experience</th>
                             <th>Fee</th>
+                            <th>Biography</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -117,6 +119,11 @@ const DoctorManager = () => {
                                 <td>{doc.degree}</td>
                                 <td>{doc.experience} years</td>
                                 <td>${doc.consultationFee}</td>
+                                <td style={{ maxWidth: '250px' }}>
+                                    <div style={{ color: '#6b7280', fontSize: '0.85rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                        {doc.biography || <span style={{ fontStyle: 'italic', color: '#9ca3af' }}>No biography</span>}
+                                    </div>
+                                </td>
                                 <td>
                                     <div className="action-buttons">
                                         <button className="btn-icon btn-edit" onClick={() => handleOpenModal(doc)}>
@@ -140,7 +147,7 @@ const DoctorManager = () => {
 
             {isModalOpen && (
                 <div className="modal-overlay">
-                    <div className="modal-content">
+                    <div className="modal-content" style={{ maxWidth: '800px', width: '90%' }}>
                         <div className="modal-header">
                             <h3>{editingId ? 'Edit Doctor' : 'Add New Doctor'}</h3>
                             <button className="btn-close" onClick={() => setIsModalOpen(false)}>
@@ -192,30 +199,30 @@ const DoctorManager = () => {
                                     </div>
                                 </div>
                             )}
-                            <div className="form-group">
-                                <label>Specialty</label>
-                                <select 
-                                    className="form-control"
-                                    value={formData.specialtyId}
-                                    onChange={(e) => setFormData({...formData, specialtyId: e.target.value})}
-                                    required
-                                >
-                                    <option value="" disabled>Select Specialty</option>
-                                    {specialties.map(spec => (
-                                        <option key={spec.id} value={spec.id}>{spec.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="form-group">
-                                <label>Degree</label>
-                                <input 
-                                    type="text" 
-                                    required 
-                                    value={formData.degree} 
-                                    onChange={(e) => setFormData({...formData, degree: e.target.value})}
-                                />
-                            </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div className="form-group">
+                                    <label>Specialty</label>
+                                    <select 
+                                        className="form-control"
+                                        value={formData.specialtyId}
+                                        onChange={(e) => setFormData({...formData, specialtyId: e.target.value})}
+                                        required
+                                    >
+                                        <option value="" disabled>Select Specialty</option>
+                                        {specialties.map(spec => (
+                                            <option key={spec.id} value={spec.id}>{spec.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label>Degree</label>
+                                    <input 
+                                        type="text" 
+                                        required 
+                                        value={formData.degree} 
+                                        onChange={(e) => setFormData({...formData, degree: e.target.value})}
+                                    />
+                                </div>
                                 <div className="form-group">
                                     <label>Experience (Years)</label>
                                     <input 
@@ -235,6 +242,16 @@ const DoctorManager = () => {
                                         onChange={(e) => setFormData({...formData, consultationFee: e.target.value})}
                                     />
                                 </div>
+                            </div>
+                            <div className="form-group">
+                                <label>Biography</label>
+                                <textarea 
+                                    className="form-control"
+                                    rows="4"
+                                    value={formData.biography} 
+                                    onChange={(e) => setFormData({...formData, biography: e.target.value})}
+                                    placeholder="Enter doctor's biography..."
+                                ></textarea>
                             </div>
                             <div className="form-actions">
                                 <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>Cancel</button>

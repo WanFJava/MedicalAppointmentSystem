@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import { Calendar, Activity, Clock, Shield, Search, Star } from 'lucide-react';
+import { Calendar, Activity, Clock, Shield, Search, Star, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getDoctors, getSpecialties } from '../api/adminApi';
 
@@ -144,37 +144,59 @@ const Home = () => {
                         {specialties.map((spec) => (
                             <div key={spec.id} style={{
                                 backgroundColor: 'white',
-                                padding: '1.5rem',
-                                borderRadius: '1rem',
-                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                                border: '1px solid #e2e8f0',
+                                padding: '2rem 1.5rem',
+                                borderRadius: '1.25rem',
+                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+                                border: '1px solid #f1f5f9',
                                 display: 'flex',
                                 flexDirection: 'column',
-                                alignItems: 'center',
-                                textAlign: 'center',
-                                transition: 'transform 0.2s, boxShadow 0.2s',
-                                cursor: 'pointer'
+                                alignItems: 'flex-start',
+                                textAlign: 'left',
+                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                cursor: 'pointer',
+                                position: 'relative',
+                                overflow: 'hidden',
                             }}
-                            onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)'; }}
-                            onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)'; }}
+                            onClick={() => navigate(`/specialty/${spec.id}`)}
+                            onMouseOver={(e) => { 
+                                e.currentTarget.style.transform = 'translateY(-8px)'; 
+                                e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(79, 70, 229, 0.1), 0 8px 10px -6px rgba(79, 70, 229, 0.1)'; 
+                                e.currentTarget.style.borderColor = '#c7d2fe';
+                                const arrow = e.currentTarget.querySelector('.arrow-icon');
+                                if (arrow) arrow.style.transform = 'translateX(5px)';
+                            }}
+                            onMouseOut={(e) => { 
+                                e.currentTarget.style.transform = 'translateY(0)'; 
+                                e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)'; 
+                                e.currentTarget.style.borderColor = '#f1f5f9';
+                                const arrow = e.currentTarget.querySelector('.arrow-icon');
+                                if (arrow) arrow.style.transform = 'translateX(0)';
+                            }}
                             >
                                 <div style={{ 
-                                    backgroundColor: '#e0e7ff', 
+                                    background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)', 
                                     color: '#4f46e5', 
-                                    width: '60px', 
-                                    height: '60px', 
-                                    borderRadius: '50%', 
+                                    width: '56px', 
+                                    height: '56px', 
+                                    borderRadius: '16px', 
                                     display: 'flex', 
                                     alignItems: 'center', 
                                     justifyContent: 'center',
-                                    marginBottom: '1rem'
+                                    marginBottom: '1.5rem',
+                                    boxShadow: '0 4px 6px -1px rgba(79, 70, 229, 0.2)'
                                 }}>
                                     <Activity size={28} />
                                 </div>
-                                <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1f2937', marginBottom: '0.5rem' }}>{spec.name}</h3>
-                                <p style={{ color: '#6b7280', fontSize: '0.875rem', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1e293b', marginBottom: '0.75rem' }}>{spec.name}</h3>
+                                <p style={{ color: '#64748b', fontSize: '0.875rem', lineHeight: '1.6', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', marginBottom: '1.5rem', flex: 1 }}>
                                     {spec.description}
                                 </p>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#4f46e5', fontWeight: '600', fontSize: '0.875rem', marginTop: 'auto' }}>
+                                    <span>Explore Doctors</span>
+                                    <ArrowRight className="arrow-icon" size={16} style={{ transition: 'transform 0.3s ease' }} />
+                                </div>
+                                {/* Top corner accent */}
+                                <div style={{ position: 'absolute', top: 0, right: 0, width: '80px', height: '80px', background: 'radial-gradient(circle at top right, rgba(79, 70, 229, 0.05) 0%, transparent 70%)', borderRadius: '0 1.25rem 0 100%' }}></div>
                             </div>
                         ))}
                         {specialties.length === 0 && (
@@ -219,12 +241,13 @@ const Home = () => {
                                     )}
                                 </div>
                                 <div style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                                        <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1f2937' }}>{doc.degree} {doc.fullName}</h3>
-                                        <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#fef3c7', padding: '0.25rem 0.5rem', borderRadius: '1rem', gap: '0.25rem' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginBottom: '0.5rem' }}>
+                                        <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1f2937', margin: 0 }}>{doc.fullName}</h3>
+                                        <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#fef3c7', padding: '0.25rem 0.5rem', borderRadius: '1rem', gap: '0.25rem', width: 'fit-content' }}>
                                             <Star size={16} color="#d97706" fill="#d97706" />
                                             <span style={{ color: '#92400e', fontWeight: '600', fontSize: '0.875rem' }}>{doc.averageRating?.toFixed(1) || '0.0'}</span>
                                         </div>
+                                        <div style={{ fontSize: '0.875rem', color: '#6b7280', fontWeight: '500' }}>{doc.degree}</div>
                                     </div>
                                     <p style={{ color: '#4f46e5', fontWeight: '500', marginBottom: '1rem' }}>{doc.specialtyName}</p>
                                     
