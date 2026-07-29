@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Star, Clock, Activity } from 'lucide-react';
+import { Search, Heart, Star, User, Activity } from 'lucide-react';
+import DoctorCard from '../components/DoctorCard';
 import { AuthContext } from '../context/AuthContext';
 import { getDoctors, getSpecialties } from '../api/adminApi';
 
 const SpecialtyDoctorsPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { user } = useContext(AuthContext);
+    const { user, favoriteDoctorIds, toggleFavorite } = useContext(AuthContext);
 
     const [specialty, setSpecialty] = useState(null);
     const [doctors, setDoctors] = useState([]);
@@ -70,33 +71,41 @@ const SpecialtyDoctorsPage = () => {
                 {/* Specialty Header */}
                 <div style={{ 
                     backgroundColor: 'white', 
-                    padding: '3rem 2rem', 
-                    borderRadius: '1rem', 
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
+                    padding: '4rem 2rem', 
+                    borderRadius: '1.25rem', 
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)', 
+                    border: '1px solid #f1f5f9',
                     marginBottom: '3rem',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     textAlign: 'center',
-                    border: '1px solid #e2e8f0'
+                    position: 'relative',
+                    overflow: 'hidden'
                 }}>
+                    <div style={{ position: 'absolute', top: 0, right: 0, width: '200px', height: '200px', background: 'radial-gradient(circle at top right, rgba(79, 70, 229, 0.05) 0%, transparent 70%)', borderRadius: '0 1.25rem 0 100%' }}></div>
+                    <div style={{ position: 'absolute', bottom: 0, left: 0, width: '150px', height: '150px', background: 'radial-gradient(circle at bottom left, rgba(79, 70, 229, 0.03) 0%, transparent 70%)', borderRadius: '0 100% 0 1.25rem' }}></div>
+                    
                     <div style={{ 
-                        backgroundColor: '#e0e7ff', 
+                        background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)', 
                         color: '#4f46e5', 
                         width: '80px', 
                         height: '80px', 
-                        borderRadius: '50%', 
+                        borderRadius: '24px', 
                         display: 'flex', 
                         alignItems: 'center', 
                         justifyContent: 'center',
-                        marginBottom: '1.5rem'
+                        marginBottom: '1.5rem',
+                        boxShadow: '0 4px 6px -1px rgba(79, 70, 229, 0.2)',
+                        position: 'relative',
+                        zIndex: 1
                     }}>
                         <Activity size={40} />
                     </div>
-                    <h1 style={{ fontSize: '2.5rem', fontWeight: '800', color: '#1f2937', marginBottom: '1rem' }}>
+                    <h1 style={{ fontSize: '2.5rem', fontWeight: '800', color: '#1e293b', marginBottom: '1rem', position: 'relative', zIndex: 1 }}>
                         {specialty.name}
                     </h1>
-                    <p style={{ color: '#6b7280', fontSize: '1.125rem', maxWidth: '800px' }}>
+                    <p style={{ color: '#64748b', fontSize: '1.125rem', maxWidth: '800px', lineHeight: '1.6', position: 'relative', zIndex: 1 }}>
                         {specialty.description}
                     </p>
                 </div>
@@ -109,78 +118,7 @@ const SpecialtyDoctorsPage = () => {
                     
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                         {doctors.map((doc) => (
-                            <div key={doc.id} style={{
-                                backgroundColor: 'white',
-                                borderRadius: '1rem',
-                                overflow: 'hidden',
-                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
-                                border: '1px solid #e2e8f0',
-                                transition: 'transform 0.2s, boxShadow 0.2s',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                flexDirection: 'row',
-                                alignItems: 'stretch'
-                            }}
-                            onClick={() => navigate(`/doctor/${doc.id}`)}
-                            onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)'; }}
-                            onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05)'; }}
-                            >
-                                <div style={{ width: '220px', minWidth: '220px', backgroundColor: '#f3f4f6', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                    {doc.avatar ? (
-                                        <img src={doc.avatar} alt={doc.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                    ) : (
-                                        <div style={{ width: '100%', height: '100%', backgroundColor: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: '3rem', fontWeight: 'bold' }}>
-                                            {doc.fullName?.charAt(0)}
-                                        </div>
-                                    )}
-                                </div>
-                                <div style={{ padding: '1.5rem 2rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginBottom: '1rem' }}>
-                                            <h3 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#1f2937', margin: 0 }}>{doc.fullName}</h3>
-                                            <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#fef3c7', padding: '0.25rem 0.75rem', borderRadius: '1rem', gap: '0.25rem', width: 'fit-content' }}>
-                                                <Star size={16} color="#d97706" fill="#d97706" />
-                                                <span style={{ color: '#92400e', fontWeight: '600', fontSize: '0.875rem' }}>{doc.averageRating?.toFixed(1) || '0.0'}</span>
-                                            </div>
-                                            <div style={{ fontSize: '1rem', color: '#6b7280', fontWeight: '500' }}>{doc.degree}</div>
-                                        </div>
-                                        
-                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.75rem' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#6b7280', fontSize: '0.875rem' }}>
-                                                <Clock size={16} /> <span>{doc.experience} Years Exp</span>
-                                            </div>
-                                            <div style={{ fontWeight: '700', color: '#10b981', fontSize: '1.125rem' }}>
-                                                Fee: ${doc.consultationFee}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div style={{ color: '#4f46e5', fontWeight: '600', marginBottom: '0.75rem' }}>{doc.specialtyName}</div>
-                                    
-                                    {doc.biography && (
-                                        <p style={{ color: '#4b5563', fontSize: '0.95rem', lineHeight: '1.5', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', marginBottom: '1rem' }}>
-                                            {doc.biography}
-                                        </p>
-                                    )}
-                                    
-                                    <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'flex-end' }}>
-                                        <button 
-                                            className="btn-primary" 
-                                            style={{ padding: '0.75rem 2rem', width: 'auto' }}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                if (user) {
-                                                    navigate('/book', { state: { preselectDoctor: doc.id } });
-                                                } else {
-                                                    navigate('/login');
-                                                }
-                                            }}
-                                        >
-                                            Book Appointment
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
+                            <DoctorCard key={doc.id} doc={doc} />
                         ))}
                         {doctors.length === 0 && (
                             <p style={{ color: '#6b7280', gridColumn: '1 / -1', textAlign: 'center', padding: '2rem' }}>

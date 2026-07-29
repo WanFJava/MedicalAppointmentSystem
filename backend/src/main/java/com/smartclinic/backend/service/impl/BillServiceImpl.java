@@ -129,6 +129,9 @@ public class BillServiceImpl implements BillService {
         return new BillDto(
                 bill.getId(),
                 bill.getAppointment().getId(),
+                bill.getConsultationFee(),
+                bill.getMedicineFee(),
+                bill.getDiscount(),
                 bill.getTotalAmount(),
                 bill.getStatus(),
                 bill.getCreatedAt()

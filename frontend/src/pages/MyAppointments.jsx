@@ -94,92 +94,111 @@ const MyAppointments = () => {
                         const statusStyle = getStatusStyle(apt.status);
                         return (
                             <div key={apt.id} style={{ 
-                                backgroundColor: 'white', padding: '1.5rem', borderRadius: '1rem', 
-                                boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0',
-                                display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem'
+                                backgroundColor: 'white', borderRadius: '0.5rem', overflow: 'hidden',
+                                boxShadow: '0 2px 4px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0',
+                                display: 'flex', flexDirection: 'row', alignItems: 'stretch'
                             }}>
-                                <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', flex: 1 }}>
-                                    <div>
-                                        <div style={{ color: '#6b7280', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.25rem' }}>
-                                            <Calendar size={14} /> Date
+                                {/* LEFT COLUMN */}
+                                <div style={{ padding: '1.5rem', flex: '1 1 45%', display: 'flex', gap: '1.5rem', borderRight: '1px solid #e2e8f0', alignItems: 'center' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '80px' }}>
+                                        <div style={{ 
+                                            width: '80px', height: '80px', borderRadius: '50%', 
+                                            backgroundColor: '#f3f4f6', display: 'flex', justifyContent: 'center', alignItems: 'center',
+                                            border: '1px solid #e2e8f0', marginBottom: '0.5rem', color: '#9ca3af', fontSize: '1.5rem', fontWeight: 'bold'
+                                        }}>
+                                            {apt.doctorName?.charAt(0)}
                                         </div>
-                                        <div style={{ fontWeight: 600, color: '#1f2937' }}>{apt.scheduleDate}</div>
                                     </div>
-                                    <div>
-                                        <div style={{ color: '#6b7280', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.25rem' }}>
-                                            <Clock size={14} /> Time
+                                    
+                                    <div style={{ flex: 1 }}>
+                                        <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#0ea5e9', margin: '0 0 0.5rem 0' }}>
+                                            {apt.doctorName}
+                                        </h3>
+                                        <div style={{ fontSize: '0.9rem', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.5rem' }}>
+                                            <Stethoscope size={16} /> Bác sĩ
                                         </div>
-                                        <div style={{ fontWeight: 600, color: '#1f2937' }}>{apt.timeSlot}</div>
-                                    </div>
-                                    <div>
-                                        <div style={{ color: '#6b7280', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.25rem' }}>
-                                            <Stethoscope size={14} /> Doctor
-                                        </div>
-                                        <div style={{ fontWeight: 600, color: '#1f2937' }}>{apt.doctorName}</div>
-                                    </div>
-                                    <div>
-                                        <div style={{ color: '#6b7280', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Status</div>
                                         <span style={{ 
                                             backgroundColor: statusStyle.bg, color: statusStyle.color, 
-                                            padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 600 
+                                            padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.8rem', fontWeight: 600, display: 'inline-block'
                                         }}>
                                             {apt.status}
                                         </span>
                                     </div>
                                 </div>
                                 
-                                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                                    <button 
-                                        onClick={() => setViewingBookingApt(apt)}
-                                        style={{ 
-                                            padding: '0.5rem 1rem', backgroundColor: '#f1f5f9', color: '#475569', 
-                                            border: 'none', borderRadius: '0.5rem', fontWeight: 500, cursor: 'pointer',
-                                            display: 'flex', alignItems: 'center', gap: '0.5rem'
-                                        }}
-                                        title="View Booking Info"
-                                    >
-                                        <Info size={16} /> Details
-                                    </button>
-
-                                    {apt.status === 'PENDING' && (
-                                        <button 
-                                            onClick={() => handleCancel(apt.id)}
-                                            style={{ 
-                                                padding: '0.5rem 1rem', backgroundColor: '#fee2e2', color: '#dc2626', 
-                                                border: 'none', borderRadius: '0.5rem', fontWeight: 500, cursor: 'pointer' 
-                                            }}
-                                        >
-                                            Cancel
-                                        </button>
-                                    )}
+                                {/* RIGHT COLUMN */}
+                                <div style={{ padding: '1.5rem', flex: '1 1 55%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                                    <div style={{ display: 'flex', gap: '2rem', marginBottom: '1.5rem' }}>
+                                        <div>
+                                            <div style={{ color: '#6b7280', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.25rem' }}>
+                                                <Calendar size={16} /> Ngày khám
+                                            </div>
+                                            <div style={{ fontWeight: 600, color: '#1f2937', fontSize: '1.1rem' }}>{apt.scheduleDate}</div>
+                                        </div>
+                                        <div>
+                                            <div style={{ color: '#6b7280', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.25rem' }}>
+                                                <Clock size={16} /> Giờ khám
+                                            </div>
+                                            <div style={{ fontWeight: 600, color: '#1f2937', fontSize: '1.1rem' }}>{apt.timeSlot}</div>
+                                        </div>
+                                    </div>
                                     
-                                    {['COMPLETED', 'PAID'].includes(apt.status) && (
+                                    <div style={{ display: 'flex', gap: '0.75rem', marginTop: 'auto', flexWrap: 'wrap' }}>
                                         <button 
-                                            onClick={() => setViewingRecordApt(apt)}
+                                            onClick={() => setViewingBookingApt(apt)}
                                             style={{ 
-                                                padding: '0.5rem 1rem', backgroundColor: '#e0e7ff', color: '#4f46e5', 
-                                                border: 'none', borderRadius: '0.5rem', fontWeight: 500, cursor: 'pointer',
-                                                display: 'flex', alignItems: 'center', gap: '0.5rem'
+                                                padding: '0.5rem 1rem', backgroundColor: '#f1f5f9', color: '#475569', 
+                                                border: 'none', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer',
+                                                display: 'flex', alignItems: 'center', gap: '0.5rem', transition: 'all 0.2s'
                                             }}
+                                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e2e8f0'}
+                                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
                                         >
-                                            <FileText size={16} /> Record
+                                            <Info size={16} /> Chi tiết
                                         </button>
-                                    )}
 
-                                    {['COMPLETED', 'PAID'].includes(apt.status) && (
-                                        <button 
-                                            onClick={() => setFeedbackApt(apt)}
-                                            style={{ 
-                                                padding: '0.5rem 1rem', 
-                                                backgroundColor: apt.isReviewed ? '#f3f4f6' : '#fef9c3', 
-                                                color: apt.isReviewed ? '#6b7280' : '#854d0e', 
-                                                border: 'none', borderRadius: '0.5rem', fontWeight: 500, cursor: 'pointer',
-                                                display: 'flex', alignItems: 'center', gap: '0.5rem'
-                                            }}
-                                        >
-                                            {apt.isReviewed ? <><Star size={16} /> View Feedback</> : <><MessageSquare size={16} /> Leave Feedback</>}
-                                        </button>
-                                    )}
+                                        {apt.status === 'PENDING' && (
+                                            <button 
+                                                onClick={() => handleCancel(apt.id)}
+                                                style={{ 
+                                                    padding: '0.5rem 1rem', backgroundColor: '#fee2e2', color: '#dc2626', 
+                                                    border: 'none', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s'
+                                                }}
+                                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#fecaca'}
+                                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#fee2e2'}
+                                            >
+                                                Hủy lịch
+                                            </button>
+                                        )}
+                                        
+                                        {['COMPLETED', 'PAID'].includes(apt.status) && (
+                                            <button 
+                                                onClick={() => setViewingRecordApt(apt)}
+                                                style={{ 
+                                                    padding: '0.5rem 1rem', backgroundColor: '#e0e7ff', color: '#4f46e5', 
+                                                    border: 'none', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer',
+                                                    display: 'flex', alignItems: 'center', gap: '0.5rem'
+                                                }}
+                                            >
+                                                <FileText size={16} /> Bệnh án
+                                            </button>
+                                        )}
+
+                                        {['COMPLETED', 'PAID'].includes(apt.status) && (
+                                            <button 
+                                                onClick={() => setFeedbackApt(apt)}
+                                                style={{ 
+                                                    padding: '0.5rem 1rem', 
+                                                    backgroundColor: apt.isReviewed ? '#f3f4f6' : '#fef9c3', 
+                                                    color: apt.isReviewed ? '#6b7280' : '#854d0e', 
+                                                    border: 'none', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer',
+                                                    display: 'flex', alignItems: 'center', gap: '0.5rem'
+                                                }}
+                                            >
+                                                {apt.isReviewed ? <><Star size={16} /> Xem đánh giá</> : <><MessageSquare size={16} /> Viết đánh giá</>}
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         );

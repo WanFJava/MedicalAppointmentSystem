@@ -1,20 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { generateBill, payBill } from '../../api/billApi';
+import { getMedicalRecordByAppointment } from '../../api/medicalRecordApi';
 import { X, Receipt, CheckCircle } from 'lucide-react';
 
 const BillModal = ({ appointment, onClose, onSuccess }) => {
     const [bill, setBill] = useState(null);
+    const [record, setRecord] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetchBill();
+        fetchData();
     }, []);
 
-    const fetchBill = async () => {
+    const fetchData = async () => {
         try {
             setLoading(true);
-            const data = await generateBill(appointment.id);
-            setBill(data);
+            const [billData, recordData] = await Promise.all([
+                generateBill(appointment.id).catch(() => null),
+                getMedicalRecordByAppointment(appointment.id).catch(() => null)
+            ]);
+            
+            if (!billData) throw new Error("Failed to generate bill");
+            
+            setBill(billData);
+            setRecord(recordData);
         } catch (error) {
             console.error("Failed to generate/fetch bill", error);
             alert("Error fetching bill");
@@ -67,7 +76,7 @@ const BillModal = ({ appointment, onClose, onSuccess }) => {
             }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid #e5e7eb', paddingBottom: '1rem' }}>
                     <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Receipt size={24} /> Invoice Details
+                        <Receipt size={24} /> Chi tiết hóa đơn
                     </h2>
                     <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
                         <X size={24} />
@@ -75,22 +84,55 @@ const BillModal = ({ appointment, onClose, onSuccess }) => {
                 </div>
 
                 <div style={{ marginBottom: '1.5rem' }}>
-                    <p><strong>Patient:</strong> {appointment.patientName}</p>
-                    <p><strong>Doctor:</strong> {appointment.doctorName}</p>
-                    <p><strong>Date:</strong> {appointment.scheduleDate}</p>
-                    <p><strong>Status:</strong> <span style={{ fontWeight: 'bold', color: bill.status === 'PAID' ? '#059669' : '#d97706' }}>{bill.status}</span></p>
+                    <p><strong>Bệnh nhân:</strong> {appointment.patientName}</p>
+                    <p><strong>Bác sĩ:</strong> {appointment.doctorName}</p>
+                    <p><strong>Ngày khám:</strong> {appointment.scheduleDate}</p>
+                    <p><strong>Trạng thái:</strong> <span style={{ fontWeight: 'bold', color: bill.status === 'PAID' ? '#059669' : '#dc2626' }}>{bill.status === 'PAID' ? 'ĐÃ THANH TOÁN' : 'CHƯA THANH TOÁN'}</span></p>
                 </div>
 
-                <div style={{ backgroundColor: '#f9fafb', padding: '1rem', borderRadius: '4px', marginBottom: '1.5rem' }}>
+                <div style={{ backgroundColor: '#f8fafc', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #e2e8f0', marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#4b5563', fontSize: '1rem' }}>
+                        <span>Phí khám bệnh:</span>
+                        <span style={{ fontWeight: '500' }}>{bill.consultationFee?.toLocaleString('vi-VN')}đ</span>
+                    </div>
+                    
+                    {(bill.medicineFee > 0 || bill.medicineFee === 0) && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', color: '#4b5563', fontSize: '1rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span>Phí thuốc:</span>
+                                <span style={{ fontWeight: '500' }}>{bill.medicineFee?.toLocaleString('vi-VN')}đ</span>
+                            </div>
+                            {record && record.prescriptions && record.prescriptions.length > 0 && (
+                                <div style={{ paddingLeft: '1rem', display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.9rem', color: '#64748b' }}>
+                                    {record.prescriptions.map((p, idx) => (
+                                        <div key={idx} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                            <span>- {p.medicineName} ({p.unitPrice?.toLocaleString('vi-VN')}đ x{p.quantity})</span>
+                                            <span>{p.totalPrice?.toLocaleString('vi-VN')}đ</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {bill.discount > 0 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#10b981', fontSize: '1rem' }}>
+                            <span>Giảm giá:</span>
+                            <span style={{ fontWeight: '500' }}>-{bill.discount?.toLocaleString('vi-VN')}đ</span>
+                        </div>
+                    )}
+                    
+                    <hr style={{ border: 'none', borderTop: '1px dashed #cbd5e1', margin: '0.5rem 0' }} />
+                    
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '1.25rem', fontWeight: 'bold' }}>
-                        <span>Total Amount:</span>
-                        <span style={{ color: 'var(--primary-color)' }}>${bill.totalAmount}</span>
+                        <span style={{ color: '#1f2937' }}>Tổng cộng:</span>
+                        <span style={{ color: '#0ea5e9', fontSize: '1.5rem' }}>{bill.totalAmount?.toLocaleString('vi-VN')}đ</span>
                     </div>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
                     <button type="button" onClick={onClose} style={{ padding: '0.5rem 1rem', borderRadius: '4px', border: '1px solid #d1d5db', backgroundColor: 'white', cursor: 'pointer' }}>
-                        Close
+                        Đóng
                     </button>
                     {bill.status === 'UNPAID' && (
                         <button 
@@ -99,7 +141,7 @@ const BillModal = ({ appointment, onClose, onSuccess }) => {
                             className="btn-primary" 
                             style={{ padding: '0.5rem 1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                         >
-                            <CheckCircle size={16} /> Confirm Payment
+                            <CheckCircle size={16} /> Xác nhận thanh toán
                         </button>
                     )}
                 </div>

@@ -4,12 +4,12 @@ import { getDoctorById } from '../api/adminApi';
 import { getAvailableSchedules } from '../api/appointmentApi';
 import { getFeedbacksByDoctor } from '../api/feedbackApi';
 import { AuthContext } from '../context/AuthContext';
-import { Star, Clock, MapPin, Activity, Stethoscope, Calendar as CalendarIcon, MessageSquare } from 'lucide-react';
+import { Star, Clock, MapPin, Activity, Stethoscope, Calendar as CalendarIcon, MessageSquare, Heart } from 'lucide-react';
 
 const DoctorProfile = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { user } = useContext(AuthContext);
+    const { user, favoriteDoctorIds, toggleFavorite } = useContext(AuthContext);
 
     const [doctor, setDoctor] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -90,145 +90,139 @@ const DoctorProfile = () => {
                     ← Back
                 </button>
 
-                <div style={{ backgroundColor: 'white', borderRadius: '1rem', overflow: 'hidden', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ background: 'linear-gradient(to right, #4f46e5, #3b82f6)', height: '150px' }}></div>
+                <div style={{ backgroundColor: 'white', borderRadius: '0.5rem', overflow: 'hidden', boxShadow: '0 2px 4px -1px rgba(0, 0, 0, 0.05)', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'row', position: 'relative', marginBottom: '2rem' }}>
                     
-                    <div style={{ padding: '0 2rem 2rem 2rem', display: 'flex', flexDirection: 'row', gap: '3rem', alignItems: 'flex-start', marginTop: '-60px' }}>
-                        
-                        {/* LEFT COLUMN: Doctor Info */}
-                        <div style={{ flex: '1', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                            <div style={{ width: '150px', height: '150px', borderRadius: '50%', border: '5px solid white', backgroundColor: '#f3f4f6', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+                    {/* LEFT COLUMN: Doctor Info */}
+                    <div style={{ padding: '2rem', flex: '1 1 45%', display: 'flex', gap: '1.5rem', borderRight: '1px solid #e2e8f0', alignItems: 'flex-start' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '120px' }}>
+                            <div style={{ width: '120px', height: '120px', borderRadius: '50%', backgroundColor: '#f3f4f6', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', border: '1px solid #e2e8f0', marginBottom: '1rem' }}>
                                 {doctor.avatar ? (
                                     <img src={doctor.avatar} alt={doctor.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                 ) : (
-                                    <div style={{ width: '100%', height: '100%', backgroundColor: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: '3rem', fontWeight: 'bold' }}>
-                                        {doctor.fullName?.charAt(0)}
-                                    </div>
+                                    <span style={{ fontSize: '3rem', color: '#9ca3af', fontWeight: 'bold' }}>{doctor.fullName?.charAt(0)}</span>
                                 )}
                             </div>
-
-                            <div style={{ textAlign: 'center', marginTop: '1.5rem', width: '100%' }}>
-                                <h1 style={{ fontSize: '2rem', fontWeight: '800', color: '#1f2937', marginBottom: '0.5rem' }}>
-                                    {doctor.fullName}
-                                </h1>
-                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '0.5rem' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#fef3c7', padding: '0.25rem 1rem', borderRadius: '2rem' }}>
-                                        <Star size={18} color="#d97706" fill="#d97706" />
-                                        <span style={{ color: '#92400e', fontWeight: '700', fontSize: '1rem' }}>{doctor.averageRating?.toFixed(1) || '0.0'} Rating</span>
-                                    </div>
-                                </div>
-                                <div style={{ fontSize: '1.125rem', color: '#6b7280', fontWeight: '500', marginBottom: '1.5rem' }}>
-                                    {doctor.degree}
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', color: '#4f46e5', fontWeight: '600', fontSize: '1.125rem', marginBottom: '1.5rem' }}>
-                                    <Stethoscope size={20} />
-                                    <span>{doctor.specialtyName}</span>
-                                </div>
-
-                                <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2.5rem' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#e0e7ff', padding: '0.5rem 1rem', borderRadius: '2rem' }}>
-                                        <Clock size={20} color="#4f46e5" />
-                                        <span style={{ color: '#3730a3', fontWeight: '600', fontSize: '1rem' }}>{doctor.experience} Years Exp</span>
-                                    </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#d1fae5', padding: '0.5rem 1rem', borderRadius: '2rem' }}>
-                                        <Activity size={20} color="#059669" />
-                                        <span style={{ color: '#065f46', fontWeight: '600', fontSize: '1rem' }}>Fee: ${doctor.consultationFee}</span>
-                                    </div>
-                                </div>
-                                
-                                {doctor.biography && (
-                                    <div style={{ backgroundColor: '#f9fafb', padding: '2rem', borderRadius: '0.75rem', textAlign: 'left', marginBottom: '2.5rem', border: '1px solid #f3f4f6' }}>
-                                        <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1f2937', marginBottom: '1rem' }}>About Dr. {doctor.fullName}</h3>
-                                        <p style={{ color: '#4b5563', lineHeight: '1.8', whiteSpace: 'pre-wrap' }}>{doctor.biography}</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* RIGHT COLUMN: Booking & Schedule */}
-                        <div style={{ flex: '1', width: '100%', marginTop: '60px' }}>
-
-                            <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '0.75rem', textAlign: 'left', marginBottom: '2.5rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-                                <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1f2937', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <CalendarIcon size={24} color="#4f46e5" /> Working Schedule
-                                </h3>
-                                
-                                {Object.keys(schedulesByDate).length === 0 ? (
-                                    <p style={{ color: '#ef4444' }}>This doctor currently has no available schedules.</p>
-                                ) : (
-                                    <div>
-                                        <div style={{ marginBottom: '1.5rem' }}>
-                                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: '#4b5563' }}>Select Date</label>
-                                            <input 
-                                                type="date"
-                                                value={selectedDate}
-                                                onChange={(e) => {
-                                                    setSelectedDate(e.target.value);
-                                                    setSelectedSchedule(null);
-                                                }}
-                                                style={{
-                                                    padding: '0.75rem', 
-                                                    borderRadius: '0.5rem',
-                                                    border: '1px solid #d1d5db',
-                                                    width: '100%',
-                                                    maxWidth: '300px',
-                                                    fontSize: '1rem',
-                                                    cursor: 'pointer'
-                                                }}
-                                            />
-                                            {selectedDate && !schedulesByDate[selectedDate] && (
-                                                <p style={{ color: '#ef4444', marginTop: '0.5rem', fontSize: '0.875rem' }}>
-                                                    No time slots available on this date. Please select another date.
-                                                </p>
-                                            )}
-                                        </div>
-
-                                        {selectedDate && schedulesByDate[selectedDate] && (
-                                            <div>
-                                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: '#4b5563' }}>Available Time Slots</label>
-                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
-                                                    {schedulesByDate[selectedDate].map(sched => (
-                                                        <button key={sched.id} 
-                                                            onClick={() => setSelectedSchedule(sched)}
-                                                            style={{ 
-                                                                padding: '0.75rem 1.5rem', 
-                                                                backgroundColor: selectedSchedule?.id === sched.id ? '#4f46e5' : '#f0fdf4', 
-                                                                border: `1px solid ${selectedSchedule?.id === sched.id ? '#4f46e5' : '#bbf7d0'}`, 
-                                                                color: selectedSchedule?.id === sched.id ? 'white' : '#166534', 
-                                                                borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 500, transition: 'all 0.2s' 
-                                                            }}>
-                                                            {formatTime(sched.startTime)} - {formatTime(sched.endTime)}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-
+                            
+                            {user && user.role === 'PATIENT' && doctor && (
                                 <button 
-                                    className="btn-primary" 
-                                    style={{ 
-                                        width: '100%', padding: '1.25rem', fontSize: '1.125rem', borderRadius: '0.75rem', 
-                                        boxShadow: '0 4px 6px -1px rgba(79, 70, 229, 0.4)',
-                                        opacity: !selectedSchedule ? 0.5 : 1,
-                                        cursor: !selectedSchedule ? 'not-allowed' : 'pointer'
-                                    }}
-                                    disabled={!selectedSchedule}
-                                    onClick={() => {
-                                        if (user) {
-                                            navigate('/book', { state: { preselectDoctor: doctor.id, selectedDate, selectedSchedule } });
-                                        } else {
-                                            navigate('/login');
-                                        }
+                                    onClick={() => toggleFavorite(doctor.id)}
+                                    style={{
+                                        background: favoriteDoctorIds?.has(doctor.id) ? '#fbbf24' : 'transparent', 
+                                        border: `1px solid ${favoriteDoctorIds?.has(doctor.id) ? '#fbbf24' : '#d1d5db'}`, 
+                                        borderRadius: '1rem',
+                                        padding: '0.25rem 0.75rem', display: 'flex', alignItems: 'center', gap: '0.25rem',
+                                        color: favoriteDoctorIds?.has(doctor.id) ? 'white' : '#6b7280', 
+                                        cursor: 'pointer', transition: 'all 0.2s',
+                                        fontSize: '0.85rem', fontWeight: '600'
                                     }}
                                 >
-                                    {selectedSchedule ? 'Book Appointment Now' : 'Select a Time Slot to Book'}
+                                    <Heart size={16} fill={favoriteDoctorIds?.has(doctor.id) ? 'white' : 'none'} color={favoriteDoctorIds?.has(doctor.id) ? 'white' : '#9ca3af'} />
+                                    Yêu thích
                                 </button>
+                            )}
+                        </div>
+
+                        <div style={{ flex: 1 }}>
+                            <h1 style={{ fontSize: '1.75rem', fontWeight: '700', color: '#0ea5e9', margin: '0 0 0.5rem 0' }}>
+                                {doctor.degree ? `${doctor.degree} ` : ''}{doctor.fullName}
+                            </h1>
+                            <div style={{ fontSize: '1rem', color: '#4b5563', marginBottom: '0.25rem' }}>
+                                Bác sĩ có {doctor.experience} năm kinh nghiệm
+                            </div>
+                            <div style={{ fontSize: '1rem', color: '#4b5563', marginBottom: '0.5rem' }}>
+                                Chuyên khoa: {doctor.specialtyName}
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                                <Star size={18} color="#d97706" fill="#d97706" />
+                                <span style={{ color: '#92400e', fontWeight: '600', fontSize: '1rem' }}>{doctor.averageRating?.toFixed(1) || '0.0'} Rating</span>
                             </div>
                         </div>
                     </div>
+
+                    {/* RIGHT COLUMN: Schedule & Clinic Info */}
+                    <div style={{ padding: '2rem', flex: '1 1 55%', display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '1.5rem', marginBottom: '1.5rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '700', color: '#4b5563', fontSize: '1rem', textTransform: 'uppercase' }}>
+                                    <CalendarIcon size={18} /> Lịch khám
+                                </div>
+                                <input 
+                                    type="date"
+                                    value={selectedDate}
+                                    onChange={(e) => {
+                                        setSelectedDate(e.target.value);
+                                        setSelectedSchedule(null);
+                                    }}
+                                    style={{
+                                        padding: '0.4rem 0.75rem', borderRadius: '0.25rem', border: '1px solid #d1d5db',
+                                        fontSize: '0.9rem', color: '#374151', cursor: 'pointer', outline: 'none'
+                                    }}
+                                />
+                            </div>
+                            
+                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+                                {Object.keys(schedulesByDate).length === 0 ? (
+                                    <div style={{ color: '#ef4444', fontSize: '0.95rem' }}>Bác sĩ hiện chưa có lịch khám.</div>
+                                ) : (!selectedDate || !schedulesByDate[selectedDate]) ? (
+                                    <div style={{ color: '#6b7280', fontSize: '0.95rem' }}>Không có lịch vào ngày này. Vui lòng chọn ngày khác.</div>
+                                ) : (
+                                    schedulesByDate[selectedDate].map(sched => (
+                                        <button key={sched.id} 
+                                            onClick={() => setSelectedSchedule(sched)}
+                                            style={{ 
+                                                padding: '0.5rem 1rem', 
+                                                backgroundColor: selectedSchedule?.id === sched.id ? '#0ea5e9' : '#f1f5f9', 
+                                                border: 'none',
+                                                color: selectedSchedule?.id === sched.id ? 'white' : '#334155', 
+                                                borderRadius: '0.25rem', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem', transition: 'all 0.2s' 
+                                            }}>
+                                            {formatTime(sched.startTime)} - {formatTime(sched.endTime)}
+                                        </button>
+                                    ))
+                                )}
+                            </div>
+                            
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', color: '#6b7280' }}>
+                                Chọn một khung giờ và nhấn nút đặt lịch bên dưới
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.95rem', marginBottom: '1.5rem' }}>
+                            <div>
+                                <span style={{ fontWeight: '600', color: '#4b5563' }}>GIÁ KHÁM: </span>
+                                <span style={{ fontWeight: '600', color: '#1f2937' }}>{doctor.consultationFee?.toLocaleString('vi-VN')}đ</span>
+                            </div>
+                        </div>
+
+                        <button 
+                            style={{ 
+                                width: '100%', padding: '0.75rem', fontSize: '1rem', borderRadius: '0.5rem', 
+                                backgroundColor: !selectedSchedule ? '#cbd5e1' : '#0ea5e9',
+                                color: 'white', fontWeight: '600', border: 'none',
+                                transition: 'background-color 0.2s',
+                                cursor: !selectedSchedule ? 'not-allowed' : 'pointer',
+                                marginTop: 'auto'
+                            }}
+                            disabled={!selectedSchedule}
+                            onClick={() => {
+                                if (user) {
+                                    navigate('/book', { state: { preselectDoctor: doctor.id, selectedDate, selectedSchedule } });
+                                } else {
+                                    navigate('/login');
+                                }
+                            }}
+                        >
+                            {selectedSchedule ? 'Đặt Lịch Khám' : 'Vui lòng chọn khung giờ'}
+                        </button>
+                    </div>
+                </div>
+
+                {doctor.biography && (
+                    <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '0.5rem', textAlign: 'left', marginBottom: '2rem', border: '1px solid #e2e8f0' }}>
+                        <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1f2937', marginBottom: '1rem' }}>Giới thiệu về Bác sĩ</h3>
+                        <p style={{ color: '#4b5563', lineHeight: '1.8', whiteSpace: 'pre-wrap', fontSize: '1rem' }}>{doctor.biography}</p>
+                    </div>
+                )}
 
                     {/* FEEDBACKS SECTION */}
                     <div style={{ marginTop: '3rem', backgroundColor: 'white', padding: '2.5rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>

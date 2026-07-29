@@ -104,7 +104,9 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
                     d.getMedicine().getName(),
                     d.getDosage(),
                     d.getInstruction(),
-                    d.getQuantity()
+                    d.getQuantity(),
+                    d.getMedicine().getPrice(),
+                    d.getMedicine().getPrice().multiply(java.math.BigDecimal.valueOf(d.getQuantity()))
             )).collect(Collectors.toList());
         }
 

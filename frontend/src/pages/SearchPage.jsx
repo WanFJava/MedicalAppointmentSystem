@@ -1,11 +1,12 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Activity, Clock, Star, Search } from 'lucide-react';
+import { Activity, Clock, Star, Search, Heart } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 import { getDoctors, getSpecialties } from '../api/adminApi';
+import DoctorCard from '../components/DoctorCard';
 
 const SearchPage = () => {
-    const { user } = useContext(AuthContext);
+    const { user, favoriteDoctorIds, toggleFavorite } = useContext(AuthContext);
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
 
@@ -101,36 +102,63 @@ const SearchPage = () => {
                                 {filteredSpecialties.map((spec) => (
                                     <div key={spec.id} style={{
                                         backgroundColor: 'white',
-                                        padding: '1.5rem',
-                                        borderRadius: '1rem',
+                                        borderRadius: '0.5rem',
+                                        overflow: 'hidden',
                                         boxShadow: '0 2px 4px -1px rgba(0, 0, 0, 0.05)',
                                         border: '1px solid #e2e8f0',
+                                        transition: 'transform 0.2s, boxShadow 0.2s',
                                         display: 'flex',
                                         flexDirection: 'row',
-                                        alignItems: 'center',
-                                        gap: '1.5rem',
-                                        transition: 'transform 0.2s, boxShadow 0.2s',
+                                        alignItems: 'stretch',
                                         cursor: 'pointer'
                                     }}
-                                        onMouseOver={(e) => { e.currentTarget.style.transform = 'translateX(5px)'; e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)'; }}
-                                        onMouseOut={(e) => { e.currentTarget.style.transform = 'translateX(0)'; e.currentTarget.style.boxShadow = '0 2px 4px -1px rgba(0, 0, 0, 0.05)'; }}
+                                    onClick={() => navigate(`/specialty/${spec.id}`)}
+                                    onMouseOver={(e) => { 
+                                        e.currentTarget.style.transform = 'translateY(-2px)'; 
+                                        e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)'; 
+                                        const arrow = e.currentTarget.querySelector('.arrow-icon');
+                                        if (arrow) arrow.style.transform = 'translateX(5px)';
+                                    }}
+                                    onMouseOut={(e) => { 
+                                        e.currentTarget.style.transform = 'translateY(0)'; 
+                                        e.currentTarget.style.boxShadow = '0 2px 4px -1px rgba(0, 0, 0, 0.05)'; 
+                                        const arrow = e.currentTarget.querySelector('.arrow-icon');
+                                        if (arrow) arrow.style.transform = 'translateX(0)';
+                                    }}
                                     >
-                                        <div style={{
-                                            backgroundColor: '#e0e7ff',
-                                            color: '#4f46e5',
-                                            width: '60px',
-                                            height: '60px',
-                                            minWidth: '60px',
-                                            borderRadius: '50%',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center'
-                                        }}>
-                                            <Activity size={28} />
+                                        {/* LEFT COLUMN: Icon & Title */}
+                                        <div style={{ padding: '1.5rem', flex: '1 1 45%', display: 'flex', gap: '1.5rem', borderRight: '1px solid #e2e8f0', alignItems: 'center' }}>
+                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '100px' }}>
+                                                <div style={{ 
+                                                    width: '100px', 
+                                                    height: '100px', 
+                                                    borderRadius: '50%', 
+                                                    backgroundColor: '#e0e7ff', 
+                                                    display: 'flex', 
+                                                    justifyContent: 'center', 
+                                                    alignItems: 'center', 
+                                                    marginBottom: '0.5rem', 
+                                                    border: '3px solid #c7d2fe',
+                                                    color: '#4f46e5'
+                                                }}>
+                                                    <Activity size={48} />
+                                                </div>
+                                                <span style={{ color: '#0ea5e9', fontSize: '0.875rem', fontWeight: '500' }}>Xem thêm</span>
+                                            </div>
+                                            
+                                            <div style={{ flex: 1 }}>
+                                                <h3 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#0ea5e9', margin: 0 }}>
+                                                    {spec.name}
+                                                </h3>
+                                                <div style={{ fontSize: '0.9rem', color: '#4b5563', marginTop: '0.25rem' }}>
+                                                    Chuyên khoa
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div style={{ flex: 1 }}>
-                                            <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1f2937', marginBottom: '0.25rem' }}>{spec.name}</h3>
-                                            <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+                                        
+                                        {/* RIGHT COLUMN: Description & Action */}
+                                        <div style={{ padding: '1.5rem', flex: '1 1 55%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                                            <p style={{ color: '#64748b', fontSize: '1rem', lineHeight: '1.6', marginBottom: '1.5rem' }}>
                                                 {spec.description}
                                             </p>
                                         </div>
@@ -149,69 +177,7 @@ const SearchPage = () => {
                             </h2>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                 {filteredDoctors.map((doc) => (
-                                    <div key={doc.id} style={{
-                                        backgroundColor: 'white',
-                                        borderRadius: '1rem',
-                                        overflow: 'hidden',
-                                        boxShadow: '0 2px 4px -1px rgba(0, 0, 0, 0.05)',
-                                        border: '1px solid #e2e8f0',
-                                        transition: 'transform 0.2s, boxShadow 0.2s',
-                                        display: 'flex',
-                                        flexDirection: 'row',
-                                        alignItems: 'center',
-                                        padding: '1.5rem',
-                                        gap: '2rem',
-                                        cursor: 'pointer'
-                                    }}
-                                        onClick={() => navigate(`/doctor/${doc.id}`)}
-                                        onMouseOver={(e) => { e.currentTarget.style.transform = 'translateX(5px)'; e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)'; }}
-                                        onMouseOut={(e) => { e.currentTarget.style.transform = 'translateX(0)'; e.currentTarget.style.boxShadow = '0 2px 4px -1px rgba(0, 0, 0, 0.05)'; }}
-                                    >
-                                        <div style={{ width: '120px', height: '120px', minWidth: '120px', borderRadius: '50%', backgroundColor: '#f3f4f6', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }}>
-                                            {doc.avatar ? (
-                                                <img src={doc.avatar} alt={doc.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                            ) : (
-                                                <div style={{ width: '100%', height: '100%', backgroundColor: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: '2.5rem', fontWeight: 'bold' }}>
-                                                    {doc.fullName?.charAt(0)}
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.25rem' }}>
-                                                <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1f2937' }}>{doc.degree} {doc.fullName}</h3>
-                                                <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#fef3c7', padding: '0.25rem 0.75rem', borderRadius: '1rem', gap: '0.25rem' }}>
-                                                    <Star size={16} color="#d97706" fill="#d97706" />
-                                                    <span style={{ color: '#92400e', fontWeight: '600', fontSize: '0.875rem' }}>{doc.averageRating?.toFixed(1) || '0.0'}</span>
-                                                </div>
-                                            </div>
-                                            <p style={{ color: '#4f46e5', fontWeight: '500', marginBottom: '0.75rem' }}>{doc.specialtyName}</p>
-
-                                            <div style={{ display: 'flex', gap: '2rem', color: '#6b7280', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                                    <Clock size={16} /> {doc.experience} Years Experience
-                                                </div>
-                                                <div style={{ fontWeight: '600', color: '#10b981' }}>
-                                                    Consultation Fee: ${doc.consultationFee}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                                            <button
-                                                className="btn-primary"
-                                                style={{ padding: '0.75rem 1.5rem', width: 'auto', whiteSpace: 'nowrap' }}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    if (user) {
-                                                        navigate('/book', { state: { preselectDoctor: doc.id } });
-                                                    } else {
-                                                        navigate('/login');
-                                                    }
-                                                }}
-                                            >
-                                                Book Appointment
-                                            </button>
-                                        </div>
-                                    </div>
+                                <DoctorCard key={doc.id} doc={doc} />
                                 ))}
                                 {filteredDoctors.length === 0 && (
                                     <p style={{ color: '#6b7280' }}>No doctors found matching '{currentQuery}'.</p>

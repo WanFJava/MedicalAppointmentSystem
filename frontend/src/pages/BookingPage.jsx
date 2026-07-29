@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Star, CheckCircle, ChevronRight, Stethoscope, User, Clock, ArrowRight, Activity } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 import { getSpecialties, getDoctors } from '../api/adminApi';
 import { getAvailableSchedules, bookAppointment } from '../api/appointmentApi';
+import DoctorCard from '../components/DoctorCard';
 import { getPatientProfile } from '../api/patientApi';
-import { Calendar, User, Stethoscope, Clock, CheckCircle, ChevronRight } from 'lucide-react';
 
 const BookingPage = () => {
     const { user } = useContext(AuthContext);
@@ -234,20 +235,71 @@ const BookingPage = () => {
                             ← Back
                         </button>
                         <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '2rem', color: '#111827', textAlign: 'center' }}>Select a Medical Specialty</h2>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                             {specialties.map(spec => (
-                                <button key={spec.id} className="spec-card" onClick={() => handleSpecSelect(spec.id)} style={{ flexDirection: 'row', alignItems: 'flex-start', textAlign: 'left', gap: '1.5rem', padding: '1.5rem 2rem' }}>
-                                    <div style={{ width: '64px', height: '64px', backgroundColor: '#e0e7ff', color: 'var(--primary-color)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                        <Stethoscope size={32} />
+                                <div key={spec.id} style={{
+                                    backgroundColor: 'white',
+                                    borderRadius: '0.5rem',
+                                    overflow: 'hidden',
+                                    boxShadow: '0 2px 4px -1px rgba(0, 0, 0, 0.05)',
+                                    border: '1px solid #e2e8f0',
+                                    transition: 'transform 0.2s, boxShadow 0.2s',
+                                    display: 'flex',
+                                    flexDirection: 'row',
+                                    alignItems: 'stretch',
+                                    cursor: 'pointer'
+                                }}
+                                onClick={() => handleSpecSelect(spec.id)}
+                                onMouseOver={(e) => { 
+                                    e.currentTarget.style.transform = 'translateY(-2px)'; 
+                                    e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)'; 
+                                    const arrow = e.currentTarget.querySelector('.arrow-icon');
+                                    if (arrow) arrow.style.transform = 'translateX(5px)';
+                                }}
+                                onMouseOut={(e) => { 
+                                    e.currentTarget.style.transform = 'translateY(0)'; 
+                                    e.currentTarget.style.boxShadow = '0 2px 4px -1px rgba(0, 0, 0, 0.05)'; 
+                                    const arrow = e.currentTarget.querySelector('.arrow-icon');
+                                    if (arrow) arrow.style.transform = 'translateX(0)';
+                                }}
+                                >
+                                    {/* LEFT COLUMN: Icon & Title */}
+                                    <div style={{ padding: '1.5rem', flex: '1 1 45%', display: 'flex', gap: '1.5rem', borderRight: '1px solid #e2e8f0', alignItems: 'center' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '100px' }}>
+                                            <div style={{ 
+                                                width: '100px', 
+                                                height: '100px', 
+                                                borderRadius: '50%', 
+                                                backgroundColor: '#e0e7ff', 
+                                                display: 'flex', 
+                                                justifyContent: 'center', 
+                                                alignItems: 'center', 
+                                                marginBottom: '0.5rem', 
+                                                border: '3px solid #c7d2fe',
+                                                color: '#4f46e5'
+                                            }}>
+                                                <Activity size={48} />
+                                            </div>
+                                            <span style={{ color: '#0ea5e9', fontSize: '0.875rem', fontWeight: '500' }}>Chọn</span>
+                                        </div>
+                                        
+                                        <div style={{ flex: 1 }}>
+                                            <h3 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#0ea5e9', margin: 0 }}>
+                                                {spec.name}
+                                            </h3>
+                                            <div style={{ fontSize: '0.9rem', color: '#4b5563', marginTop: '0.25rem' }}>
+                                                Chuyên khoa
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
-                                        <div style={{ fontWeight: 800, color: '#1f2937', fontSize: '1.25rem' }}>{spec.name}</div>
-                                        <div style={{ color: '#6b7280', fontSize: '0.95rem', lineHeight: '1.5' }}>{spec.description || 'Consult with our experienced specialists for this area.'}</div>
+                                    
+                                    {/* RIGHT COLUMN: Description & Action */}
+                                    <div style={{ padding: '1.5rem', flex: '1 1 55%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                                        <p style={{ color: '#64748b', fontSize: '1rem', lineHeight: '1.6', marginBottom: '1.5rem' }}>
+                                            {spec.description}
+                                        </p>
                                     </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', color: 'var(--primary-color)', flexShrink: 0, paddingLeft: '1rem', alignSelf: 'center' }}>
-                                        <ChevronRight size={24} />
-                                    </div>
-                                </button>
+                                </div>
                             ))}
                         </div>
                     </div>
@@ -267,31 +319,7 @@ const BookingPage = () => {
                         ) : (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                                 {filteredDoctors.map(doc => (
-                                    <div key={doc.id} className="doc-card" style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center', cursor: 'default', padding: '1.5rem' }}>
-                                        <div 
-                                           style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', cursor: 'pointer', flex: 1 }}
-                                           onClick={() => navigate(`/doctor/${doc.id}`)}
-                                        >
-                                            <div style={{ width: '80px', height: '80px', borderRadius: '50%', backgroundColor: '#e0e7ff', color: 'var(--primary-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', fontWeight: 'bold', flexShrink: 0, boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.1)', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.05)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
-                                                {doc.fullName.charAt(0)}
-                                            </div>
-                                            <div style={{ flex: 1 }}>
-                                                <div style={{ fontSize: '1.35rem', fontWeight: '800', color: '#111827', marginBottom: '0.35rem', transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color = 'var(--primary-color)'} onMouseOut={e => e.currentTarget.style.color = '#111827'}>{doc.fullName}</div>
-                                                <div style={{ fontSize: '1rem', color: '#6b7280', marginBottom: '0.75rem', fontWeight: 500 }}>{doc.degree}</div>
-                                                {doc.biography && (
-                                                    <div style={{ color: '#4b5563', fontSize: '0.9rem', lineHeight: '1.5', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', marginBottom: '1rem' }}>
-                                                        {doc.biography}
-                                                    </div>
-                                                )}
-                                                <div style={{ display: 'inline-block', backgroundColor: '#ecfdf5', color: '#059669', padding: '0.375rem 1rem', borderRadius: '9999px', fontSize: '0.875rem', fontWeight: 700 }}>
-                                                    Fee: ${doc.consultationFee}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <button className="btn-primary" onClick={() => handleDoctorSelect(doc)} style={{ padding: '0.875rem 1.5rem', borderRadius: '0.75rem', fontWeight: 600, fontSize: '1rem', flexShrink: 0, width: 'auto', boxShadow: '0 4px 6px -1px rgba(79, 70, 229, 0.2)' }}>
-                                            Select & Book
-                                        </button>
-                                    </div>
+                                    <DoctorCard key={doc.id} doc={doc} onDoctorSelect={handleDoctorSelect} />
                                 ))}
                             </div>
                         )}

@@ -1,11 +1,11 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import { Calendar, Activity, Clock, Shield, Search, Star, ArrowRight } from 'lucide-react';
+import { Calendar, Activity, Clock, Shield, Search, Star, ArrowRight, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getDoctors, getSpecialties } from '../api/adminApi';
 
 const Home = () => {
-    const { user } = useContext(AuthContext);
+    const { user, favoriteDoctorIds, toggleFavorite } = useContext(AuthContext);
     const navigate = useNavigate();
 
     const [doctors, setDoctors] = useState([]);
@@ -143,60 +143,63 @@ const Home = () => {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1.5rem' }}>
                         {specialties.map((spec) => (
                             <div key={spec.id} style={{
+                                minWidth: '280px',
+                                maxWidth: '300px',
+                                flexShrink: 0,
                                 backgroundColor: 'white',
                                 padding: '2rem 1.5rem',
                                 borderRadius: '1.25rem',
-                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
                                 border: '1px solid #f1f5f9',
                                 display: 'flex',
                                 flexDirection: 'column',
-                                alignItems: 'flex-start',
-                                textAlign: 'left',
-                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                alignItems: 'center',
+                                textAlign: 'center',
+                                transition: 'all 0.3s ease',
                                 cursor: 'pointer',
-                                position: 'relative',
-                                overflow: 'hidden',
                             }}
                             onClick={() => navigate(`/specialty/${spec.id}`)}
                             onMouseOver={(e) => { 
                                 e.currentTarget.style.transform = 'translateY(-8px)'; 
-                                e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(79, 70, 229, 0.1), 0 8px 10px -6px rgba(79, 70, 229, 0.1)'; 
-                                e.currentTarget.style.borderColor = '#c7d2fe';
+                                e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(14, 165, 233, 0.1)'; 
+                                e.currentTarget.style.borderColor = '#bae6fd';
                                 const arrow = e.currentTarget.querySelector('.arrow-icon');
                                 if (arrow) arrow.style.transform = 'translateX(5px)';
                             }}
                             onMouseOut={(e) => { 
                                 e.currentTarget.style.transform = 'translateY(0)'; 
-                                e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)'; 
+                                e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05)'; 
                                 e.currentTarget.style.borderColor = '#f1f5f9';
                                 const arrow = e.currentTarget.querySelector('.arrow-icon');
                                 if (arrow) arrow.style.transform = 'translateX(0)';
                             }}
                             >
                                 <div style={{ 
-                                    background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)', 
-                                    color: '#4f46e5', 
-                                    width: '56px', 
-                                    height: '56px', 
-                                    borderRadius: '16px', 
+                                    backgroundColor: '#e0f2fe', 
+                                    color: '#0ea5e9', 
+                                    width: '72px', 
+                                    height: '72px', 
+                                    borderRadius: '50%', 
                                     display: 'flex', 
                                     alignItems: 'center', 
                                     justifyContent: 'center',
                                     marginBottom: '1.5rem',
-                                    boxShadow: '0 4px 6px -1px rgba(79, 70, 229, 0.2)'
+                                    border: '4px solid #bae6fd'
                                 }}>
-                                    <Activity size={28} />
+                                    <Activity size={32} />
                                 </div>
-                                <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1e293b', marginBottom: '0.75rem' }}>{spec.name}</h3>
-                                <p style={{ color: '#64748b', fontSize: '0.875rem', lineHeight: '1.6', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', marginBottom: '1.5rem', flex: 1 }}>
+                                <h3 style={{ fontSize: '1.35rem', fontWeight: '800', color: '#1e293b', marginBottom: '0.75rem' }}>{spec.name}</h3>
+                                <p style={{ color: '#64748b', fontSize: '0.9rem', lineHeight: '1.6', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', marginBottom: '1.5rem', flex: 1 }}>
                                     {spec.description}
                                 </p>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#4f46e5', fontWeight: '600', fontSize: '0.875rem', marginTop: 'auto' }}>
-                                    <span>Explore Doctors</span>
+                                <div style={{ 
+                                    display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0ea5e9', 
+                                    fontWeight: '600', fontSize: '0.9rem', marginTop: 'auto',
+                                    padding: '0.5rem 1rem', backgroundColor: '#f0f9ff', borderRadius: '2rem'
+                                }}>
+                                    <span>Xem chuyên khoa</span>
                                     <ArrowRight className="arrow-icon" size={16} style={{ transition: 'transform 0.3s ease' }} />
                                 </div>
-                                {/* Top corner accent */}
-                                <div style={{ position: 'absolute', top: 0, right: 0, width: '80px', height: '80px', background: 'radial-gradient(circle at top right, rgba(79, 70, 229, 0.05) 0%, transparent 70%)', borderRadius: '0 1.25rem 0 100%' }}></div>
                             </div>
                         ))}
                         {specialties.length === 0 && (
@@ -217,51 +220,84 @@ const Home = () => {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '2rem' }}>
                         {doctors.map((doc) => (
                             <div key={doc.id} style={{
+                                minWidth: '300px',
+                                maxWidth: '320px',
                                 backgroundColor: 'white',
-                                borderRadius: '1rem',
+                                borderRadius: '1.25rem',
                                 overflow: 'hidden',
-                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                                border: '1px solid #e2e8f0',
-                                transition: 'transform 0.2s',
+                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+                                border: '1px solid #f1f5f9',
+                                transition: 'all 0.3s ease',
                                 cursor: 'pointer',
                                 display: 'flex',
                                 flexDirection: 'column'
                             }}
                             onClick={() => navigate(`/doctor/${doc.id}`)}
-                            onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; }}
-                            onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
+                            onMouseOver={(e) => { 
+                                e.currentTarget.style.transform = 'translateY(-8px)'; 
+                                e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)'; 
+                                e.currentTarget.style.borderColor = '#e0e7ff';
+                            }}
+                            onMouseOut={(e) => { 
+                                e.currentTarget.style.transform = 'translateY(0)'; 
+                                e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)';
+                                e.currentTarget.style.borderColor = '#f1f5f9';
+                            }}
                             >
-                                <div style={{ height: '200px', backgroundColor: '#f3f4f6', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                <div style={{ height: '220px', backgroundColor: '#f8fafc', display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
+                                    {user && user.role === 'PATIENT' && (
+                                        <button 
+                                            onClick={(e) => { e.stopPropagation(); toggleFavorite(doc.id); }}
+                                            style={{
+                                                position: 'absolute', top: '1rem', right: '1rem', zIndex: 10,
+                                                background: 'white', border: 'none', borderRadius: '50%',
+                                                width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)', cursor: 'pointer',
+                                                transition: 'transform 0.2s'
+                                            }}
+                                            onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                                            onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                                        >
+                                            <Heart size={20} fill={favoriteDoctorIds?.has(doc.id) ? '#fbbf24' : 'none'} color={favoriteDoctorIds?.has(doc.id) ? '#fbbf24' : '#9ca3af'} />
+                                        </button>
+                                    )}
                                     {doc.avatar ? (
                                         <img src={doc.avatar} alt={doc.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                     ) : (
-                                        <div style={{ width: '100px', height: '100px', borderRadius: '50%', backgroundColor: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: '2rem', fontWeight: 'bold' }}>
+                                        <div style={{ width: '120px', height: '120px', borderRadius: '50%', backgroundColor: '#e0e7ff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4f46e5', fontSize: '3rem', fontWeight: 'bold' }}>
                                             {doc.fullName?.charAt(0)}
                                         </div>
                                     )}
                                 </div>
                                 <div style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginBottom: '0.5rem' }}>
-                                        <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1f2937', margin: 0 }}>{doc.fullName}</h3>
-                                        <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#fef3c7', padding: '0.25rem 0.5rem', borderRadius: '1rem', gap: '0.25rem', width: 'fit-content' }}>
-                                            <Star size={16} color="#d97706" fill="#d97706" />
-                                            <span style={{ color: '#92400e', fontWeight: '600', fontSize: '0.875rem' }}>{doc.averageRating?.toFixed(1) || '0.0'}</span>
-                                        </div>
-                                        <div style={{ fontSize: '0.875rem', color: '#6b7280', fontWeight: '500' }}>{doc.degree}</div>
-                                    </div>
-                                    <p style={{ color: '#4f46e5', fontWeight: '500', marginBottom: '1rem' }}>{doc.specialtyName}</p>
+                                    <h3 style={{ fontSize: '1.3rem', fontWeight: '800', color: '#0ea5e9', marginBottom: '0.25rem' }}>{doc.fullName}</h3>
+                                    <div style={{ color: '#64748b', fontSize: '0.9rem', fontWeight: '500', marginBottom: '0.75rem' }}>{doc.degree}</div>
                                     
-                                    <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', color: '#6b7280', fontSize: '0.875rem' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                            <Clock size={16} /> {doc.experience} Years Exp
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#f0f9ff', color: '#0369a1', padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.85rem', fontWeight: '600' }}>
+                                            <Star size={14} fill="#0ea5e9" color="#0ea5e9" /> {doc.averageRating?.toFixed(1) || '0.0'}
                                         </div>
-                                        <div style={{ fontWeight: '600', color: '#10b981' }}>
+                                        <span style={{ color: '#4f46e5', fontWeight: '600', fontSize: '0.9rem' }}>{doc.specialtyName}</span>
+                                    </div>
+                                    
+                                    <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#475569', fontSize: '0.9rem', paddingBottom: '1.25rem', borderBottom: '1px dashed #e2e8f0', marginBottom: '1.25rem' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                                            <Clock size={16} color="#9ca3af" /> 
+                                            <span><strong>{doc.experience}</strong> yrs exp</span>
+                                        </div>
+                                        <div style={{ fontWeight: '700', color: '#10b981', fontSize: '1.05rem' }}>
                                             ${doc.consultationFee}
                                         </div>
                                     </div>
+                                    
                                     <button 
-                                        className="btn-primary" 
-                                        style={{ marginTop: '1.25rem', width: '100%' }}
+                                        style={{ 
+                                            width: '100%', padding: '0.875rem', borderRadius: '0.75rem', 
+                                            backgroundColor: '#0ea5e9', color: 'white', border: 'none', 
+                                            fontWeight: '600', fontSize: '1rem', cursor: 'pointer', transition: 'background-color 0.2s'
+                                        }}
+                                        onMouseOver={e => e.currentTarget.style.backgroundColor = '#0284c7'}
+                                        onMouseOut={e => e.currentTarget.style.backgroundColor = '#0ea5e9'}
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             if (user) {
@@ -271,7 +307,7 @@ const Home = () => {
                                             }
                                         }}
                                     >
-                                        Book Appointment
+                                        Đặt khám ngay
                                     </button>
                                 </div>
                             </div>

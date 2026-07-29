@@ -18,6 +18,8 @@ import MyAppointments from './pages/MyAppointments';
 import PatientProfile from './pages/PatientProfile';
 import SearchPage from './pages/SearchPage';
 import SpecialtyDoctorsPage from './pages/SpecialtyDoctorsPage';
+import SpecialtiesPage from './pages/SpecialtiesPage';
+import FavoriteDoctors from './pages/FavoriteDoctors';
 
 function App() {
   const { user } = useContext(AuthContext);
@@ -28,12 +30,14 @@ function App() {
       <Route element={<MainLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/search" element={<SearchPage />} />
+        <Route path="/specialties" element={<SpecialtiesPage />} />
         <Route path="/specialty/:id" element={<SpecialtyDoctorsPage />} />
         <Route path="/doctor/:id" element={<DoctorProfile />} />
         <Route path="/login" element={user ? (['ADMIN', 'RECEPTIONIST', 'DOCTOR'].includes(user.role) ? <Navigate to="/admin" /> : <Navigate to="/" />) : <Login />} />
         <Route path="/register" element={user ? (['ADMIN', 'RECEPTIONIST', 'DOCTOR'].includes(user.role) ? <Navigate to="/admin" /> : <Navigate to="/" />) : <Register />} />
         <Route path="/book" element={<BookingPage />} />
         <Route path="/my-appointments" element={<MyAppointments />} />
+        <Route path="/favorites" element={user && user.role === 'PATIENT' ? <FavoriteDoctors /> : <Navigate to="/login" />} />
         <Route path="/profile" element={user ? <PatientProfile /> : <Navigate to="/login" />} />
       </Route>
       
