@@ -13,6 +13,7 @@ const MyAppointments = () => {
     const [viewingRecordApt, setViewingRecordApt] = useState(null);
     const [viewingBookingApt, setViewingBookingApt] = useState(null);
     const [feedbackApt, setFeedbackApt] = useState(null);
+    const [showAll, setShowAll] = useState(false);
 
     useEffect(() => {
         if (user) {
@@ -56,9 +57,30 @@ const MyAppointments = () => {
 
     if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading your appointments...</div>;
 
+    const displayedAppointments = showAll ? appointments : appointments.slice(0, 1);
+
     return (
         <div style={{ maxWidth: '1000px', margin: '3rem auto', padding: '0 1rem' }}>
-            <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '2rem', color: '#1f2937' }}>My Appointments</h1>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: '#1f2937', margin: 0 }}>My Appointments</h1>
+                {appointments.length > 1 && !showAll && (
+                    <button 
+                        onClick={() => setShowAll(true)}
+                        className="btn-primary"
+                        style={{ width: 'auto', padding: '0.75rem 1.5rem', borderRadius: '0.75rem' }}
+                    >
+                        View All Appointment History
+                    </button>
+                )}
+                {showAll && (
+                    <button 
+                        onClick={() => setShowAll(false)}
+                        style={{ padding: '0.75rem 1.5rem', backgroundColor: '#f1f5f9', color: '#475569', border: 'none', borderRadius: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+                    >
+                        Show Latest Only
+                    </button>
+                )}
+            </div>
             
             {appointments.length === 0 ? (
                 <div style={{ backgroundColor: 'white', padding: '3rem', textAlign: 'center', borderRadius: '1rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
@@ -68,7 +90,7 @@ const MyAppointments = () => {
                 </div>
             ) : (
                 <div style={{ display: 'grid', gap: '1.5rem' }}>
-                    {appointments.map(apt => {
+                    {displayedAppointments.map(apt => {
                         const statusStyle = getStatusStyle(apt.status);
                         return (
                             <div key={apt.id} style={{ 
