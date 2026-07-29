@@ -4,7 +4,7 @@ import { AuthContext } from '../context/AuthContext';
 import { getSpecialties, getDoctors } from '../api/adminApi';
 import { getAvailableSchedules, bookAppointment } from '../api/appointmentApi';
 import { getPatientProfile } from '../api/patientApi';
-import { Calendar, User, Stethoscope, Clock, CheckCircle } from 'lucide-react';
+import { Calendar, User, Stethoscope, Clock, CheckCircle, ChevronRight } from 'lucide-react';
 
 const BookingPage = () => {
     const { user } = useContext(AuthContext);
@@ -234,13 +234,19 @@ const BookingPage = () => {
                             ← Back
                         </button>
                         <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '2rem', color: '#111827', textAlign: 'center' }}>Select a Medical Specialty</h2>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1.5rem' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem' }}>
                             {specialties.map(spec => (
-                                <button key={spec.id} className="spec-card" onClick={() => handleSpecSelect(spec.id)}>
-                                    <div style={{ width: '64px', height: '64px', backgroundColor: '#e0e7ff', color: 'var(--primary-color)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.5rem' }}>
+                                <button key={spec.id} className="spec-card" onClick={() => handleSpecSelect(spec.id)} style={{ flexDirection: 'row', alignItems: 'flex-start', textAlign: 'left', gap: '1.5rem', padding: '1.5rem 2rem' }}>
+                                    <div style={{ width: '64px', height: '64px', backgroundColor: '#e0e7ff', color: 'var(--primary-color)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                                         <Stethoscope size={32} />
                                     </div>
-                                    <div style={{ fontWeight: 700, color: '#1f2937', fontSize: '1.125rem' }}>{spec.name}</div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
+                                        <div style={{ fontWeight: 800, color: '#1f2937', fontSize: '1.25rem' }}>{spec.name}</div>
+                                        <div style={{ color: '#6b7280', fontSize: '0.95rem', lineHeight: '1.5' }}>{spec.description || 'Consult with our experienced specialists for this area.'}</div>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', color: 'var(--primary-color)', flexShrink: 0, paddingLeft: '1rem', alignSelf: 'center' }}>
+                                        <ChevronRight size={24} />
+                                    </div>
                                 </button>
                             ))}
                         </div>

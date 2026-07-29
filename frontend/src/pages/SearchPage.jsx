@@ -36,15 +36,25 @@ const SearchPage = () => {
 
 
     const currentQuery = searchParams.get("q") || "";
+    
+    const normalizeString = (str) => {
+        if (!str) return '';
+        return str.normalize('NFD')
+                  .replace(/[\u0300-\u036f]/g, '')
+                  .replace(/đ/g, 'd').replace(/Đ/g, 'D')
+                  .toLowerCase();
+    };
+
+    const normalizedQuery = normalizeString(currentQuery);
 
     const filteredDoctors = doctors.filter(d =>
-        d.fullName?.toLowerCase().includes(currentQuery.toLowerCase()) ||
-        d.specialtyName?.toLowerCase().includes(currentQuery.toLowerCase())
+        normalizeString(d.fullName).includes(normalizedQuery) ||
+        normalizeString(d.specialtyName).includes(normalizedQuery)
     );
 
     const filteredSpecialties = specialties.filter(s =>
-        s.name?.toLowerCase().includes(currentQuery.toLowerCase()) ||
-        s.description?.toLowerCase().includes(currentQuery.toLowerCase())
+        normalizeString(s.name).includes(normalizedQuery) ||
+        normalizeString(s.description).includes(normalizedQuery)
     );
 
     return (
