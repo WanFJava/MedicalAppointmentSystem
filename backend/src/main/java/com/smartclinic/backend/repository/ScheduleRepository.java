@@ -10,6 +10,6 @@ import java.util.List;
 @Repository
 public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
     List<Schedule> findByDoctorIdAndDate(Long doctorId, LocalDate date);
-    List<Schedule> findByDoctorIdAndDateAndStatus(Long doctorId, LocalDate date, String status);
-    List<Schedule> findByDoctorIdAndDateGreaterThanEqualAndStatusOrderByDateAscStartTimeAsc(Long doctorId, LocalDate date, String status);
+    List<Schedule> findByDoctorIdAndDateAndStatus(Long doctorId, LocalDate date, com.smartclinic.backend.entity.ScheduleStatus status);
+    List<Schedule> findByDoctorIdAndDateGreaterThanEqualAndStatusOrderByDateAscStartTimeAsc(Long doctorId, LocalDate date, com.smartclinic.backend.entity.ScheduleStatus status);
 }

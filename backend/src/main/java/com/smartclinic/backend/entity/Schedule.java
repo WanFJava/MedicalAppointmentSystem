@@ -38,6 +38,7 @@ public class Schedule {
     @Column(name = "current_patient")
     private Integer currentPatient = 0;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String status = "AVAILABLE"; // AVAILABLE, FULL, CANCELLED
+    private ScheduleStatus status = ScheduleStatus.AVAILABLE;
 }

@@ -20,7 +20,7 @@ public class ScheduleController {
     private final ScheduleService scheduleService;
 
     @PostMapping("/doctor/{doctorId}")
-    @PreAuthorize("hasRole('DOCTOR')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ScheduleDto> createSchedule(
             @PathVariable Long doctorId,
             @RequestBody ScheduleRequestDto requestDto) {
@@ -28,7 +28,7 @@ public class ScheduleController {
     }
 
     @PostMapping("/generate/{doctorId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'DOCTOR')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<ScheduleDto>> generateSchedules(
             @PathVariable Long doctorId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
@@ -50,5 +50,13 @@ public class ScheduleController {
             return ResponseEntity.ok(scheduleService.getAvailableSchedules(doctorId, date));
         }
         return ResponseEntity.ok(scheduleService.getAllUpcomingAvailableSchedules(doctorId));
+    }
+
+    @PutMapping("/{scheduleId}/status")
+    @PreAuthorize("hasAnyRole('ADMIN', 'DOCTOR')")
+    public ResponseEntity<ScheduleDto> updateScheduleStatus(
+            @PathVariable Long scheduleId,
+            @RequestParam com.smartclinic.backend.entity.ScheduleStatus status) {
+        return ResponseEntity.ok(scheduleService.updateScheduleStatus(scheduleId, status));
     }
 }

@@ -35,7 +35,7 @@ const MyAppointments = () => {
     const handleCancel = async (id) => {
         if (window.confirm("Are you sure you want to cancel this appointment?")) {
             try {
-                await updateAppointmentStatus(id, 'CANCELLED');
+                await updateAppointmentStatus(id, 'CANCELLED_BY_PATIENT');
                 fetchAppointments();
             } catch (error) {
                 alert("Failed to cancel appointment");
@@ -49,8 +49,9 @@ const MyAppointments = () => {
             case 'CONFIRMED': return { bg: '#dbeafe', color: '#2563eb' };
             case 'CHECKED_IN': return { bg: '#e0e7ff', color: '#4f46e5' };
             case 'COMPLETED': return { bg: '#d1fae5', color: '#059669' };
-            case 'PAID': return { bg: '#fce7f3', color: '#be185d' };
-            case 'CANCELLED': return { bg: '#fee2e2', color: '#dc2626' };
+            case 'CANCELLED_BY_PATIENT': return { bg: '#fee2e2', color: '#dc2626' };
+            case 'CANCELLED_BY_DOCTOR': return { bg: '#fee2e2', color: '#dc2626' };
+            case 'NO_SHOW': return { bg: '#f3f4f6', color: '#6b7280' };
             default: return { bg: '#f3f4f6', color: '#4b5563' };
         }
     };

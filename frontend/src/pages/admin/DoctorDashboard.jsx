@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
 import { getDoctorByUserId } from '../../api/adminApi';
-import { getDoctorAppointments } from '../../api/appointmentApi';
+import { getDoctorAppointments, updateAppointmentStatus } from '../../api/appointmentApi';
 import { getPatientProfile } from '../../api/patientApi';
-import { CheckCircle, ClipboardList, Calendar, Info, X, Star, FileText } from 'lucide-react';
+import { CheckCircle, ClipboardList, Calendar, Info, X, Star, FileText, Check, XCircle, UserX } from 'lucide-react';
 import ScheduleManager from './ScheduleManager';
 import DoctorDiagnoseModal from './DoctorDiagnoseModal';
 import FeedbackModal from '../FeedbackModal';
@@ -41,6 +41,17 @@ const DoctorDashboard = () => {
         }
     };
 
+    const handleUpdateStatus = async (id, status) => {
+        if (window.confirm(`Are you sure you want to mark this as ${status}?`)) {
+            try {
+                await updateAppointmentStatus(id, status);
+                fetchDoctorAndAppointments();
+            } catch (error) {
+                alert(`Failed to update status: ${error.response?.data || error.message}`);
+            }
+        }
+    };
+
     const handleComplete = (apt) => {
         setDiagnosingApt(apt);
     };
@@ -61,7 +72,9 @@ const DoctorDashboard = () => {
             case 'CONFIRMED': return { bg: '#dbeafe', color: '#2563eb' };
             case 'CHECKED_IN': return { bg: '#e0e7ff', color: '#4f46e5' };
             case 'COMPLETED': return { bg: '#d1fae5', color: '#059669' };
-            case 'CANCELLED': return { bg: '#fee2e2', color: '#dc2626' };
+            case 'CANCELLED_BY_PATIENT': return { bg: '#fee2e2', color: '#dc2626' };
+            case 'CANCELLED_BY_DOCTOR': return { bg: '#fee2e2', color: '#dc2626' };
+            case 'NO_SHOW': return { bg: '#f3f4f6', color: '#6b7280' };
             default: return { bg: '#f3f4f6', color: '#4b5563' };
         }
     };
@@ -114,7 +127,7 @@ const DoctorDashboard = () => {
                                         {apt.status}
                                     </span>
                                 </td>
-                                <td style={{ display: 'flex', gap: '0.5rem' }}>
+                                <td style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                                     <button 
                                         className="btn-primary" 
                                         style={{ padding: '0.5rem 0.75rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#3b82f6' }}
@@ -122,6 +135,38 @@ const DoctorDashboard = () => {
                                     >
                                         <Info size={16} /> Info
                                     </button>
+                                    
+                                    {apt.status === 'PENDING' && (
+                                        <>
+                                            <button 
+                                                className="btn-primary" 
+                                                style={{ padding: '0.5rem 0.75rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#2563eb' }}
+                                                onClick={() => handleUpdateStatus(apt.id, 'CONFIRMED')}
+                                            >
+                                                <Check size={16} /> Confirm
+                                            </button>
+                                            <button 
+                                                className="btn-primary" 
+                                                style={{ padding: '0.5rem 0.75rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#dc2626' }}
+                                                onClick={() => handleUpdateStatus(apt.id, 'CANCELLED_BY_DOCTOR')}
+                                            >
+                                                <XCircle size={16} /> Cancel
+                                            </button>
+                                        </>
+                                    )}
+
+                                    {apt.status === 'CONFIRMED' && (
+                                        <>
+                                            <button 
+                                                className="btn-primary" 
+                                                style={{ padding: '0.5rem 0.75rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#6b7280' }}
+                                                onClick={() => handleUpdateStatus(apt.id, 'NO_SHOW')}
+                                            >
+                                                <UserX size={16} /> No Show
+                                            </button>
+                                        </>
+                                    )}
+
                                     {apt.status === 'CHECKED_IN' && (
                                         <button 
                                             className="btn-primary" 

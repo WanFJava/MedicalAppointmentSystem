@@ -1,5 +1,6 @@
 package com.smartclinic.backend.dto;
 
+import com.smartclinic.backend.entity.ScheduleStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,5 +21,5 @@ public class ScheduleDto {
     private LocalTime endTime;
     private Integer maxPatient;
     private Integer currentPatient;
-    private String status;
+    private ScheduleStatus status;
 }
