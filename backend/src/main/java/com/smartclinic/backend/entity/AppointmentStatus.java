@@ -5,6 +5,7 @@ public enum AppointmentStatus {
     CONFIRMED,
     CHECKED_IN,
     COMPLETED,
-    PAID,
-    CANCELLED
+    CANCELLED_BY_PATIENT,
+    CANCELLED_BY_DOCTOR,
+    NO_SHOW
 }

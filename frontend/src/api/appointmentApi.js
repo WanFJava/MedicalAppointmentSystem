@@ -24,6 +24,11 @@ export const generateSchedules = async (doctorId, date) => {
     return response.data;
 };
 
+export const updateScheduleStatus = async (id, status) => {
+    const response = await api.put(`/schedules/${id}/status`, {}, { params: { status } });
+    return response.data;
+};
+
 // Appointment API
 export const bookAppointment = async (patientId, data) => {
     const response = await api.post(`/appointments/book/${patientId}`, data);

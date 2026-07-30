@@ -12,4 +12,5 @@ public interface ScheduleService {
     List<ScheduleDto> getSchedulesByDoctorAndDate(Long doctorId, LocalDate date);
     List<ScheduleDto> getAvailableSchedules(Long doctorId, LocalDate date);
     List<ScheduleDto> getAllUpcomingAvailableSchedules(Long doctorId);
+    ScheduleDto updateScheduleStatus(Long scheduleId, com.smartclinic.backend.entity.ScheduleStatus status);
 }

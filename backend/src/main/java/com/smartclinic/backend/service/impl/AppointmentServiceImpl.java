@@ -7,6 +7,7 @@ import com.smartclinic.backend.entity.AppointmentStatus;
 import com.smartclinic.backend.entity.Doctor;
 import com.smartclinic.backend.entity.Patient;
 import com.smartclinic.backend.entity.Schedule;
+import com.smartclinic.backend.entity.ScheduleStatus;
 import com.smartclinic.backend.entity.User;
 import com.smartclinic.backend.entity.Prescription;
 import com.smartclinic.backend.entity.PrescriptionDetail;
@@ -63,7 +64,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         Schedule schedule = scheduleRepository.findById(requestDto.getScheduleId())
                 .orElseThrow(() -> new RuntimeException("Schedule not found"));
 
-        if (!"AVAILABLE".equals(schedule.getStatus())) {
+        if (schedule.getStatus() != ScheduleStatus.AVAILABLE) {
             throw new RuntimeException("Schedule is no longer available");
         }
 
@@ -112,7 +113,7 @@ public class AppointmentServiceImpl implements AppointmentService {
             if (oldStatus != AppointmentStatus.PENDING) {
                 throw new RuntimeException("Patients can only cancel appointments that are in PENDING status.");
             }
-            if (status != AppointmentStatus.CANCELLED) {
+            if (status != AppointmentStatus.CANCELLED_BY_PATIENT) {
                 throw new RuntimeException("Patients can only cancel appointments, not change to other statuses.");
             }
         }
@@ -127,17 +128,17 @@ public class AppointmentServiceImpl implements AppointmentService {
             // Bypass strict full check to allow testing data with current >= max to proceed
             schedule.setCurrentPatient(current + 1);
             if (schedule.getCurrentPatient() >= max) {
-                schedule.setStatus("FULL");
+                schedule.setStatus(ScheduleStatus.FULL);
             }
             scheduleRepository.save(schedule);
         }
 
         // If cancelled from a non-pending state (like confirmed), free up the schedule
-        if (status == AppointmentStatus.CANCELLED && oldStatus != AppointmentStatus.PENDING) {
+        if ((status == AppointmentStatus.CANCELLED_BY_PATIENT || status == AppointmentStatus.CANCELLED_BY_DOCTOR) && oldStatus != AppointmentStatus.PENDING) {
             Schedule schedule = appointment.getSchedule();
             int current = schedule.getCurrentPatient() == null ? 0 : schedule.getCurrentPatient();
             schedule.setCurrentPatient(Math.max(0, current - 1));
-            schedule.setStatus("AVAILABLE");
+            schedule.setStatus(ScheduleStatus.AVAILABLE);
             scheduleRepository.save(schedule);
         }
 
@@ -152,10 +153,10 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
         
         // If the appointment was occupying a schedule spot, free it up before deleting
-        if (appointment.getStatus() != AppointmentStatus.PENDING && appointment.getStatus() != AppointmentStatus.CANCELLED) {
+        if (appointment.getStatus() != AppointmentStatus.PENDING && appointment.getStatus() != AppointmentStatus.CANCELLED_BY_PATIENT && appointment.getStatus() != AppointmentStatus.CANCELLED_BY_DOCTOR) {
             Schedule schedule = appointment.getSchedule();
             schedule.setCurrentPatient(Math.max(0, schedule.getCurrentPatient() - 1));
-            schedule.setStatus("AVAILABLE");
+            schedule.setStatus(ScheduleStatus.AVAILABLE);
             scheduleRepository.save(schedule);
         }
         

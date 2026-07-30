@@ -1,5 +1,7 @@
 package com.smartclinic.backend.service.impl;
 
+import com.smartclinic.backend.entity.ScheduleStatus;
+
 import com.smartclinic.backend.dto.ScheduleDto;
 import com.smartclinic.backend.dto.ScheduleRequestDto;
 import com.smartclinic.backend.entity.Doctor;
@@ -35,7 +37,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         schedule.setEndTime(requestDto.getEndTime());
         schedule.setMaxPatient(requestDto.getMaxPatient());
         schedule.setCurrentPatient(0);
-        schedule.setStatus("AVAILABLE");
+        schedule.setStatus(ScheduleStatus.OPEN);
         
         return mapToDto(scheduleRepository.save(schedule));
     }
@@ -60,7 +62,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         morning.setEndTime(LocalTime.of(11, 30));
         morning.setMaxPatient(10);
         morning.setCurrentPatient(0);
-        morning.setStatus("AVAILABLE");
+        morning.setStatus(ScheduleStatus.OPEN);
         newSchedules.add(morning);
 
         // Generate Afternoon Shift
@@ -71,7 +73,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         afternoon.setEndTime(LocalTime.of(17, 0));
         afternoon.setMaxPatient(12);
         afternoon.setCurrentPatient(0);
-        afternoon.setStatus("AVAILABLE");
+        afternoon.setStatus(ScheduleStatus.OPEN);
         newSchedules.add(afternoon);
 
         List<Schedule> savedSchedules = scheduleRepository.saveAll(newSchedules);
@@ -86,14 +88,22 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public List<ScheduleDto> getAvailableSchedules(Long doctorId, LocalDate date) {
-        return scheduleRepository.findByDoctorIdAndDateAndStatus(doctorId, date, "AVAILABLE")
+        return scheduleRepository.findByDoctorIdAndDateAndStatus(doctorId, date, ScheduleStatus.AVAILABLE)
                 .stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
     @Override
     public List<ScheduleDto> getAllUpcomingAvailableSchedules(Long doctorId) {
-        return scheduleRepository.findByDoctorIdAndDateGreaterThanEqualAndStatusOrderByDateAscStartTimeAsc(doctorId, LocalDate.now(), "AVAILABLE")
+        return scheduleRepository.findByDoctorIdAndDateGreaterThanEqualAndStatusOrderByDateAscStartTimeAsc(doctorId, LocalDate.now(), ScheduleStatus.AVAILABLE)
                 .stream().map(this::mapToDto).collect(Collectors.toList());
+    }
+
+    @Override
+    public ScheduleDto updateScheduleStatus(Long scheduleId, ScheduleStatus status) {
+        Schedule schedule = scheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new RuntimeException("Schedule not found"));
+        schedule.setStatus(status);
+        return mapToDto(scheduleRepository.save(schedule));
     }
 
     private ScheduleDto mapToDto(Schedule schedule) {
