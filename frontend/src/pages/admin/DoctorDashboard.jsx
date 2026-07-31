@@ -161,6 +161,7 @@ const DoctorDashboard = () => {
                                                 className="btn-primary" 
                                                 style={{ padding: '0.5rem 0.75rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#6b7280' }}
                                                 onClick={() => handleUpdateStatus(apt.id, 'NO_SHOW')}
+                                                title="Đánh dấu bệnh nhân không đến khám"
                                             >
                                                 <UserX size={16} /> No Show
                                             </button>
@@ -168,13 +169,23 @@ const DoctorDashboard = () => {
                                     )}
 
                                     {apt.status === 'CHECKED_IN' && (
-                                        <button 
-                                            className="btn-primary" 
-                                            style={{ padding: '0.5rem 0.75rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#059669' }}
-                                            onClick={() => handleComplete(apt)}
-                                        >
-                                            <CheckCircle size={16} /> Diagnose
-                                        </button>
+                                        <>
+                                            <button 
+                                                className="btn-primary" 
+                                                style={{ padding: '0.5rem 0.75rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#059669' }}
+                                                onClick={() => handleComplete(apt)}
+                                            >
+                                                <CheckCircle size={16} /> Diagnose
+                                            </button>
+                                            <button 
+                                                className="btn-primary" 
+                                                style={{ padding: '0.5rem 0.75rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#6b7280' }}
+                                                onClick={() => handleUpdateStatus(apt.id, 'NO_SHOW')}
+                                                title="Đánh dấu bệnh nhân không đến khám"
+                                            >
+                                                <UserX size={16} /> No Show
+                                            </button>
+                                        </>
                                     )}
                                     {apt.status === 'COMPLETED' && apt.isReviewed && (
                                         <button 

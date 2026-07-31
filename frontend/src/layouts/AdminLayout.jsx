@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { Users, LayoutDashboard, Stethoscope, LogOut, Pill } from 'lucide-react';
+import { Users, LayoutDashboard, Stethoscope, LogOut, Pill, Calendar } from 'lucide-react';
 
 const AdminLayout = () => {
     const { user, logout } = useContext(AuthContext);
@@ -11,6 +11,7 @@ const AdminLayout = () => {
         { path: '/admin', name: 'Dashboard', icon: <LayoutDashboard size={20} />, roles: ['ADMIN'] },
         { path: '/admin/specialties', name: 'Specialties', icon: <Stethoscope size={20} />, roles: ['ADMIN'] },
         { path: '/admin/doctors', name: 'Doctors', icon: <Users size={20} />, roles: ['ADMIN'] },
+        { path: '/admin/schedules', name: 'Schedules', icon: <Calendar size={20} />, roles: ['ADMIN'] },
         { path: '/admin/medicines', name: 'Medicines', icon: <Pill size={20} />, roles: ['ADMIN'] },
         { path: '/admin/appointments', name: 'Appointments', icon: <Users size={20} />, roles: ['ADMIN', 'RECEPTIONIST'] },
         { path: '/admin/my-schedule', name: 'My Schedule', icon: <Stethoscope size={20} />, roles: ['DOCTOR'] },

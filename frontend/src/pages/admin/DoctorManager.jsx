@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getDoctors, createDoctor, updateDoctor, deleteDoctor, getSpecialties } from '../../api/adminApi';
-import { Edit2, Trash2, Plus, X } from 'lucide-react';
+import { Edit2, Trash2, Plus, X, Calendar } from 'lucide-react';
 
 const DoctorManager = () => {
+    const navigate = useNavigate();
     const [doctors, setDoctors] = useState([]);
     const [specialties, setSpecialties] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -125,7 +127,15 @@ const DoctorManager = () => {
                                     </div>
                                 </td>
                                 <td>
-                                    <div className="action-buttons">
+                                    <div className="action-buttons" style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <button 
+                                            className="btn-secondary" 
+                                            style={{ padding: '0.35rem 0.6rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+                                            onClick={() => navigate(`/admin/schedules?doctorId=${doc.id}`)}
+                                            title="Quản lý lịch khám bác sĩ"
+                                        >
+                                            <Calendar size={15} /> Lịch khám
+                                        </button>
                                         <button className="btn-icon btn-edit" onClick={() => handleOpenModal(doc)}>
                                             <Edit2 size={16} />
                                         </button>

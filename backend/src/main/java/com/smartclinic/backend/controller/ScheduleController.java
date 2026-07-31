@@ -27,12 +27,32 @@ public class ScheduleController {
         return ResponseEntity.ok(scheduleService.createSchedule(doctorId, requestDto));
     }
 
+    @PostMapping("/open")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ScheduleDto> createOpenSchedule(
+            @RequestBody ScheduleRequestDto requestDto) {
+        return ResponseEntity.ok(scheduleService.createOpenSchedule(requestDto));
+    }
+
     @PostMapping("/generate/{doctorId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<ScheduleDto>> generateSchedules(
             @PathVariable Long doctorId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         return ResponseEntity.ok(scheduleService.generateSchedules(doctorId, date));
+    }
+
+    @PostMapping("/generate-open")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<ScheduleDto>> generateOpenSchedules(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        return ResponseEntity.ok(scheduleService.generateOpenSchedules(date));
+    }
+
+    @GetMapping("/open")
+    public ResponseEntity<List<ScheduleDto>> getOpenSchedules(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        return ResponseEntity.ok(scheduleService.getOpenSchedules(date));
     }
 
     @GetMapping("/doctor/{doctorId}")
@@ -52,11 +72,33 @@ public class ScheduleController {
         return ResponseEntity.ok(scheduleService.getAllUpcomingAvailableSchedules(doctorId));
     }
 
+    @GetMapping
+    public ResponseEntity<List<ScheduleDto>> getAllSchedules(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(required = false) Long doctorId) {
+        return ResponseEntity.ok(scheduleService.getAllSchedules(date, doctorId));
+    }
+
+    @PutMapping("/{scheduleId}/register/doctor/{doctorId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'DOCTOR')")
+    public ResponseEntity<ScheduleDto> registerDoctorForSchedule(
+            @PathVariable Long scheduleId,
+            @PathVariable Long doctorId) {
+        return ResponseEntity.ok(scheduleService.registerDoctorForSchedule(scheduleId, doctorId));
+    }
+
     @PutMapping("/{scheduleId}/status")
     @PreAuthorize("hasAnyRole('ADMIN', 'DOCTOR')")
     public ResponseEntity<ScheduleDto> updateScheduleStatus(
             @PathVariable Long scheduleId,
             @RequestParam com.smartclinic.backend.entity.ScheduleStatus status) {
         return ResponseEntity.ok(scheduleService.updateScheduleStatus(scheduleId, status));
+    }
+
+    @DeleteMapping("/{scheduleId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteSchedule(@PathVariable Long scheduleId) {
+        scheduleService.deleteSchedule(scheduleId);
+        return ResponseEntity.noContent().build();
     }
 }
