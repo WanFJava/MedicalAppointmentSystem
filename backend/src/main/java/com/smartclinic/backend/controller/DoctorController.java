@@ -45,6 +45,13 @@ public class DoctorController {
         return ResponseEntity.ok(doctorService.updateDoctor(doctorId, doctorDto));
     }
 
+    @PutMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<DoctorDto> updateDoctorStatus(@PathVariable("id") Long doctorId,
+                                                        @RequestParam com.smartclinic.backend.entity.Status status) {
+        return ResponseEntity.ok(doctorService.updateDoctorStatus(doctorId, status));
+    }
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteDoctor(@PathVariable("id") Long doctorId) {

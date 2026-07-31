@@ -27,4 +27,5 @@ public class DoctorDto {
     private BigDecimal averageRating;
     private Integer totalReviews;
     private String biography;
+    private com.smartclinic.backend.entity.Status status;
 }

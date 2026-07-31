@@ -31,7 +31,7 @@ public class DoctorServiceImpl implements DoctorService {
         User user;
         if (doctorDto.getUserId() != null) {
             user = userRepository.findById(doctorDto.getUserId())
-                    .orElseThrow(() -> new RuntimeException("User not found with id: " + doctorDto.getUserId()));
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản người dùng với ID: " + doctorDto.getUserId()));
             
             // Ensure the user has DOCTOR role
             if (user.getRole() != Role.DOCTOR) {
@@ -41,7 +41,7 @@ public class DoctorServiceImpl implements DoctorService {
         } else {
             // Create a new User for the doctor
             if (userRepository.existsByEmail(doctorDto.getEmail())) {
-                throw new RuntimeException("Email is already taken");
+                throw new IllegalArgumentException("Email '" + doctorDto.getEmail() + "' đã được sử dụng trong hệ thống! Vui lòng chọn email khác.");
             }
             user = new User();
             user.setFullName(doctorDto.getFullName());
@@ -53,8 +53,12 @@ public class DoctorServiceImpl implements DoctorService {
             user = userRepository.save(user);
         }
 
+        if (doctorDto.getSpecialtyId() == null) {
+            throw new IllegalArgumentException("Vui lòng chọn Chuyên khoa hợp lệ cho Bác sĩ!");
+        }
+
         Specialty specialty = specialtyRepository.findById(doctorDto.getSpecialtyId())
-                .orElseThrow(() -> new RuntimeException("Specialty not found with id: " + doctorDto.getSpecialtyId()));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy Chuyên khoa với ID: " + doctorDto.getSpecialtyId()));
 
         Doctor doctor = new Doctor();
         doctor.setUser(user);
@@ -100,8 +104,28 @@ public class DoctorServiceImpl implements DoctorService {
         doctor.setConsultationFee(doctorDto.getConsultationFee());
         doctor.setBiography(doctorDto.getBiography());
 
+        if (doctorDto.getStatus() != null && doctor.getUser() != null) {
+            doctor.getUser().setStatus(doctorDto.getStatus());
+            userRepository.save(doctor.getUser());
+        }
+
         Doctor updatedDoctor = doctorRepository.save(doctor);
         return mapToDto(updatedDoctor);
+    }
+
+    @Override
+    @Transactional
+    public DoctorDto updateDoctorStatus(Long id, com.smartclinic.backend.entity.Status status) {
+        Doctor doctor = doctorRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bác sĩ với ID: " + id));
+
+        User user = doctor.getUser();
+        if (user != null) {
+            user.setStatus(status);
+            userRepository.save(user);
+        }
+
+        return mapToDto(doctor);
     }
 
     @Override
@@ -126,6 +150,7 @@ public class DoctorServiceImpl implements DoctorService {
         dto.setEmail(doctor.getUser().getEmail());
         dto.setPhone(doctor.getUser().getPhone());
         dto.setAvatar(doctor.getUser().getAvatar());
+        dto.setStatus(doctor.getUser() != null ? doctor.getUser().getStatus() : com.smartclinic.backend.entity.Status.ACTIVE);
         dto.setSpecialtyId(doctor.getSpecialty().getId());
         dto.setSpecialtyName(doctor.getSpecialty().getName());
         dto.setDegree(doctor.getDegree());

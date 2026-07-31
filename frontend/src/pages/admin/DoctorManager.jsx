@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getDoctors, createDoctor, updateDoctor, deleteDoctor, getSpecialties } from '../../api/adminApi';
-import { Edit2, Trash2, Plus, X, Calendar } from 'lucide-react';
+import { getDoctors, createDoctor, updateDoctor, updateDoctorStatus, getSpecialties } from '../../api/adminApi';
+import { Edit2, Plus, X, Calendar, Power } from 'lucide-react';
 
 const DoctorManager = () => {
     const navigate = useNavigate();
     const [doctors, setDoctors] = useState([]);
     const [specialties, setSpecialties] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [formData, setFormData] = useState({ userId: '', email: '', password: '', fullName: '', phone: '', specialtyId: '', degree: '', experience: 0, consultationFee: 0, biography: '' });
+    const [formData, setFormData] = useState({ userId: '', email: '', password: '', fullName: '', phone: '', specialtyId: '', degree: '', experience: 0, consultationFee: 0, biography: '', status: 'ACTIVE' });
     const [editingId, setEditingId] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -43,11 +43,24 @@ const DoctorManager = () => {
                 degree: doctor.degree,
                 experience: doctor.experience,
                 consultationFee: doctor.consultationFee,
-                biography: doctor.biography || ''
+                biography: doctor.biography || '',
+                status: doctor.status || 'ACTIVE'
             });
             setEditingId(doctor.id);
         } else {
-            setFormData({ userId: '', email: '', password: '', fullName: '', phone: '', specialtyId: specialties[0]?.id || '', degree: '', experience: 0, consultationFee: 0, biography: '' });
+            setFormData({ 
+                userId: '', 
+                email: '', 
+                password: '', 
+                fullName: '', 
+                phone: '', 
+                specialtyId: (specialties && specialties.length > 0) ? specialties[0].id : '', 
+                degree: '', 
+                experience: 0, 
+                consultationFee: 0, 
+                biography: '',
+                status: 'ACTIVE'
+            });
             setEditingId(null);
         }
         setIsModalOpen(true);
@@ -55,26 +68,58 @@ const DoctorManager = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!editingId && (!formData.email || !formData.password || !formData.fullName)) {
+            alert("Vui lòng điền đầy đủ Họ tên, Email và Mật khẩu!");
+            return;
+        }
+
+        if (!formData.specialtyId) {
+            alert("Vui lòng chọn Chuyên khoa cho Bác sĩ!");
+            return;
+        }
+
+        // Sanitize numeric and fee inputs (replace comma with dot for BigDecimal parsing)
+        const sanitizedFee = parseFloat(String(formData.consultationFee).replace(',', '.')) || 0;
+        const sanitizedExp = parseInt(formData.experience, 10) || 0;
+        const sanitizedSpecId = parseInt(formData.specialtyId, 10);
+
+        const payload = {
+            ...formData,
+            specialtyId: sanitizedSpecId,
+            experience: sanitizedExp,
+            consultationFee: sanitizedFee,
+            userId: formData.userId ? parseInt(formData.userId, 10) : null
+        };
+
         try {
             if (editingId) {
-                await updateDoctor(editingId, formData);
+                await updateDoctor(editingId, payload);
             } else {
-                await createDoctor(formData);
+                await createDoctor(payload);
             }
             setIsModalOpen(false);
             fetchData();
         } catch (error) {
             console.error("Failed to save doctor", error);
+            const errMsg = typeof error.response?.data === 'string'
+                ? error.response.data
+                : (error.response?.data?.message || error.message);
+            alert("Lưu thông tin Bác sĩ thất bại: " + errMsg);
         }
     };
 
-    const handleDelete = async (id) => {
-        if (window.confirm("Are you sure you want to delete this doctor?")) {
+    const handleToggleStatus = async (doctor) => {
+        const newStatus = doctor.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+        const actionText = newStatus === 'ACTIVE' ? 'KÍCH HOẠT LẠI' : 'TẠM KHÓA / VÔ HIỆU HÓA';
+        if (window.confirm(`Bạn có chắc chắn muốn ${actionText} tài khoản bác sĩ "${doctor.fullName}" không?`)) {
             try {
-                await deleteDoctor(id);
+                await updateDoctorStatus(doctor.id, newStatus);
                 fetchData();
             } catch (error) {
-                console.error("Failed to delete doctor", error);
+                console.error("Failed to update doctor status", error);
+                const errMsg = typeof error.response?.data === 'string' ? error.response.data : (error.response?.data?.message || error.message);
+                alert("Cập nhật trạng thái thất bại: " + errMsg);
             }
         }
     };
@@ -99,7 +144,7 @@ const DoctorManager = () => {
                             <th>Degree</th>
                             <th>Experience</th>
                             <th>Fee</th>
-                            <th>Biography</th>
+                            <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -121,13 +166,21 @@ const DoctorManager = () => {
                                 <td>{doc.degree}</td>
                                 <td>{doc.experience} years</td>
                                 <td>${doc.consultationFee}</td>
-                                <td style={{ maxWidth: '250px' }}>
-                                    <div style={{ color: '#6b7280', fontSize: '0.85rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                                        {doc.biography || <span style={{ fontStyle: 'italic', color: '#9ca3af' }}>No biography</span>}
-                                    </div>
+                                <td>
+                                    <span style={{
+                                        padding: '0.35rem 0.75rem',
+                                        borderRadius: '1rem',
+                                        fontSize: '0.8rem',
+                                        fontWeight: 'bold',
+                                        backgroundColor: doc.status === 'ACTIVE' ? '#d1fae5' : '#fee2e2',
+                                        color: doc.status === 'ACTIVE' ? '#047857' : '#b91c1c',
+                                        border: `1px solid ${doc.status === 'ACTIVE' ? '#6ee7b7' : '#fca5a5'}`
+                                    }}>
+                                        {doc.status === 'ACTIVE' ? '● Active' : '● Inactive'}
+                                    </span>
                                 </td>
                                 <td>
-                                    <div className="action-buttons" style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <div className="action-buttons" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                                         <button 
                                             className="btn-secondary" 
                                             style={{ padding: '0.35rem 0.6rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
@@ -139,8 +192,25 @@ const DoctorManager = () => {
                                         <button className="btn-icon btn-edit" onClick={() => handleOpenModal(doc)}>
                                             <Edit2 size={16} />
                                         </button>
-                                        <button className="btn-icon btn-delete" onClick={() => handleDelete(doc.id)}>
-                                            <Trash2 size={16} />
+                                        <button 
+                                            onClick={() => handleToggleStatus(doc)}
+                                            style={{
+                                                padding: '0.35rem 0.6rem',
+                                                fontSize: '0.8rem',
+                                                fontWeight: 'bold',
+                                                borderRadius: '4px',
+                                                border: '1px solid',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.3rem',
+                                                backgroundColor: doc.status === 'ACTIVE' ? '#fef2f2' : '#ecfdf5',
+                                                color: doc.status === 'ACTIVE' ? '#991b1b' : '#065f46',
+                                                borderColor: doc.status === 'ACTIVE' ? '#fca5a5' : '#a7f3d0'
+                                            }}
+                                            title={doc.status === 'ACTIVE' ? 'Tạm khóa bác sĩ' : 'Kích hoạt bác sĩ'}
+                                        >
+                                            <Power size={14} /> {doc.status === 'ACTIVE' ? 'Khóa' : 'Kích hoạt'}
                                         </button>
                                     </div>
                                 </td>
@@ -148,7 +218,7 @@ const DoctorManager = () => {
                         ))}
                         {doctors.length === 0 && (
                             <tr>
-                                <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>No doctors found.</td>
+                                <td colSpan="7" style={{ textAlign: 'center', padding: '2rem' }}>No doctors found.</td>
                             </tr>
                         )}
                     </tbody>
@@ -251,6 +321,17 @@ const DoctorManager = () => {
                                         value={formData.consultationFee} 
                                         onChange={(e) => setFormData({...formData, consultationFee: e.target.value})}
                                     />
+                                </div>
+                                <div className="form-group">
+                                    <label>Account Status</label>
+                                    <select 
+                                        className="form-control"
+                                        value={formData.status}
+                                        onChange={(e) => setFormData({...formData, status: e.target.value})}
+                                    >
+                                        <option value="ACTIVE">ACTIVE – Đang hoạt động</option>
+                                        <option value="INACTIVE">INACTIVE – Tạm khóa / Ngưng hoạt động</option>
+                                    </select>
                                 </div>
                             </div>
                             <div className="form-group">
