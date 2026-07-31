@@ -110,7 +110,7 @@ const DoctorManager = () => {
     };
 
     const handleToggleStatus = async (doctor) => {
-        const newStatus = doctor.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+        const newStatus = doctor.status === 'ACTIVE' ? 'LOCKED' : 'ACTIVE';
         const actionText = newStatus === 'ACTIVE' ? 'KÍCH HOẠT LẠI' : 'TẠM KHÓA / VÔ HIỆU HÓA';
         if (window.confirm(`Bạn có chắc chắn muốn ${actionText} tài khoản bác sĩ "${doctor.fullName}" không?`)) {
             try {
@@ -181,11 +181,11 @@ const DoctorManager = () => {
                                         borderRadius: '1rem',
                                         fontSize: '0.8rem',
                                         fontWeight: 'bold',
-                                        backgroundColor: doc.status === 'ACTIVE' ? '#d1fae5' : '#fee2e2',
-                                        color: doc.status === 'ACTIVE' ? '#047857' : '#b91c1c',
-                                        border: `1px solid ${doc.status === 'ACTIVE' ? '#6ee7b7' : '#fca5a5'}`
+                                        backgroundColor: doc.status === 'ACTIVE' ? '#d1fae5' : (doc.status === 'LOCKED' ? '#fee2e2' : '#fef3c7'),
+                                        color: doc.status === 'ACTIVE' ? '#047857' : (doc.status === 'LOCKED' ? '#b91c1c' : '#b45309'),
+                                        border: `1px solid ${doc.status === 'ACTIVE' ? '#6ee7b7' : (doc.status === 'LOCKED' ? '#fca5a5' : '#fde68a')}`
                                     }}>
-                                        {doc.status === 'ACTIVE' ? '● Active' : '● Inactive'}
+                                        {doc.status === 'ACTIVE' ? '● Active' : (doc.status === 'LOCKED' ? '● Locked' : '● Inactive')}
                                     </span>
                                 </td>
                                 <td>
@@ -339,7 +339,8 @@ const DoctorManager = () => {
                                         onChange={(e) => setFormData({...formData, status: e.target.value})}
                                     >
                                         <option value="ACTIVE">ACTIVE – Đang hoạt động</option>
-                                        <option value="INACTIVE">INACTIVE – Tạm khóa / Ngưng hoạt động</option>
+                                        <option value="INACTIVE">INACTIVE – Ngưng hoạt động (Có điều kiện)</option>
+                                        <option value="LOCKED">LOCKED – Tạm khóa</option>
                                     </select>
                                 </div>
                             </div>

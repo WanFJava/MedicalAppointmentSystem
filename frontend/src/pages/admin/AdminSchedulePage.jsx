@@ -376,7 +376,7 @@ const AdminSchedulePage = () => {
                                         onChange={(e) => setCreateForm({...createForm, doctorId: e.target.value})}
                                     >
                                         <option value="">-- Ca Mở (Chưa gán bác sĩ - Chờ bác sĩ đăng ký) --</option>
-                                        {doctors.map(doc => (
+                                        {doctors.filter(doc => doc.status === 'ACTIVE').map(doc => (
                                             <option key={doc.id} value={doc.id}>
                                                 {doc.fullName} ({doc.specialtyName})
                                             </option>

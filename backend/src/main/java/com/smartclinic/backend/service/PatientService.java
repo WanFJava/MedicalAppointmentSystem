@@ -9,4 +9,5 @@ public interface PatientService {
     void addFavoriteDoctor(Long userId, Long doctorId);
     void removeFavoriteDoctor(Long userId, Long doctorId);
     java.util.List<com.smartclinic.backend.dto.DoctorDto> getFavoriteDoctors(Long userId);
+    void validatePatientStatusChange(Long patientId, com.smartclinic.backend.entity.Status newStatus);
 }

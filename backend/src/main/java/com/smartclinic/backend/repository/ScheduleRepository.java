@@ -21,6 +21,7 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
     List<Schedule> findByDoctorIsNullAndDate(LocalDate date);
     List<Schedule> findByStatusAndDate(com.smartclinic.backend.entity.ScheduleStatus status, LocalDate date);
     List<Schedule> findByDoctorIsNullAndStatusAndDate(com.smartclinic.backend.entity.ScheduleStatus status, LocalDate date);
+    int countByDoctorIdAndStatusIn(Long doctorId, List<com.smartclinic.backend.entity.ScheduleStatus> statuses);
 
     @Query("SELECT s FROM Schedule s WHERE (s.date < :currentDate OR (s.date = :currentDate AND s.endTime <= :currentTime)) AND s.status NOT IN :excludedStatuses")
     List<Schedule> findExpiredSchedules(@Param("currentDate") LocalDate currentDate, @Param("currentTime") LocalTime currentTime, @Param("excludedStatuses") List<com.smartclinic.backend.entity.ScheduleStatus> excludedStatuses);

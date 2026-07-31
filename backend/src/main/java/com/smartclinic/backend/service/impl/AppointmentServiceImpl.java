@@ -53,6 +53,10 @@ public class AppointmentServiceImpl implements AppointmentService {
         User user = userRepository.findById(patientId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        if (user.getStatus() != com.smartclinic.backend.entity.Status.ACTIVE) {
+            throw new IllegalArgumentException("Tài khoản của bạn đang bị khóa hoặc ngừng hoạt động. Không thể đặt lịch khám.");
+        }
+
         Patient patient = patientRepository.findByUserId(patientId)
                 .orElseGet(() -> {
                     Patient newPatient = new Patient();
@@ -133,8 +137,8 @@ public class AppointmentServiceImpl implements AppointmentService {
             if (status == AppointmentStatus.CONFIRMED) {
                 throw new IllegalArgumentException("Bác sĩ không có quyền xác nhận (CONFIRM) lịch hẹn. Việc này do Lễ tân thực hiện.");
             }
-            if (status == AppointmentStatus.NO_SHOW && oldStatus != AppointmentStatus.CHECKED_IN) {
-                throw new IllegalArgumentException("Chỉ có thể đánh dấu Vắng mặt (No Show) sau khi bệnh nhân đã Check-in.");
+            if (status == AppointmentStatus.NO_SHOW && (oldStatus == AppointmentStatus.COMPLETED || oldStatus == AppointmentStatus.CANCELLED_BY_PATIENT || oldStatus == AppointmentStatus.CANCELLED_BY_DOCTOR)) {
+                throw new IllegalArgumentException("Không thể đánh dấu Vắng mặt (No Show) cho lịch hẹn đã kết thúc hoặc đã hủy.");
             }
         }
 

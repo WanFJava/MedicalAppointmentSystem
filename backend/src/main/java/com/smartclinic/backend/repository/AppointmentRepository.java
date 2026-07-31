@@ -18,4 +18,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
     @Query("SELECT MAX(a.queueNumber) FROM Appointment a WHERE a.doctor.id = :doctorId AND a.schedule.date = :scheduleDate")
     Integer findMaxQueueNumberForDoctorAndDate(@Param("doctorId") Long doctorId, @Param("scheduleDate") LocalDate scheduleDate);
+
+    int countByDoctorIdAndStatusIn(Long doctorId, List<com.smartclinic.backend.entity.AppointmentStatus> statuses);
+    int countByPatientIdAndStatusIn(Long patientId, List<com.smartclinic.backend.entity.AppointmentStatus> statuses);
 }

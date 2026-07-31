@@ -25,6 +25,8 @@ public class DoctorServiceImpl implements DoctorService {
     private final SpecialtyRepository specialtyRepository;
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
     private final com.smartclinic.backend.repository.FeedbackRepository feedbackRepository;
+    private final com.smartclinic.backend.repository.AppointmentRepository appointmentRepository;
+    private final com.smartclinic.backend.repository.ScheduleRepository scheduleRepository;
 
     @Override
     @Transactional
@@ -105,7 +107,8 @@ public class DoctorServiceImpl implements DoctorService {
         doctor.setConsultationFee(doctorDto.getConsultationFee());
         doctor.setBiography(doctorDto.getBiography());
 
-        if (doctorDto.getStatus() != null && doctor.getUser() != null) {
+        if (doctorDto.getStatus() != null && doctor.getUser() != null && doctorDto.getStatus() != doctor.getUser().getStatus()) {
+            validateDoctorStatusChange(doctor.getId(), doctorDto.getStatus());
             doctor.getUser().setStatus(doctorDto.getStatus());
             userRepository.save(doctor.getUser());
         }
@@ -122,11 +125,50 @@ public class DoctorServiceImpl implements DoctorService {
 
         User user = doctor.getUser();
         if (user != null) {
+            validateDoctorStatusChange(doctor.getId(), status);
             user.setStatus(status);
             userRepository.save(user);
         }
 
         return mapToDto(doctor);
+    }
+
+    @Override
+    public void validateDoctorStatusChange(Long doctorId, com.smartclinic.backend.entity.Status newStatus) {
+        if (newStatus == com.smartclinic.backend.entity.Status.ACTIVE) {
+            return;
+        }
+
+        if (newStatus == com.smartclinic.backend.entity.Status.INACTIVE) {
+            int activeSchedules = scheduleRepository.countByDoctorIdAndStatusIn(doctorId, 
+                java.util.Arrays.asList(
+                    com.smartclinic.backend.entity.ScheduleStatus.FULL,
+                    com.smartclinic.backend.entity.ScheduleStatus.IN_PROGRESS
+                ));
+            int activeAppointments = appointmentRepository.countByDoctorIdAndStatusIn(doctorId, 
+                java.util.Arrays.asList(
+                    com.smartclinic.backend.entity.AppointmentStatus.CONFIRMED,
+                    com.smartclinic.backend.entity.AppointmentStatus.CHECKED_IN,
+                    com.smartclinic.backend.entity.AppointmentStatus.IN_PROGRESS
+                ));
+            
+            if (activeSchedules > 0 || activeAppointments > 0) {
+                throw new IllegalArgumentException("Không thể ngừng hoạt động (INACTIVE) vì bác sĩ đang có lịch làm (FULL/IN_PROGRESS) hoặc lịch hẹn (CONFIRMED/CHECKED_IN/IN_PROGRESS). Vui lòng hoàn tất hoặc chuyển các lịch này trước.");
+            }
+        } else if (newStatus == com.smartclinic.backend.entity.Status.LOCKED) {
+            int inProgressSchedules = scheduleRepository.countByDoctorIdAndStatusIn(doctorId, 
+                java.util.Collections.singletonList(com.smartclinic.backend.entity.ScheduleStatus.IN_PROGRESS));
+            
+            int ongoingAppointments = appointmentRepository.countByDoctorIdAndStatusIn(doctorId, 
+                java.util.Arrays.asList(
+                    com.smartclinic.backend.entity.AppointmentStatus.CHECKED_IN,
+                    com.smartclinic.backend.entity.AppointmentStatus.IN_PROGRESS
+                ));
+            
+            if (inProgressSchedules > 0 || ongoingAppointments > 0) {
+                throw new IllegalArgumentException("Không thể khóa tài khoản vì bác sĩ đang có ca trực diễn ra hoặc đang có bệnh nhân chờ khám (CHECKED_IN/IN_PROGRESS).");
+            }
+        }
     }
 
     @Override

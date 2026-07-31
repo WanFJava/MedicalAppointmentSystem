@@ -171,6 +171,7 @@ const UserManager = () => {
                     <select className="form-control" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
                         <option value="">All Statuses</option>
                         <option value="ACTIVE">ACTIVE</option>
+                        <option value="INACTIVE">INACTIVE</option>
                         <option value="LOCKED">LOCKED</option>
                     </select>
                     <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={() => handleOpenModal()}>
@@ -226,11 +227,15 @@ const UserManager = () => {
                                 </td>
                                 <td>
                                     <span style={{
-                                        padding: '0.35rem 0.75rem', borderRadius: '1rem', fontSize: '0.8rem', fontWeight: 'bold',
-                                        backgroundColor: u.status === 'ACTIVE' ? '#d1fae5' : '#fee2e2',
-                                        color: u.status === 'ACTIVE' ? '#047857' : '#b91c1c'
+                                        padding: '0.35rem 0.75rem', 
+                                        borderRadius: '1rem', 
+                                        fontSize: '0.8rem', 
+                                        fontWeight: 'bold',
+                                        backgroundColor: u.status === 'ACTIVE' ? '#d1fae5' : (u.status === 'LOCKED' ? '#fee2e2' : '#fef3c7'),
+                                        color: u.status === 'ACTIVE' ? '#047857' : (u.status === 'LOCKED' ? '#b91c1c' : '#b45309'),
+                                        border: `1px solid ${u.status === 'ACTIVE' ? '#6ee7b7' : (u.status === 'LOCKED' ? '#fca5a5' : '#fde68a')}`
                                     }}>
-                                        {u.status === 'ACTIVE' ? '● Active' : '● Locked'}
+                                        {u.status === 'ACTIVE' ? '● Active' : (u.status === 'LOCKED' ? '● Locked' : '● Inactive')}
                                     </span>
                                 </td>
                                 <td>{u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '-'}</td>
@@ -325,8 +330,9 @@ const UserManager = () => {
                                         value={formData.status}
                                         onChange={(e) => setFormData({...formData, status: e.target.value})}
                                     >
-                                        <option value="ACTIVE">ACTIVE</option>
-                                        <option value="LOCKED">LOCKED</option>
+                                        <option value="ACTIVE">ACTIVE – Đang hoạt động</option>
+                                        <option value="INACTIVE">INACTIVE – Ngưng hoạt động (Có điều kiện)</option>
+                                        <option value="LOCKED">LOCKED – Tạm khóa</option>
                                     </select>
                                 </div>
                                 <div className="form-group" style={{ gridColumn: '1 / -1' }}>

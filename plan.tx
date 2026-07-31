@@ -1,0 +1,54 @@
+Theo nghiệp vụ của dự án phòng khám của bạn, mình đề xuất điều kiện chuyển bác sĩ sang INACTIVE như sau:
+
+Điều kiện
+
+Chỉ cho phép chuyển tài khoản bác sĩ sang INACTIVE khi không còn bất kỳ công việc nào chưa hoàn tất.
+
+Cụ thể:
+
+1. Không còn Schedule đang hoạt động
+
+Không được tồn tại bất kỳ schedule nào của bác sĩ có trạng thái:
+
+OPEN
+AVAILABLE
+FULL
+IN_PROGRESS
+
+Chỉ được phép còn:
+
+COMPLETED
+CANCELLED
+2. Không còn Appointment đang hoạt động
+
+Không được tồn tại bất kỳ appointment nào của bác sĩ có trạng thái:
+
+PENDING
+CONFIRMED
+CHECKED_IN
+
+Chỉ được phép còn:
+
+COMPLETED
+CANCELLED_BY_PATIENT
+CANCELLED_BY_DOCTOR
+NO_SHOW
+Business Rule
+
+Chỉ cho phép chuyển tài khoản bác sĩ sang INACTIVE khi bác sĩ không còn bất kỳ ca làm hoặc lịch hẹn nào đang hoạt động hoặc chưa hoàn tất.
+
+Khi không đủ điều kiện
+
+Ví dụ bác sĩ còn:
+
+1 schedule AVAILABLE
+hoặc 1 appointment CONFIRMED
+
+→ Không cho phép chuyển sang INACTIVE.
+
+Thông báo:
+
+Không thể chuyển tài khoản sang trạng thái INACTIVE vì bác sĩ vẫn còn lịch làm hoặc lịch hẹn chưa hoàn tất. Vui lòng hoàn tất, hủy hoặc chuyển các lịch liên quan trước khi ngừng hoạt động tài khoản.
+
+
+

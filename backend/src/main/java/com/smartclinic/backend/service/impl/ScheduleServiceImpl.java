@@ -59,6 +59,14 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
     }
 
+    private void checkDoctorIsActive(Doctor doctor) {
+        if (doctor != null && doctor.getUser() != null) {
+            if (doctor.getUser().getStatus() != com.smartclinic.backend.entity.Status.ACTIVE) {
+                throw new IllegalArgumentException("Không thể giao ca/đăng ký ca! Bác sĩ hiện đang ở trạng thái " + doctor.getUser().getStatus() + ".");
+            }
+        }
+    }
+
     private void checkDoctorScheduleOverlap(Long doctorId, LocalDate date, LocalTime startTime, LocalTime endTime, Long currentScheduleId) {
         if (doctorId == null) return;
         List<Schedule> existingDoctorSchedules = scheduleRepository.findByDoctorIdAndDate(doctorId, date);
@@ -89,6 +97,7 @@ public class ScheduleServiceImpl implements ScheduleService {
             checkDoctorScheduleOverlap(doctorId, requestDto.getDate(), requestDto.getStartTime(), requestDto.getEndTime(), null);
         }
         Doctor doctor = doctorId != null ? doctorRepository.findById(doctorId).orElse(null) : null;
+        checkDoctorIsActive(doctor);
                 
         Schedule schedule = new Schedule();
         schedule.setDoctor(doctor);
@@ -124,6 +133,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
         Doctor doctor = doctorRepository.findById(doctorId)
                 .orElseThrow(() -> new RuntimeException("Doctor not found with id: " + doctorId));
+        checkDoctorIsActive(doctor);
                 
         List<Schedule> existingSchedules = scheduleRepository.findByDoctorIdAndDate(doctorId, date);
         if (!existingSchedules.isEmpty()) {
@@ -276,6 +286,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
         Doctor doctor = doctorRepository.findById(doctorId)
                 .orElseThrow(() -> new RuntimeException("Doctor not found with id: " + doctorId));
+        checkDoctorIsActive(doctor);
 
         // Overlap check
         checkDoctorScheduleOverlap(doctorId, schedule.getDate(), schedule.getStartTime(), schedule.getEndTime(), scheduleId);

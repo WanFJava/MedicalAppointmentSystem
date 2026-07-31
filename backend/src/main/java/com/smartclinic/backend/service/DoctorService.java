@@ -12,4 +12,5 @@ public interface DoctorService {
     DoctorDto updateDoctorStatus(Long id, com.smartclinic.backend.entity.Status status);
     void deleteDoctor(Long id);
     DoctorDto getDoctorByUserId(Long userId);
+    void validateDoctorStatusChange(Long doctorId, com.smartclinic.backend.entity.Status newStatus);
 }

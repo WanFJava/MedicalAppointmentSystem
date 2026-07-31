@@ -23,6 +23,7 @@ public class PatientServiceImpl implements PatientService {
     private final PatientRepository patientRepository;
     private final UserRepository userRepository;
     private final DoctorRepository doctorRepository;
+    private final com.smartclinic.backend.repository.AppointmentRepository appointmentRepository;
 
     @Override
     public PatientDto getPatientProfileByUserId(Long userId) {
@@ -129,5 +130,35 @@ public class PatientServiceImpl implements PatientService {
             dto.setBiography(doctor.getBiography());
             return dto;
         }).collect(Collectors.toList());
+    }
+
+    @Override
+    public void validatePatientStatusChange(Long patientId, com.smartclinic.backend.entity.Status newStatus) {
+        if (newStatus == com.smartclinic.backend.entity.Status.ACTIVE) {
+            return;
+        }
+
+        if (newStatus == com.smartclinic.backend.entity.Status.INACTIVE) {
+            int activeAppointments = appointmentRepository.countByPatientIdAndStatusIn(patientId, 
+                java.util.Arrays.asList(
+                    com.smartclinic.backend.entity.AppointmentStatus.CONFIRMED,
+                    com.smartclinic.backend.entity.AppointmentStatus.CHECKED_IN,
+                    com.smartclinic.backend.entity.AppointmentStatus.IN_PROGRESS
+                ));
+            
+            if (activeAppointments > 0) {
+                throw new IllegalArgumentException("Không thể ngừng hoạt động tài khoản vì bệnh nhân vẫn còn lịch khám chưa hoàn tất.");
+            }
+        } else if (newStatus == com.smartclinic.backend.entity.Status.LOCKED) {
+            int ongoingAppointments = appointmentRepository.countByPatientIdAndStatusIn(patientId, 
+                java.util.Arrays.asList(
+                    com.smartclinic.backend.entity.AppointmentStatus.CHECKED_IN,
+                    com.smartclinic.backend.entity.AppointmentStatus.IN_PROGRESS
+                ));
+            
+            if (ongoingAppointments > 0) {
+                throw new IllegalArgumentException("Không thể khóa tài khoản vì bệnh nhân đang ở phòng khám (đã Check-in hoặc đang khám).");
+            }
+        }
     }
 }
