@@ -40,4 +40,7 @@ public class Appointment {
 
     @Column(name = "is_reviewed")
     private Boolean isReviewed = false;
+
+    @Column(name = "note", columnDefinition = "NVARCHAR(255)")
+    private String note;
 }

@@ -150,8 +150,15 @@ const DoctorDashboard = ({ tab = 'appointments' }) => {
                                         </button>
                                     )}
 
-                                    {apt.status === 'CHECKED_IN' && (
+                                    {apt.status === 'IN_PROGRESS' && (
                                         <>
+                                            <button 
+                                                className="btn-primary" 
+                                                style={{ padding: '0.5rem 0.75rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#059669' }}
+                                                onClick={() => handleComplete(apt)}
+                                            >
+                                                <CheckCircle size={16} /> Diagnose
+                                            </button>
                                             <button 
                                                 className="btn-primary" 
                                                 style={{ padding: '0.5rem 0.75rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#6b7280' }}
@@ -161,16 +168,6 @@ const DoctorDashboard = ({ tab = 'appointments' }) => {
                                                 <UserX size={16} /> No Show
                                             </button>
                                         </>
-                                    )}
-
-                                    {apt.status === 'IN_PROGRESS' && (
-                                        <button 
-                                            className="btn-primary" 
-                                            style={{ padding: '0.5rem 0.75rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#059669' }}
-                                            onClick={() => handleComplete(apt)}
-                                        >
-                                            <CheckCircle size={16} /> Diagnose
-                                        </button>
                                     )}
                                     {apt.status === 'COMPLETED' && apt.isReviewed && (
                                         <button 

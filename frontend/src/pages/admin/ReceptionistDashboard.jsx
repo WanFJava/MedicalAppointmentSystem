@@ -127,6 +127,11 @@ const ReceptionistDashboard = () => {
                                         }}>
                                             {apt.status}
                                         </span>
+                                        {apt.note && (
+                                            <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#dc2626', fontWeight: 600 }}>
+                                                Ghi chú: {(apt.note === 'V\\u1EAFng b\\u00E1c s\\u0129' || apt.note === 'V?ng bác s?') ? 'Vắng bác sĩ' : apt.note}
+                                            </div>
+                                        )}
                                     </td>
                                     <td>
                                         {['COMPLETED', 'PAID'].includes(apt.status) ? (

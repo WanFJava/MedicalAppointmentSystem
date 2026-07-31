@@ -139,6 +139,11 @@ const QueueManager = () => {
                                     <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                                         Triệu chứng: {apt.symptom || 'Không có'}
                                     </div>
+                                    {apt.note && (
+                                        <div style={{ fontSize: '0.85rem', color: '#dc2626', marginTop: '0.25rem', fontWeight: 600 }}>
+                                            Ghi chú: {(apt.note === 'V\\u1EAFng b\\u00E1c s\\u0129' || apt.note === 'V?ng bác s?') ? 'Vắng bác sĩ' : apt.note}
+                                        </div>
+                                    )}
                                 </td>
                                 <td>{apt.doctorName}</td>
                                 <td>

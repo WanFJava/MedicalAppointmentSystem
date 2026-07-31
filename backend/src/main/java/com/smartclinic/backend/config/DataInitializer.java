@@ -133,7 +133,11 @@ public class DataInitializer implements CommandLineRunner {
             List<Doctor> doctors = doctorRepository.findAll();
             for (Doctor doc : doctors) {
                 for (int i = 0; i < 3; i++) {
-                    scheduleService.generateSchedules(doc.getId(), today.plusDays(i));
+                    try {
+                        scheduleService.generateSchedules(doc.getId(), today.plusDays(i));
+                    } catch (IllegalArgumentException e) {
+                        System.out.println("Skipped schedule generation for " + today.plusDays(i) + ": " + e.getMessage());
+                    }
                 }
             }
         }

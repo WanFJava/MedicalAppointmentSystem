@@ -281,7 +281,8 @@ public class AppointmentServiceImpl implements AppointmentService {
                 appointment.getStatus(),
                 appointment.getQueueNumber(),
                 appointment.getIsReviewed(),
-                paymentStatus
+                paymentStatus,
+                appointment.getNote()
         );
     }
 }

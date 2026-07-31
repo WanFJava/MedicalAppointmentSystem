@@ -22,6 +22,27 @@ public class AuthController {
 
     private final AuthService authService;
     private final UserRepository userRepository;
+    private final com.smartclinic.backend.repository.ScheduleRepository scheduleRepository;
+    private final com.smartclinic.backend.repository.AppointmentRepository appointmentRepository;
+
+    @org.springframework.web.bind.annotation.GetMapping("/fix-notes")
+    public ResponseEntity<String> fixNotes() {
+        java.util.List<com.smartclinic.backend.entity.Schedule> schedules = scheduleRepository.findAll();
+        for (com.smartclinic.backend.entity.Schedule s : schedules) {
+            if ("V\\u1EAFng b\\u00E1c s\\u0129".equals(s.getNote())) {
+                s.setNote("Vắng bác sĩ");
+                scheduleRepository.save(s);
+            }
+        }
+        java.util.List<com.smartclinic.backend.entity.Appointment> appointments = appointmentRepository.findAll();
+        for (com.smartclinic.backend.entity.Appointment a : appointments) {
+            if ("V\\u1EAFng b\\u00E1c s\\u0129".equals(a.getNote())) {
+                a.setNote("Vắng bác sĩ");
+                appointmentRepository.save(a);
+            }
+        }
+        return ResponseEntity.ok("Fixed");
+    }
 
     // Build Login REST API
     @PostMapping("/login")

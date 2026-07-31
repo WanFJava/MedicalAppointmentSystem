@@ -55,7 +55,8 @@ const ScheduleManager = ({ doctorId, viewTab }) => {
             fetchData();
         } catch (error) {
             console.error("Failed to update status", error);
-            alert("Cập nhật trạng thái thất bại.");
+            const errMsg = error.response?.data?.message || error.response?.data || error.message || "Cập nhật trạng thái thất bại.";
+            alert(errMsg);
         }
     };
 
@@ -112,7 +113,7 @@ const ScheduleManager = ({ doctorId, viewTab }) => {
                                             </div>
                                             {sch.note && (
                                                 <div style={{ fontSize: '0.875rem', color: '#dc2626', marginTop: '0.25rem', fontWeight: 'bold', fontStyle: 'italic' }}>
-                                                    Ghi chú: {sch.note}
+                                                    Ghi chú: {(sch.note === 'V\\u1EAFng b\\u00E1c s\\u0129' || sch.note === 'V?ng bác s?') ? 'Vắng bác sĩ' : sch.note}
                                                 </div>
                                             )}
                                         </div>

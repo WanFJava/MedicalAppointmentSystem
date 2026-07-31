@@ -42,6 +42,6 @@ public class Schedule {
     @Column(nullable = false)
     private ScheduleStatus status = ScheduleStatus.AVAILABLE;
 
-    @Column(name = "note")
+    @Column(name = "note", columnDefinition = "NVARCHAR(255)")
     private String note;
 }

@@ -27,6 +27,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     private final ScheduleRepository scheduleRepository;
     private final DoctorRepository doctorRepository;
+    private final com.smartclinic.backend.repository.AppointmentRepository appointmentRepository;
 
     private void autoCancelExpiredOpenSchedules(List<Schedule> schedules) {
         LocalDateTime now = LocalDateTime.now();
@@ -293,6 +294,21 @@ public class ScheduleServiceImpl implements ScheduleService {
         if (status == ScheduleStatus.CANCELLED) {
             if (schedule.getStatus() == ScheduleStatus.IN_PROGRESS || schedule.getStatus() == ScheduleStatus.COMPLETED) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Không thể hủy ca khám đã bắt đầu hoặc đã hoàn thành.");
+            }
+        }
+
+        if (status == ScheduleStatus.COMPLETED) {
+            boolean hasUnexamined = appointmentRepository.existsByScheduleIdAndStatusIn(
+                scheduleId, 
+                java.util.Arrays.asList(
+                    com.smartclinic.backend.entity.AppointmentStatus.PENDING, 
+                    com.smartclinic.backend.entity.AppointmentStatus.CONFIRMED, 
+                    com.smartclinic.backend.entity.AppointmentStatus.CHECKED_IN, 
+                    com.smartclinic.backend.entity.AppointmentStatus.IN_PROGRESS
+                )
+            );
+            if (hasUnexamined) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Không thể kết thúc ca làm việc vì vẫn còn bệnh nhân chưa được khám xong (hoặc chưa đánh dấu vắng mặt).");
             }
         }
         

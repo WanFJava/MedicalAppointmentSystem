@@ -25,4 +25,5 @@ public class AppointmentDto {
     private Integer queueNumber;
     private Boolean isReviewed;
     private String paymentStatus;
+    private String note;
 }

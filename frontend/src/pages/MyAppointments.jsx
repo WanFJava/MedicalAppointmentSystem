@@ -131,6 +131,11 @@ const MyAppointments = () => {
                                         }}>
                                             {apt.status}
                                         </span>
+                                        {apt.note && (
+                                            <div style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: '#b91c1c', fontWeight: 500 }}>
+                                                Ghi chú: {(apt.note === 'V\\u1EAFng b\\u00E1c s\\u0129' || apt.note === 'V?ng bác s?') ? 'Vắng bác sĩ' : apt.note}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                                 
@@ -176,6 +181,21 @@ const MyAppointments = () => {
                                                 onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#fee2e2'}
                                             >
                                                 Hủy lịch
+                                            </button>
+                                        )}
+                                        
+                                        {apt.status === 'CANCELLED_BY_DOCTOR' && (apt.note === 'Vắng bác sĩ' || apt.note === 'V\\u1EAFng b\\u00E1c s\\u0129' || apt.note === 'V?ng bác s?') && (
+                                            <button 
+                                                onClick={() => alert('Gửi khiếu nại thành công đến bộ phận Lễ tân. Chúng tôi sẽ xử lý và liên hệ lại với bạn sớm nhất!')}
+                                                style={{ 
+                                                    padding: '0.5rem 1rem', backgroundColor: '#fef2f2', color: '#ef4444', 
+                                                    border: '1px solid #fca5a5', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s'
+                                                }}
+                                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#fee2e2'}
+                                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#fef2f2'}
+                                                title="Gửi khiếu nại về việc bác sĩ vắng mặt"
+                                            >
+                                                Khiếu nại
                                             </button>
                                         )}
                                         

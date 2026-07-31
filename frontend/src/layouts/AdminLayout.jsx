@@ -15,7 +15,7 @@ const AdminLayout = () => {
         { path: '/admin/schedules', name: 'Schedules', icon: <Calendar size={20} />, roles: ['ADMIN'] },
         { path: '/admin/medicines', name: 'Medicines', icon: <Pill size={20} />, roles: ['ADMIN'] },
         { path: '/admin/appointments', name: 'Appointments', icon: <Users size={20} />, roles: ['ADMIN', 'RECEPTIONIST'] },
-        { path: '/admin/queue', name: 'Queue Manager', icon: <ListOrdered size={20} />, roles: ['ADMIN', 'RECEPTIONIST'] },
+        { path: '/admin/queue', name: 'Queue Manager', icon: <ListOrdered size={20} />, roles: ['RECEPTIONIST'] },
         { path: '/admin/my-schedule', name: 'Lịch khám bệnh', icon: <Stethoscope size={20} />, roles: ['DOCTOR'] },
         { path: '/admin/my-shifts', name: 'Ca trực của tôi', icon: <UserCog size={20} />, roles: ['DOCTOR'] },
         { path: '/admin/open-shifts', name: 'Đăng ký ca làm', icon: <Calendar size={20} />, roles: ['DOCTOR'] },
