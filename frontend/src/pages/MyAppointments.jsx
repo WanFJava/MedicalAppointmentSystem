@@ -33,12 +33,17 @@ const MyAppointments = () => {
     };
 
     const handleCancel = async (id) => {
-        if (window.confirm("Are you sure you want to cancel this appointment?")) {
+        if (window.confirm("Bạn có chắc chắn muốn hủy lịch hẹn này không?")) {
             try {
                 await updateAppointmentStatus(id, 'CANCELLED_BY_PATIENT');
+                alert("Hủy lịch hẹn thành công!");
                 fetchAppointments();
             } catch (error) {
-                alert("Failed to cancel appointment");
+                console.error("Failed to cancel appointment", error);
+                const errMsg = typeof error.response?.data === 'string'
+                    ? error.response.data
+                    : (error.response?.data?.message || error.message);
+                alert("Hủy lịch hẹn thất bại: " + errMsg);
             }
         }
     };

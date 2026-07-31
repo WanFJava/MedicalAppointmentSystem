@@ -63,6 +63,25 @@ const AdminSchedulePage = () => {
 
     const handleCreateShift = async (e) => {
         e.preventDefault();
+
+        if (!createForm.date || !createForm.startTime || !createForm.endTime) {
+            alert("Vui lòng điền đầy đủ ngày và khung giờ khám!");
+            return;
+        }
+
+        const shiftStart = new Date(`${createForm.date}T${createForm.startTime}`);
+        const shiftEnd = new Date(`${createForm.date}T${createForm.endTime}`);
+
+        if (shiftStart >= shiftEnd) {
+            alert("Tạo ca thất bại: Giờ bắt đầu phải nhỏ hơn giờ kết thúc!");
+            return;
+        }
+
+        if (new Date() > shiftStart) {
+            alert(`Tạo ca thất bại: Ca khám (${createForm.date} ${createForm.startTime}) đã qua thời gian bắt đầu!`);
+            return;
+        }
+
         const payload = {
             date: createForm.date,
             startTime: createForm.startTime,
@@ -80,7 +99,8 @@ const AdminSchedulePage = () => {
             fetchSchedules();
         } catch (error) {
             console.error("Failed to create schedule", error);
-            alert("Tạo lịch thất bại: " + (error.response?.data?.message || error.message));
+            const errMsg = typeof error.response?.data === 'string' ? error.response.data : (error.response?.data?.message || error.message);
+            alert("Tạo lịch thất bại: " + errMsg);
         }
     };
 
@@ -93,7 +113,8 @@ const AdminSchedulePage = () => {
                     fetchSchedules();
                 } catch (error) {
                     console.error("Failed to generate schedules", error);
-                    alert("Tự động tạo lịch thất bại!");
+                    const errMsg = typeof error.response?.data === 'string' ? error.response.data : (error.response?.data?.message || error.message);
+                    alert("Tự động tạo lịch thất bại: " + errMsg);
                 }
             }
         } else {
@@ -103,7 +124,8 @@ const AdminSchedulePage = () => {
                     fetchSchedules();
                 } catch (error) {
                     console.error("Failed to generate open schedules", error);
-                    alert("Tự động tạo ca mở thất bại!");
+                    const errMsg = typeof error.response?.data === 'string' ? error.response.data : (error.response?.data?.message || error.message);
+                    alert("Tự động tạo ca mở thất bại: " + errMsg);
                 }
             }
         }
@@ -327,13 +349,6 @@ const AdminSchedulePage = () => {
                                                     Hủy ca
                                                 </button>
                                             )}
-                                            <button 
-                                                className="btn-icon btn-delete" 
-                                                onClick={() => handleDeleteSchedule(sch.id)}
-                                                title="Xóa ca khám"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
                                         </div>
                                     </td>
                                 </tr>

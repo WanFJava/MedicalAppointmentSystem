@@ -48,6 +48,11 @@ export const updateDoctor = async (id, data) => {
     return response.data;
 };
 
+export const updateDoctorStatus = async (id, status) => {
+    const response = await api.put(`/doctors/${id}/status?status=${status}`);
+    return response.data;
+};
+
 export const deleteDoctor = async (id) => {
     const response = await api.delete(`/doctors/${id}`);
     return response.data;

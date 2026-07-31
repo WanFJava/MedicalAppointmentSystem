@@ -65,8 +65,16 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .orElseThrow(() -> new RuntimeException("Schedule not found"));
 
         if (schedule.getStatus() != ScheduleStatus.AVAILABLE) {
-            throw new RuntimeException("Schedule is no longer available");
+            throw new IllegalArgumentException("Ca làm việc này không ở trạng thái AVAILABLE để đặt lịch.");
         }
+
+        int current = schedule.getCurrentPatient() == null ? 0 : schedule.getCurrentPatient();
+        int max = schedule.getMaxPatient() == null ? 10 : schedule.getMaxPatient();
+        schedule.setCurrentPatient(current + 1);
+        if (schedule.getCurrentPatient() >= max) {
+            schedule.setStatus(ScheduleStatus.FULL);
+        }
+        scheduleRepository.save(schedule);
 
         // Create appointment
         Appointment appointment = new Appointment();
@@ -103,51 +111,51 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Transactional
     public AppointmentDto updateAppointmentStatus(Long appointmentId, AppointmentStatus status) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch hẹn với ID: " + appointmentId));
         
         AppointmentStatus oldStatus = appointment.getStatus();
 
         // Enforce patient rules
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_PATIENT"))) {
-            if (oldStatus != AppointmentStatus.PENDING) {
-                throw new RuntimeException("Patients can only cancel appointments that are in PENDING status.");
+        if (auth != null && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_PATIENT") || a.getAuthority().equals("PATIENT"))) {
+            if (oldStatus != AppointmentStatus.PENDING && oldStatus != AppointmentStatus.CONFIRMED) {
+                throw new IllegalArgumentException("Bệnh nhân chỉ có thể hủy lịch hẹn ở trạng thái Đang chờ (PENDING) hoặc Đã xác nhận (CONFIRMED).");
             }
             if (status != AppointmentStatus.CANCELLED_BY_PATIENT) {
-                throw new RuntimeException("Patients can only cancel appointments, not change to other statuses.");
+                throw new IllegalArgumentException("Bệnh nhân chỉ có quyền hủy lịch hẹn.");
+            }
+        }
+
+        // Enforce Doctor rules
+        if (auth != null && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_DOCTOR") || a.getAuthority().equals("DOCTOR"))) {
+            if (status == AppointmentStatus.CONFIRMED) {
+                throw new IllegalArgumentException("Bác sĩ không có quyền xác nhận (CONFIRM) lịch hẹn. Việc này do Lễ tân thực hiện.");
+            }
+            if (status == AppointmentStatus.NO_SHOW && oldStatus != AppointmentStatus.CHECKED_IN) {
+                throw new IllegalArgumentException("Chỉ có thể đánh dấu Vắng mặt (No Show) sau khi bệnh nhân đã Check-in.");
             }
         }
 
         appointment.setStatus(status);
 
-        // If confirmed from pending, occupy the schedule
-        if (status == AppointmentStatus.CONFIRMED && oldStatus == AppointmentStatus.PENDING) {
-            Schedule schedule = appointment.getSchedule();
-            int current = schedule.getCurrentPatient() == null ? 0 : schedule.getCurrentPatient();
-            int max = schedule.getMaxPatient() == null ? 10 : schedule.getMaxPatient();
-            // Bypass strict full check to allow testing data with current >= max to proceed
-            schedule.setCurrentPatient(current + 1);
-            if (schedule.getCurrentPatient() >= max) {
-                schedule.setStatus(ScheduleStatus.FULL);
-            }
-            scheduleRepository.save(schedule);
-        }
-
-        // If cancelled or NO_SHOW from a confirmed/checked-in state, free up the schedule spot
+        // If cancelled or NO_SHOW, free up and reset the schedule spot to AVAILABLE
         boolean isCancellationOrNoShow = status == AppointmentStatus.CANCELLED_BY_PATIENT || 
                                           status == AppointmentStatus.CANCELLED_BY_DOCTOR || 
                                           status == AppointmentStatus.NO_SHOW;
-        boolean wasOccupyingSpot = oldStatus == AppointmentStatus.CONFIRMED || oldStatus == AppointmentStatus.CHECKED_IN;
 
-        if (isCancellationOrNoShow && wasOccupyingSpot) {
+        if (isCancellationOrNoShow) {
             Schedule schedule = appointment.getSchedule();
-            int current = schedule.getCurrentPatient() == null ? 0 : schedule.getCurrentPatient();
-            int newCurrent = Math.max(0, current - 1);
-            schedule.setCurrentPatient(newCurrent);
-            if (schedule.getStatus() == ScheduleStatus.FULL) {
-                schedule.setStatus(ScheduleStatus.AVAILABLE);
+            if (schedule != null) {
+                int currentPatientCount = schedule.getCurrentPatient() == null ? 0 : schedule.getCurrentPatient();
+                int newCurrent = Math.max(0, currentPatientCount - 1);
+                schedule.setCurrentPatient(newCurrent);
+                
+                // Reset schedule status to AVAILABLE so doctor schedule remains active & available
+                if (schedule.getStatus() != ScheduleStatus.CANCELLED) {
+                    schedule.setStatus(ScheduleStatus.AVAILABLE);
+                }
+                scheduleRepository.save(schedule);
             }
-            scheduleRepository.save(schedule);
         }
 
         Appointment updatedAppointment = appointmentRepository.save(appointment);
@@ -163,9 +171,11 @@ public class AppointmentServiceImpl implements AppointmentService {
         // If the appointment was occupying a schedule spot, free it up before deleting
         if (appointment.getStatus() != AppointmentStatus.PENDING && appointment.getStatus() != AppointmentStatus.CANCELLED_BY_PATIENT && appointment.getStatus() != AppointmentStatus.CANCELLED_BY_DOCTOR) {
             Schedule schedule = appointment.getSchedule();
-            schedule.setCurrentPatient(Math.max(0, schedule.getCurrentPatient() - 1));
-            schedule.setStatus(ScheduleStatus.AVAILABLE);
-            scheduleRepository.save(schedule);
+            if (schedule != null) {
+                schedule.setCurrentPatient(Math.max(0, (schedule.getCurrentPatient() == null ? 0 : schedule.getCurrentPatient()) - 1));
+                schedule.setStatus(ScheduleStatus.AVAILABLE);
+                scheduleRepository.save(schedule);
+            }
         }
         
         // Cascading delete
@@ -184,15 +194,29 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     private AppointmentDto mapToDto(Appointment appointment) {
+        Long patientUserId = (appointment.getPatient() != null && appointment.getPatient().getUser() != null)
+                ? appointment.getPatient().getUser().getId() : null;
+        String patientName = (appointment.getPatient() != null && appointment.getPatient().getUser() != null)
+                ? appointment.getPatient().getUser().getFullName() : "Bệnh nhân";
+
+        Long doctorId = (appointment.getDoctor() != null) ? appointment.getDoctor().getId() : null;
+        String doctorName = (appointment.getDoctor() != null && appointment.getDoctor().getUser() != null)
+                ? appointment.getDoctor().getUser().getFullName() : "Chưa phân công bác sĩ";
+
+        Long scheduleId = (appointment.getSchedule() != null) ? appointment.getSchedule().getId() : null;
+        java.time.LocalDate scheduleDate = (appointment.getSchedule() != null) ? appointment.getSchedule().getDate() : null;
+        String timeSlot = (appointment.getSchedule() != null)
+                ? appointment.getSchedule().getStartTime() + " - " + appointment.getSchedule().getEndTime() : "";
+
         return new AppointmentDto(
                 appointment.getId(),
-                appointment.getPatient().getUser().getId(),
-                appointment.getPatient().getUser().getFullName(),
-                appointment.getDoctor().getId(),
-                appointment.getDoctor().getUser().getFullName(),
-                appointment.getSchedule().getId(),
-                appointment.getSchedule().getDate(),
-                appointment.getSchedule().getStartTime() + " - " + appointment.getSchedule().getEndTime(),
+                patientUserId,
+                patientName,
+                doctorId,
+                doctorName,
+                scheduleId,
+                scheduleDate,
+                timeSlot,
                 appointment.getSymptom(),
                 appointment.getStatus(),
                 appointment.getIsReviewed()

@@ -43,8 +43,47 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
     }
 
+    private void validateScheduleTime(LocalDate date, LocalTime startTime, LocalTime endTime) {
+        if (date == null || startTime == null || endTime == null) {
+            throw new IllegalArgumentException("Ngày và khung giờ khám không được để trống.");
+        }
+        if (!startTime.isBefore(endTime)) {
+            throw new IllegalArgumentException("Giờ bắt đầu (" + startTime + ") phải nhỏ hơn giờ kết thúc (" + endTime + ").");
+        }
+        LocalDateTime shiftStart = LocalDateTime.of(date, startTime);
+        if (LocalDateTime.now().isAfter(shiftStart)) {
+            throw new IllegalArgumentException("Không thể tạo ca khám đã qua thời gian bắt đầu (Ca khám: " + date + " " + startTime + ").");
+        }
+    }
+
+    private void checkDoctorScheduleOverlap(Long doctorId, LocalDate date, LocalTime startTime, LocalTime endTime, Long currentScheduleId) {
+        if (doctorId == null) return;
+        List<Schedule> existingDoctorSchedules = scheduleRepository.findByDoctorIdAndDate(doctorId, date);
+        for (Schedule existing : existingDoctorSchedules) {
+            if (existing.getStatus() != ScheduleStatus.CANCELLED) {
+                if (currentScheduleId != null && existing.getId().equals(currentScheduleId)) {
+                    continue;
+                }
+                boolean overlaps = startTime.isBefore(existing.getEndTime()) && endTime.isAfter(existing.getStartTime());
+                if (overlaps) {
+                    if (existing.getStatus() == ScheduleStatus.IN_PROGRESS) {
+                        throw new IllegalArgumentException("Bác sĩ đang có ca trực ĐANG DIỄN RA trùng khung giờ (" 
+                                + existing.getStartTime() + " - " + existing.getEndTime() + ") trong ngày " + date + ". Không thể đăng ký/tạo ca khác!");
+                    } else {
+                        throw new IllegalArgumentException("Bác sĩ đã có ca trực trùng khung giờ (" 
+                                + existing.getStartTime() + " - " + existing.getEndTime() + ", Trạng thái: " + existing.getStatus() + ") trong ngày " + date + "!");
+                    }
+                }
+            }
+        }
+    }
+
     @Override
     public ScheduleDto createSchedule(Long doctorId, ScheduleRequestDto requestDto) {
+        validateScheduleTime(requestDto.getDate(), requestDto.getStartTime(), requestDto.getEndTime());
+        if (doctorId != null) {
+            checkDoctorScheduleOverlap(doctorId, requestDto.getDate(), requestDto.getStartTime(), requestDto.getEndTime(), null);
+        }
         Doctor doctor = doctorId != null ? doctorRepository.findById(doctorId).orElse(null) : null;
                 
         Schedule schedule = new Schedule();
@@ -61,6 +100,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public ScheduleDto createOpenSchedule(ScheduleRequestDto requestDto) {
+        validateScheduleTime(requestDto.getDate(), requestDto.getStartTime(), requestDto.getEndTime());
         Schedule schedule = new Schedule();
         schedule.setDoctor(null);
         schedule.setDate(requestDto.getDate());
@@ -86,26 +126,38 @@ public class ScheduleServiceImpl implements ScheduleService {
             return existingSchedules.stream().map(this::mapToDto).collect(Collectors.toList());
         }
 
+        LocalDateTime now = LocalDateTime.now();
         List<Schedule> newSchedules = new ArrayList<>();
-        Schedule morning = new Schedule();
-        morning.setDoctor(doctor);
-        morning.setDate(date);
-        morning.setStartTime(LocalTime.of(8, 0));
-        morning.setEndTime(LocalTime.of(11, 30));
-        morning.setMaxPatient(10);
-        morning.setCurrentPatient(0);
-        morning.setStatus(ScheduleStatus.OPEN);
-        newSchedules.add(morning);
 
-        Schedule afternoon = new Schedule();
-        afternoon.setDoctor(doctor);
-        afternoon.setDate(date);
-        afternoon.setStartTime(LocalTime.of(13, 30));
-        afternoon.setEndTime(LocalTime.of(17, 0));
-        afternoon.setMaxPatient(12);
-        afternoon.setCurrentPatient(0);
-        afternoon.setStatus(ScheduleStatus.OPEN);
-        newSchedules.add(afternoon);
+        LocalDateTime morningStart = LocalDateTime.of(date, LocalTime.of(8, 0));
+        if (!now.isAfter(morningStart)) {
+            Schedule morning = new Schedule();
+            morning.setDoctor(doctor);
+            morning.setDate(date);
+            morning.setStartTime(LocalTime.of(8, 0));
+            morning.setEndTime(LocalTime.of(11, 30));
+            morning.setMaxPatient(10);
+            morning.setCurrentPatient(0);
+            morning.setStatus(ScheduleStatus.OPEN);
+            newSchedules.add(morning);
+        }
+
+        LocalDateTime afternoonStart = LocalDateTime.of(date, LocalTime.of(13, 30));
+        if (!now.isAfter(afternoonStart)) {
+            Schedule afternoon = new Schedule();
+            afternoon.setDoctor(doctor);
+            afternoon.setDate(date);
+            afternoon.setStartTime(LocalTime.of(13, 30));
+            afternoon.setEndTime(LocalTime.of(17, 0));
+            afternoon.setMaxPatient(12);
+            afternoon.setCurrentPatient(0);
+            afternoon.setStatus(ScheduleStatus.OPEN);
+            newSchedules.add(afternoon);
+        }
+
+        if (newSchedules.isEmpty()) {
+            throw new IllegalArgumentException("Không thể tự động sinh ca: Các ca khám mặc định ngày " + date + " đều đã qua thời gian bắt đầu!");
+        }
 
         List<Schedule> savedSchedules = scheduleRepository.saveAll(newSchedules);
         return savedSchedules.stream().map(this::mapToDto).collect(Collectors.toList());
@@ -113,26 +165,38 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public List<ScheduleDto> generateOpenSchedules(LocalDate date) {
+        LocalDateTime now = LocalDateTime.now();
         List<Schedule> newSchedules = new ArrayList<>();
-        Schedule morning = new Schedule();
-        morning.setDoctor(null);
-        morning.setDate(date);
-        morning.setStartTime(LocalTime.of(8, 0));
-        morning.setEndTime(LocalTime.of(11, 30));
-        morning.setMaxPatient(10);
-        morning.setCurrentPatient(0);
-        morning.setStatus(ScheduleStatus.OPEN);
-        newSchedules.add(morning);
 
-        Schedule afternoon = new Schedule();
-        afternoon.setDoctor(null);
-        afternoon.setDate(date);
-        afternoon.setStartTime(LocalTime.of(13, 30));
-        afternoon.setEndTime(LocalTime.of(17, 0));
-        afternoon.setMaxPatient(12);
-        afternoon.setCurrentPatient(0);
-        afternoon.setStatus(ScheduleStatus.OPEN);
-        newSchedules.add(afternoon);
+        LocalDateTime morningStart = LocalDateTime.of(date, LocalTime.of(8, 0));
+        if (!now.isAfter(morningStart)) {
+            Schedule morning = new Schedule();
+            morning.setDoctor(null);
+            morning.setDate(date);
+            morning.setStartTime(LocalTime.of(8, 0));
+            morning.setEndTime(LocalTime.of(11, 30));
+            morning.setMaxPatient(10);
+            morning.setCurrentPatient(0);
+            morning.setStatus(ScheduleStatus.OPEN);
+            newSchedules.add(morning);
+        }
+
+        LocalDateTime afternoonStart = LocalDateTime.of(date, LocalTime.of(13, 30));
+        if (!now.isAfter(afternoonStart)) {
+            Schedule afternoon = new Schedule();
+            afternoon.setDoctor(null);
+            afternoon.setDate(date);
+            afternoon.setStartTime(LocalTime.of(13, 30));
+            afternoon.setEndTime(LocalTime.of(17, 0));
+            afternoon.setMaxPatient(12);
+            afternoon.setCurrentPatient(0);
+            afternoon.setStatus(ScheduleStatus.OPEN);
+            newSchedules.add(afternoon);
+        }
+
+        if (newSchedules.isEmpty()) {
+            throw new IllegalArgumentException("Không thể tự động sinh ca mở: Các ca khám mặc định ngày " + date + " đều đã qua thời gian bắt đầu!");
+        }
 
         List<Schedule> savedSchedules = scheduleRepository.saveAll(newSchedules);
         return savedSchedules.stream().map(this::mapToDto).collect(Collectors.toList());
@@ -209,16 +273,8 @@ public class ScheduleServiceImpl implements ScheduleService {
         Doctor doctor = doctorRepository.findById(doctorId)
                 .orElseThrow(() -> new RuntimeException("Doctor not found with id: " + doctorId));
 
-        // Rule 2: Overlap check (doctor cannot have another non-cancelled shift overlapping this time)
-        List<Schedule> existingDoctorSchedules = scheduleRepository.findByDoctorIdAndDate(doctorId, schedule.getDate());
-        for (Schedule existing : existingDoctorSchedules) {
-            if (existing.getStatus() != ScheduleStatus.CANCELLED && !existing.getId().equals(scheduleId)) {
-                boolean overlaps = schedule.getStartTime().isBefore(existing.getEndTime()) && schedule.getEndTime().isAfter(existing.getStartTime());
-                if (overlaps) {
-                    throw new RuntimeException("Bạn đã có ca trực khác trùng khung giờ (" + existing.getStartTime() + " - " + existing.getEndTime() + ") trong ngày " + schedule.getDate() + "!");
-                }
-            }
-        }
+        // Overlap check
+        checkDoctorScheduleOverlap(doctorId, schedule.getDate(), schedule.getStartTime(), schedule.getEndTime(), scheduleId);
 
         schedule.setDoctor(doctor);
         schedule.setStatus(ScheduleStatus.AVAILABLE);

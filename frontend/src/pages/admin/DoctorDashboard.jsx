@@ -137,35 +137,13 @@ const DoctorDashboard = () => {
                                     </button>
                                     
                                     {apt.status === 'PENDING' && (
-                                        <>
-                                            <button 
-                                                className="btn-primary" 
-                                                style={{ padding: '0.5rem 0.75rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#2563eb' }}
-                                                onClick={() => handleUpdateStatus(apt.id, 'CONFIRMED')}
-                                            >
-                                                <Check size={16} /> Confirm
-                                            </button>
-                                            <button 
-                                                className="btn-primary" 
-                                                style={{ padding: '0.5rem 0.75rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#dc2626' }}
-                                                onClick={() => handleUpdateStatus(apt.id, 'CANCELLED_BY_DOCTOR')}
-                                            >
-                                                <XCircle size={16} /> Cancel
-                                            </button>
-                                        </>
-                                    )}
-
-                                    {apt.status === 'CONFIRMED' && (
-                                        <>
-                                            <button 
-                                                className="btn-primary" 
-                                                style={{ padding: '0.5rem 0.75rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#6b7280' }}
-                                                onClick={() => handleUpdateStatus(apt.id, 'NO_SHOW')}
-                                                title="Đánh dấu bệnh nhân không đến khám"
-                                            >
-                                                <UserX size={16} /> No Show
-                                            </button>
-                                        </>
+                                        <button 
+                                            className="btn-primary" 
+                                            style={{ padding: '0.5rem 0.75rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#dc2626' }}
+                                            onClick={() => handleUpdateStatus(apt.id, 'CANCELLED_BY_DOCTOR')}
+                                        >
+                                            <XCircle size={16} /> Cancel
+                                        </button>
                                     )}
 
                                     {apt.status === 'CHECKED_IN' && (
