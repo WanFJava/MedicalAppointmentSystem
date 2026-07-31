@@ -1,7 +1,8 @@
 import React, { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
-import { LogOut, User as UserIcon } from 'lucide-react';
+import { LogOut, User as UserIcon, Heart } from 'lucide-react';
+import ReceptionistChatbot from '../components/ReceptionistChatbot';
 
 const MainLayout = () => {
     const { user, logout } = useContext(AuthContext);
@@ -10,9 +11,9 @@ const MainLayout = () => {
     return (
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#f8fafc' }}>
             {/* Header */}
-            <header style={{ 
-                backgroundColor: 'white', 
-                padding: '1rem 2rem', 
+            <header style={{
+                backgroundColor: 'white',
+                padding: '1rem 2rem',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -28,6 +29,11 @@ const MainLayout = () => {
                     <nav style={{ display: 'flex', gap: '1.5rem' }}>
                         <Link to="/" style={{ color: '#4b5563', textDecoration: 'none', fontWeight: 500 }}>Home</Link>
                         <Link to="/book" style={{ color: '#4b5563', textDecoration: 'none', fontWeight: 500 }}>Book Appointment</Link>
+                        {user && user.role === 'PATIENT' && (
+                            <Link to="/favorites" style={{ color: '#4b5563', textDecoration: 'none', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                <Heart size={16} /> Favorites
+                            </Link>
+                        )}
                         <Link to="/my-appointments" style={{ color: '#4b5563', textDecoration: 'none', fontWeight: 500 }}>My Appointments</Link>
                     </nav>
                 </div>
@@ -44,11 +50,11 @@ const MainLayout = () => {
                                     {user.role}
                                 </span>
                             </div>
-                            <button onClick={logout} style={{ 
-                                display: 'flex', alignItems: 'center', gap: '0.5rem', 
-                                padding: '0.5rem 1rem', border: '1px solid #ef4444', 
-                                backgroundColor: 'transparent', color: '#ef4444', 
-                                borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 500 
+                            <button onClick={logout} style={{
+                                display: 'flex', alignItems: 'center', gap: '0.5rem',
+                                padding: '0.5rem 1rem', border: '1px solid #ef4444',
+                                backgroundColor: 'transparent', color: '#ef4444',
+                                borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 500
                             }}>
                                 <LogOut size={16} /> Logout
                             </button>
@@ -66,6 +72,8 @@ const MainLayout = () => {
             <main style={{ flex: 1 }}>
                 <Outlet />
             </main>
+
+            <ReceptionistChatbot />
 
             {/* Footer */}
             <footer style={{ backgroundColor: '#1f2937', color: 'white', padding: '3rem 2rem', marginTop: 'auto' }}>
@@ -85,7 +93,7 @@ const MainLayout = () => {
                     <div>
                         <h4 style={{ marginBottom: '1rem', color: 'white' }}>Contact</h4>
                         <p style={{ color: '#9ca3af', marginBottom: '0.5rem' }}>Email: support@smartclinic.com</p>
-                        <p style={{ color: '#9ca3af' }}>Phone: +1 234 567 890</p>
+                        <p style={{ color: '#9ca3af' }}>Phone: +84 587 205 181</p>
                     </div>
                 </div>
             </footer>

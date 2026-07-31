@@ -1,6 +1,7 @@
 package com.smartclinic.backend.config;
 
 import com.smartclinic.backend.entity.Role;
+import com.smartclinic.backend.entity.Status;
 import com.smartclinic.backend.entity.User;
 import com.smartclinic.backend.entity.Specialty;
 import com.smartclinic.backend.entity.Doctor;
@@ -10,8 +11,10 @@ import com.smartclinic.backend.repository.DoctorRepository;
 import com.smartclinic.backend.repository.ScheduleRepository;
 import com.smartclinic.backend.service.ScheduleService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -29,36 +32,46 @@ public class DataInitializer implements CommandLineRunner {
     private final ScheduleRepository scheduleRepository;
     private final ScheduleService scheduleService;
     private final JdbcTemplate jdbcTemplate;
+    private final PasswordEncoder passwordEncoder;
+
+    @Value("${SEED_ADMIN_PASSWORD:}")
+    private String seedAdminPassword;
+
+    @Value("${SEED_USER_PASSWORD:}")
+    private String seedUserPassword;
 
     @Override
     public void run(String... args) throws Exception {
         // Create Admin
-        if (userRepository.findByEmail("admin@clinic.com").isEmpty()) {
+        if (!seedAdminPassword.isBlank() && userRepository.findByEmail("admin@clinic.com").isEmpty()) {
             User admin = new User();
             admin.setFullName("System Admin");
             admin.setEmail("admin@clinic.com");
-            admin.setPassword("admin123"); 
+            admin.setPassword(passwordEncoder.encode(seedAdminPassword));
             admin.setRole(Role.ADMIN);
+            admin.setStatus(Status.ACTIVE);
             userRepository.save(admin);
         }
 
         // Create Receptionist
-        if (userRepository.findByEmail("receptionist@clinic.com").isEmpty()) {
+        if (!seedUserPassword.isBlank() && userRepository.findByEmail("receptionist@clinic.com").isEmpty()) {
             User receptionist = new User();
             receptionist.setFullName("Lễ tân Hoa");
             receptionist.setEmail("receptionist@clinic.com");
-            receptionist.setPassword("123456");
+            receptionist.setPassword(passwordEncoder.encode(seedUserPassword));
             receptionist.setRole(Role.RECEPTIONIST);
+            receptionist.setStatus(Status.ACTIVE);
             userRepository.save(receptionist);
         }
 
         // Create Patient
-        if (userRepository.findByEmail("patient@clinic.com").isEmpty()) {
+        if (!seedUserPassword.isBlank() && userRepository.findByEmail("patient@clinic.com").isEmpty()) {
             User patient = new User();
             patient.setFullName("Bệnh nhân An");
             patient.setEmail("patient@clinic.com");
-            patient.setPassword("123456");
+            patient.setPassword(passwordEncoder.encode(seedUserPassword));
             patient.setRole(Role.PATIENT);
+            patient.setStatus(Status.ACTIVE);
             userRepository.save(patient);
         }
 
@@ -80,11 +93,13 @@ public class DataInitializer implements CommandLineRunner {
             derma = specialtyRepository.save(derma);
 
             // Create Doctors
+            if (!seedUserPassword.isBlank()) {
             User userDoc1 = new User();
             userDoc1.setFullName("BS. Nguyễn Văn Tuấn");
             userDoc1.setEmail("bs.tuan@clinic.com");
-            userDoc1.setPassword("123456");
+            userDoc1.setPassword(passwordEncoder.encode(seedUserPassword));
             userDoc1.setRole(Role.DOCTOR);
+            userDoc1.setStatus(Status.ACTIVE);
             userDoc1 = userRepository.save(userDoc1);
 
             Doctor doc1 = new Doctor();
@@ -98,8 +113,9 @@ public class DataInitializer implements CommandLineRunner {
             User userDoc2 = new User();
             userDoc2.setFullName("BS. Trần Thị Mai");
             userDoc2.setEmail("bs.mai@clinic.com");
-            userDoc2.setPassword("123456");
+            userDoc2.setPassword(passwordEncoder.encode(seedUserPassword));
             userDoc2.setRole(Role.DOCTOR);
+            userDoc2.setStatus(Status.ACTIVE);
             userDoc2 = userRepository.save(userDoc2);
 
             Doctor doc2 = new Doctor();
@@ -113,8 +129,9 @@ public class DataInitializer implements CommandLineRunner {
             User userDoc3 = new User();
             userDoc3.setFullName("BS. Lê Hoàng Cường");
             userDoc3.setEmail("bs.cuong@clinic.com");
-            userDoc3.setPassword("123456");
+            userDoc3.setPassword(passwordEncoder.encode(seedUserPassword));
             userDoc3.setRole(Role.DOCTOR);
+            userDoc3.setStatus(Status.ACTIVE);
             userDoc3 = userRepository.save(userDoc3);
 
             Doctor doc3 = new Doctor();
@@ -124,6 +141,7 @@ public class DataInitializer implements CommandLineRunner {
             doc3.setExperience(20);
             doc3.setConsultationFee(BigDecimal.valueOf(800000.0));
             doc3 = doctorRepository.save(doc3);
+            }
 
         }
 

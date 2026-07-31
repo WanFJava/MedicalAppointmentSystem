@@ -5,6 +5,7 @@ import com.smartclinic.backend.repository.AppointmentRepository;
 import com.smartclinic.backend.repository.DoctorRepository;
 import com.smartclinic.backend.repository.PatientRepository;
 import com.smartclinic.backend.repository.SpecialtyRepository;
+import com.smartclinic.backend.repository.FeedbackRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,6 +24,7 @@ public class AdminController {
     private final PatientRepository patientRepository;
     private final AppointmentRepository appointmentRepository;
     private final SpecialtyRepository specialtyRepository;
+    private final FeedbackRepository feedbackRepository;
 
     @GetMapping("/stats")
     @PreAuthorize("hasRole('ADMIN')")
@@ -41,7 +43,8 @@ public class AdminController {
                 totalDoctors,
                 totalPatients,
                 appointmentsToday,
-                activeSpecialties
+                activeSpecialties,
+                feedbackRepository.count()
         );
 
         return ResponseEntity.ok(stats);

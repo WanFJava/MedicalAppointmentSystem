@@ -6,10 +6,19 @@ import com.smartclinic.backend.entity.User;
 import com.smartclinic.backend.exception.ResourceNotFoundException;
 import com.smartclinic.backend.repository.PatientRepository;
 import com.smartclinic.backend.repository.UserRepository;
+import com.smartclinic.backend.repository.DoctorRepository;
+import com.smartclinic.backend.entity.Doctor;
+import com.smartclinic.backend.dto.DoctorDto;
 import com.smartclinic.backend.service.PatientService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
+import java.util.HashSet;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -17,11 +26,13 @@ public class PatientServiceImpl implements PatientService {
 
     private final PatientRepository patientRepository;
     private final UserRepository userRepository;
+    private final DoctorRepository doctorRepository;
 
     @Override
     public PatientDto getPatientProfileByUserId(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+        ensurePatientIsSelf(user);
 
         Patient patient = patientRepository.findByUserId(userId).orElse(null);
 
@@ -33,6 +44,7 @@ public class PatientServiceImpl implements PatientService {
     public PatientDto updatePatientProfile(Long userId, PatientDto patientDto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+        ensurePatientIsSelf(user);
 
         // Update User info
         user.setFullName(patientDto.getFullName());
@@ -73,5 +85,86 @@ public class PatientServiceImpl implements PatientService {
             dto.setAllergy(patient.getAllergy());
         }
         return dto;
+    }
+
+    @Override
+    @Transactional
+    public void addFavoriteDoctor(Long userId, Long doctorId) {
+        Patient patient = getOrCreatePatient(userId);
+        Doctor doctor = doctorRepository.findById(doctorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Doctor", "id", doctorId));
+        
+        if (patient.getFavoriteDoctors() == null) {
+            patient.setFavoriteDoctors(new HashSet<>());
+        }
+        patient.getFavoriteDoctors().add(doctor);
+        patientRepository.save(patient);
+    }
+
+    @Override
+    @Transactional
+    public void removeFavoriteDoctor(Long userId, Long doctorId) {
+        Patient patient = getOrCreatePatient(userId);
+        Doctor doctor = doctorRepository.findById(doctorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Doctor", "id", doctorId));
+        
+        if (patient.getFavoriteDoctors() != null) {
+            patient.getFavoriteDoctors().remove(doctor);
+        }
+        patientRepository.save(patient);
+    }
+
+    @Override
+    @Transactional
+    public List<DoctorDto> getFavoriteDoctors(Long userId) {
+        Patient patient = getOrCreatePatient(userId);
+        if (patient.getFavoriteDoctors() == null) {
+            return java.util.Collections.emptyList();
+        }
+        
+        return patient.getFavoriteDoctors().stream().map(doctor -> {
+            DoctorDto dto = new DoctorDto();
+            dto.setId(doctor.getId());
+            dto.setUserId(doctor.getUser().getId());
+            dto.setFullName(doctor.getUser().getFullName());
+            dto.setEmail(doctor.getUser().getEmail());
+            dto.setPhone(doctor.getUser().getPhone());
+            dto.setAvatar(doctor.getUser().getAvatar());
+            dto.setSpecialtyId(doctor.getSpecialty().getId());
+            dto.setSpecialtyName(doctor.getSpecialty().getName());
+            dto.setDegree(doctor.getDegree());
+            dto.setExperience(doctor.getExperience());
+            dto.setConsultationFee(doctor.getConsultationFee());
+            dto.setAverageRating(doctor.getAverageRating());
+            dto.setTotalReviews(doctor.getTotalReviews());
+            dto.setBiography(doctor.getBiography());
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+    private Patient getOrCreatePatient(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+        ensurePatientIsSelf(user);
+        if (user.getRole() != com.smartclinic.backend.entity.Role.PATIENT) {
+            throw new IllegalArgumentException("The selected user is not a patient.");
+        }
+        return patientRepository.findByUserId(userId).orElseGet(() -> {
+            Patient patient = new Patient();
+            patient.setUser(user);
+            patient.setFavoriteDoctors(new HashSet<>());
+            return patientRepository.save(patient);
+        });
+    }
+
+    private void ensurePatientIsSelf(User patientUser) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null
+                && authentication.isAuthenticated()
+                && authentication.getAuthorities().stream()
+                    .anyMatch(authority -> authority.getAuthority().equals("ROLE_PATIENT"))
+                && !patientUser.getEmail().equals(authentication.getName())) {
+            throw new AccessDeniedException("You do not have access to this patient profile.");
+        }
     }
 }

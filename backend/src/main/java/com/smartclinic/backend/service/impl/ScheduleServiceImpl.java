@@ -8,6 +8,9 @@ import com.smartclinic.backend.repository.DoctorRepository;
 import com.smartclinic.backend.repository.ScheduleRepository;
 import com.smartclinic.backend.service.ScheduleService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -27,6 +30,8 @@ public class ScheduleServiceImpl implements ScheduleService {
     public ScheduleDto createSchedule(Long doctorId, ScheduleRequestDto requestDto) {
         Doctor doctor = doctorRepository.findById(doctorId)
                 .orElseThrow(() -> new RuntimeException("Doctor not found with id: " + doctorId));
+        ensureDoctorCanManage(doctor);
+        validateScheduleRequest(requestDto);
                 
         Schedule schedule = new Schedule();
         schedule.setDoctor(doctor);
@@ -44,6 +49,10 @@ public class ScheduleServiceImpl implements ScheduleService {
     public List<ScheduleDto> generateSchedules(Long doctorId, LocalDate date) {
         Doctor doctor = doctorRepository.findById(doctorId)
                 .orElseThrow(() -> new RuntimeException("Doctor not found with id: " + doctorId));
+        ensureDoctorCanManage(doctor);
+        if (date == null || date.isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("Schedule date cannot be in the past.");
+        }
                 
         // Check if schedules already exist for this date
         List<Schedule> existingSchedules = scheduleRepository.findByDoctorIdAndDate(doctorId, date);
@@ -108,5 +117,32 @@ public class ScheduleServiceImpl implements ScheduleService {
                 schedule.getCurrentPatient(),
                 schedule.getStatus()
         );
+    }
+
+    private void validateScheduleRequest(ScheduleRequestDto requestDto) {
+        if (requestDto == null || requestDto.getDate() == null
+                || requestDto.getStartTime() == null || requestDto.getEndTime() == null) {
+            throw new IllegalArgumentException("Date, start time and end time are required.");
+        }
+        if (requestDto.getDate().isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("Schedule date cannot be in the past.");
+        }
+        if (!requestDto.getStartTime().isBefore(requestDto.getEndTime())) {
+            throw new IllegalArgumentException("Start time must be before end time.");
+        }
+        if (requestDto.getMaxPatient() == null || requestDto.getMaxPatient() <= 0) {
+            throw new IllegalArgumentException("Maximum patients must be greater than zero.");
+        }
+    }
+
+    private void ensureDoctorCanManage(Doctor doctor) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null
+                && authentication.isAuthenticated()
+                && authentication.getAuthorities().stream()
+                    .anyMatch(authority -> authority.getAuthority().equals("ROLE_DOCTOR"))
+                && !doctor.getUser().getEmail().equals(authentication.getName())) {
+            throw new AccessDeniedException("You can only manage your own schedule.");
+        }
     }
 }

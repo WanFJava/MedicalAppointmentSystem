@@ -19,31 +19,37 @@ const PatientProfile = () => {
     const [message, setMessage] = useState({ type: '', text: '' });
 
     useEffect(() => {
-        if (user) {
-            fetchProfile();
-        }
+        if (!user) return;
+        let isCancelled = false;
+        const loadProfile = async () => {
+            try {
+                setLoading(true);
+                const data = await getPatientProfile(user.id);
+                if (!isCancelled) {
+                    setProfile({
+                        fullName: data.fullName || '',
+                        phone: data.phone || '',
+                        birthday: data.birthday || '',
+                        gender: data.gender || '',
+                        address: data.address || '',
+                        bloodGroup: data.bloodGroup || '',
+                        allergy: data.allergy || ''
+                    });
+                }
+            } catch (requestError) {
+                console.error("Failed to fetch profile", requestError);
+                if (!isCancelled) {
+                    setMessage({ type: 'error', text: 'Failed to load profile data.' });
+                }
+            } finally {
+                if (!isCancelled) setLoading(false);
+            }
+        };
+        loadProfile();
+        return () => {
+            isCancelled = true;
+        };
     }, [user]);
-
-    const fetchProfile = async () => {
-        try {
-            setLoading(true);
-            const data = await getPatientProfile(user.id);
-            setProfile({
-                fullName: data.fullName || '',
-                phone: data.phone || '',
-                birthday: data.birthday || '',
-                gender: data.gender || '',
-                address: data.address || '',
-                bloodGroup: data.bloodGroup || '',
-                allergy: data.allergy || ''
-            });
-        } catch (error) {
-            console.error("Failed to fetch profile", error);
-            setMessage({ type: 'error', text: 'Failed to load profile data.' });
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -69,7 +75,7 @@ const PatientProfile = () => {
     if (loading) return <div style={{ textAlign: 'center', padding: '3rem' }}>Loading profile...</div>;
 
     return (
-        <div style={{ maxWidth: '800px', margin: '3rem auto', padding: '0 1rem' }}>
+        <div style={{ maxWidth: '1000px', margin: '2rem auto', padding: '0 1rem' }}>
             <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
                 <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#1f2937' }}>
                     <User size={32} color="var(--primary-color)" /> My Profile
@@ -174,30 +180,32 @@ const PatientProfile = () => {
                         </div>
                     </div>
 
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: '#4b5563', marginBottom: '0.5rem' }}>
-                            <MapPin size={16} /> Address
-                        </label>
-                        <input 
-                            type="text" 
-                            name="address" 
-                            value={profile.address} 
-                            onChange={handleChange} 
-                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
-                        />
-                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
+                        <div>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: '#4b5563', marginBottom: '0.5rem' }}>
+                                <MapPin size={16} /> Address
+                            </label>
+                            <input 
+                                type="text" 
+                                name="address" 
+                                value={profile.address} 
+                                onChange={handleChange} 
+                                style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
+                            />
+                        </div>
 
-                    <div style={{ marginBottom: '2rem' }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: '#4b5563', marginBottom: '0.5rem' }}>
-                            <Activity size={16} /> Allergies / Medical Notes
-                        </label>
-                        <textarea 
-                            name="allergy" 
-                            value={profile.allergy} 
-                            onChange={handleChange} 
-                            placeholder="List any allergies or important medical notes"
-                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', minHeight: '100px', resize: 'vertical' }}
-                        />
+                        <div>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: '#4b5563', marginBottom: '0.5rem' }}>
+                                <Activity size={16} /> Allergies / Medical Notes
+                            </label>
+                            <textarea 
+                                name="allergy" 
+                                value={profile.allergy} 
+                                onChange={handleChange} 
+                                placeholder="List any allergies or important medical notes"
+                                style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', minHeight: '46px', resize: 'vertical' }}
+                            />
+                        </div>
                     </div>
 
                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>

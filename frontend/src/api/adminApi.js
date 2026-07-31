@@ -33,6 +33,11 @@ export const getDoctors = async () => {
     return response.data;
 };
 
+export const getDoctorById = async (id) => {
+    const response = await api.get(`/doctors/${id}`);
+    return response.data;
+};
+
 export const createDoctor = async (data) => {
     const response = await api.post('/doctors', data);
     return response.data;

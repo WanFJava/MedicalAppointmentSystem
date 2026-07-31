@@ -1,39 +1,50 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { AuthContext } from '../../context/AuthContext';
-import { getAllAppointments, updateAppointmentStatus } from '../../api/appointmentApi';
-import { CheckCircle, XCircle, UserCheck } from 'lucide-react';
+import { getAllAppointments, updateAppointmentStatus, deleteAppointment } from '../../api/appointmentApi';
+import { CheckCircle, XCircle, UserCheck, Trash2, Star } from 'lucide-react';
 import BillModal from './BillModal';
+import FeedbackModal from '../FeedbackModal';
 
 const ReceptionistDashboard = () => {
     const { user } = useContext(AuthContext);
     const [appointments, setAppointments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [billingApt, setBillingApt] = useState(null);
+    const [feedbackApt, setFeedbackApt] = useState(null);
 
-    useEffect(() => {
-        fetchAppointments();
-    }, []);
-
-    const fetchAppointments = async () => {
+    const fetchAppointments = useCallback(async () => {
         try {
             setLoading(true);
             const data = await getAllAppointments();
-            // Optional: sort by date and time
-            data.sort((a, b) => new Date(a.scheduleDate) - new Date(b.scheduleDate));
             setAppointments(data);
         } catch (error) {
             console.error("Failed to fetch appointments", error);
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        fetchAppointments();
+    }, [fetchAppointments]);
 
     const handleUpdateStatus = async (id, status) => {
         try {
             await updateAppointmentStatus(id, status);
             fetchAppointments();
-        } catch (error) {
-            alert("Failed to update status");
+        } catch (requestError) {
+            alert(requestError.response?.data?.message || "Failed to update status");
+        }
+    };
+
+    const handleDelete = async (id) => {
+        if (window.confirm("Are you sure you want to completely delete this appointment? This action cannot be undone.")) {
+            try {
+                await deleteAppointment(id);
+                fetchAppointments();
+            } catch (requestError) {
+                alert(requestError.response?.data?.message || "Failed to delete appointment");
+            }
         }
     };
 
@@ -130,7 +141,23 @@ const ReceptionistDashboard = () => {
                                                     Bill & Pay
                                                 </button>
                                             )}
+                                            {apt.isReviewed && (
+                                                <button 
+                                                    title="View Patient Feedback"
+                                                    onClick={() => setFeedbackApt(apt)}
+                                                    style={{ padding: '0.5rem', backgroundColor: '#fef9c3', color: '#854d0e', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>
+                                                    <Star size={16} />
+                                                </button>
+                                            )}
                                             {/* Note: DOCTOR will change status to COMPLETED */}
+                                            {user?.role === 'ADMIN' && (
+                                                <button 
+                                                    title="Delete Appointment Permanently"
+                                                    onClick={() => handleDelete(apt.id)}
+                                                    style={{ padding: '0.5rem', backgroundColor: '#fca5a5', color: '#991b1b', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', marginLeft: '0.5rem' }}>
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
@@ -153,6 +180,14 @@ const ReceptionistDashboard = () => {
                         setBillingApt(null);
                         fetchAppointments();
                     }} 
+                />
+            )}
+
+            {feedbackApt && (
+                <FeedbackModal 
+                    appointment={feedbackApt}
+                    isReadOnly={true}
+                    onClose={() => setFeedbackApt(null)}
                 />
             )}
         </div>

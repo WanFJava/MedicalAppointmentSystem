@@ -16,6 +16,9 @@ import java.time.LocalDateTime;
 public class BillDto {
     private Long id;
     private Long appointmentId;
+    private BigDecimal consultationFee;
+    private BigDecimal medicineFee;
+    private BigDecimal discount;
     private BigDecimal totalAmount;
     private BillStatus status;
     private LocalDateTime createdAt;

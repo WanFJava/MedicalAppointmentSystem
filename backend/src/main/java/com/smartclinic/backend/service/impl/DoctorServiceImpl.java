@@ -62,6 +62,7 @@ public class DoctorServiceImpl implements DoctorService {
         doctor.setDegree(doctorDto.getDegree());
         doctor.setExperience(doctorDto.getExperience());
         doctor.setConsultationFee(doctorDto.getConsultationFee());
+        doctor.setBiography(doctorDto.getBiography());
 
         Doctor savedDoctor = doctorRepository.save(doctor);
         return mapToDto(savedDoctor);
@@ -97,6 +98,7 @@ public class DoctorServiceImpl implements DoctorService {
         doctor.setDegree(doctorDto.getDegree());
         doctor.setExperience(doctorDto.getExperience());
         doctor.setConsultationFee(doctorDto.getConsultationFee());
+        doctor.setBiography(doctorDto.getBiography());
 
         Doctor updatedDoctor = doctorRepository.save(doctor);
         return mapToDto(updatedDoctor);
@@ -129,6 +131,9 @@ public class DoctorServiceImpl implements DoctorService {
         dto.setDegree(doctor.getDegree());
         dto.setExperience(doctor.getExperience());
         dto.setConsultationFee(doctor.getConsultationFee());
+        dto.setAverageRating(doctor.getAverageRating());
+        dto.setTotalReviews(doctor.getTotalReviews());
+        dto.setBiography(doctor.getBiography());
         return dto;
     }
 }

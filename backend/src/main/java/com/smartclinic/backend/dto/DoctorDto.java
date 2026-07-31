@@ -24,4 +24,7 @@ public class DoctorDto {
     private Integer experience;
     private BigDecimal consultationFee;
     private String password;
+    private BigDecimal averageRating;
+    private Integer totalReviews;
+    private String biography;
 }

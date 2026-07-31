@@ -45,10 +45,17 @@ public class AppointmentController {
     }
 
     @PutMapping("/{appointmentId}/status")
-    @PreAuthorize("hasAnyRole('RECEPTIONIST', 'ADMIN', 'DOCTOR')")
+    @PreAuthorize("hasAnyRole('RECEPTIONIST', 'ADMIN', 'PATIENT')")
     public ResponseEntity<AppointmentDto> updateAppointmentStatus(
             @PathVariable Long appointmentId,
             @RequestParam AppointmentStatus status) {
         return ResponseEntity.ok(appointmentService.updateAppointmentStatus(appointmentId, status));
+    }
+
+    @DeleteMapping("/{appointmentId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteAppointment(@PathVariable Long appointmentId) {
+        appointmentService.deleteAppointment(appointmentId);
+        return ResponseEntity.ok().build();
     }
 }

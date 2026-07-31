@@ -14,4 +14,5 @@ public class DashboardDto {
     private long totalPatients;
     private long appointmentsToday;
     private long activeSpecialties;
+    private long totalFeedbacks;
 }

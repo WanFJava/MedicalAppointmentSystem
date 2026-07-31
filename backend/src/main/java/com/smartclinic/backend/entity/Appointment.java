@@ -28,10 +28,14 @@ public class Appointment {
     @JoinColumn(name = "schedule_id", nullable = false)
     private Schedule schedule;
 
-    @Column(length = 1000)
+    @Column(columnDefinition = "NVARCHAR(1000)")
     private String symptom;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private AppointmentStatus status;
+
+    @Column(name = "is_reviewed")
+    @Builder.Default
+    private Boolean isReviewed = false;
 }
