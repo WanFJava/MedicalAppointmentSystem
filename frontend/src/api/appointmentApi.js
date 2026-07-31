@@ -19,13 +19,47 @@ export const getAvailableSchedules = async (doctorId, date) => {
     return response.data;
 };
 
+export const createOpenSchedule = async (data) => {
+    const response = await api.post('/schedules/open', data);
+    return response.data;
+};
+
 export const generateSchedules = async (doctorId, date) => {
     const response = await api.post(`/schedules/generate/${doctorId}?date=${date}`);
     return response.data;
 };
 
+export const generateOpenSchedules = async (date) => {
+    const response = await api.post(`/schedules/generate-open?date=${date}`);
+    return response.data;
+};
+
+export const getOpenSchedules = async (date) => {
+    const params = date ? { date } : {};
+    const response = await api.get('/schedules/open', { params });
+    return response.data;
+};
+
+export const registerDoctorSchedule = async (scheduleId, doctorId) => {
+    const response = await api.put(`/schedules/${scheduleId}/register/doctor/${doctorId}`);
+    return response.data;
+};
+
+export const getAllSchedules = async (date, doctorId) => {
+    const params = {};
+    if (date) params.date = date;
+    if (doctorId) params.doctorId = doctorId;
+    const response = await api.get('/schedules', { params });
+    return response.data;
+};
+
 export const updateScheduleStatus = async (id, status) => {
     const response = await api.put(`/schedules/${id}/status`, {}, { params: { status } });
+    return response.data;
+};
+
+export const deleteSchedule = async (id) => {
+    const response = await api.delete(`/schedules/${id}`);
     return response.data;
 };
 

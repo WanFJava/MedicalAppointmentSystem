@@ -133,12 +133,20 @@ public class AppointmentServiceImpl implements AppointmentService {
             scheduleRepository.save(schedule);
         }
 
-        // If cancelled from a non-pending state (like confirmed), free up the schedule
-        if ((status == AppointmentStatus.CANCELLED_BY_PATIENT || status == AppointmentStatus.CANCELLED_BY_DOCTOR) && oldStatus != AppointmentStatus.PENDING) {
+        // If cancelled or NO_SHOW from a confirmed/checked-in state, free up the schedule spot
+        boolean isCancellationOrNoShow = status == AppointmentStatus.CANCELLED_BY_PATIENT || 
+                                          status == AppointmentStatus.CANCELLED_BY_DOCTOR || 
+                                          status == AppointmentStatus.NO_SHOW;
+        boolean wasOccupyingSpot = oldStatus == AppointmentStatus.CONFIRMED || oldStatus == AppointmentStatus.CHECKED_IN;
+
+        if (isCancellationOrNoShow && wasOccupyingSpot) {
             Schedule schedule = appointment.getSchedule();
             int current = schedule.getCurrentPatient() == null ? 0 : schedule.getCurrentPatient();
-            schedule.setCurrentPatient(Math.max(0, current - 1));
-            schedule.setStatus(ScheduleStatus.AVAILABLE);
+            int newCurrent = Math.max(0, current - 1);
+            schedule.setCurrentPatient(newCurrent);
+            if (schedule.getStatus() == ScheduleStatus.FULL) {
+                schedule.setStatus(ScheduleStatus.AVAILABLE);
+            }
             scheduleRepository.save(schedule);
         }
 

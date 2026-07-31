@@ -7,6 +7,7 @@ import AdminLayout from './layouts/AdminLayout';
 import Dashboard from './pages/admin/Dashboard';
 import SpecialtyManager from './pages/admin/SpecialtyManager';
 import DoctorManager from './pages/admin/DoctorManager';
+import AdminSchedulePage from './pages/admin/AdminSchedulePage';
 import ReceptionistDashboard from './pages/admin/ReceptionistDashboard';
 import DoctorDashboard from './pages/admin/DoctorDashboard';
 import MedicineManager from './pages/admin/MedicineManager';
@@ -50,6 +51,7 @@ function App() {
         } />
         <Route path="specialties" element={<SpecialtyManager />} />
         <Route path="doctors" element={<DoctorManager />} />
+        <Route path="schedules" element={<AdminSchedulePage />} />
         <Route path="appointments" element={<ReceptionistDashboard />} />
         <Route path="my-schedule" element={<DoctorDashboard />} />
         <Route path="medicines" element={<MedicineManager />} />
