@@ -22,4 +22,5 @@ public class ScheduleDto {
     private Integer maxPatient;
     private Integer currentPatient;
     private ScheduleStatus status;
+    private String note;
 }

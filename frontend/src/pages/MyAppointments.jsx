@@ -63,27 +63,29 @@ const MyAppointments = () => {
 
     if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading your appointments...</div>;
 
-    const displayedAppointments = showAll ? appointments : appointments.slice(0, 1);
+    const today = new Date().toISOString().split('T')[0];
+    const displayedAppointments = showAll 
+        ? appointments 
+        : appointments.filter(apt => apt.scheduleDate >= today);
 
     return (
         <div style={{ maxWidth: '1000px', margin: '3rem auto', padding: '0 1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                 <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: '#1f2937', margin: 0 }}>My Appointments</h1>
-                {appointments.length > 1 && !showAll && (
+                {!showAll ? (
                     <button 
                         onClick={() => setShowAll(true)}
                         className="btn-primary"
                         style={{ width: 'auto', padding: '0.75rem 1.5rem', borderRadius: '0.75rem' }}
                     >
-                        View All Appointment History
+                        Xem lịch sử hẹn (Tất cả)
                     </button>
-                )}
-                {showAll && (
+                ) : (
                     <button 
                         onClick={() => setShowAll(false)}
                         style={{ padding: '0.75rem 1.5rem', backgroundColor: '#f1f5f9', color: '#475569', border: 'none', borderRadius: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
                     >
-                        Show Latest Only
+                        Chỉ xem lịch sắp tới
                     </button>
                 )}
             </div>

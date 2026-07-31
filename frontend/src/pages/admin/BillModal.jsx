@@ -41,10 +41,9 @@ const BillModal = ({ appointment, onClose, onSuccess }) => {
             alert("Payment successful!");
             onSuccess();
         } catch (error) {
-            console.error("Failed to process payment via API, mocking success", error);
-            alert("Payment successful!");
-            // Hardcode success
-            onSuccess();
+            console.error("Failed to process payment via API", error);
+            const errMsg = error.response?.data?.message || error.response?.data || error.message || "Unknown error";
+            alert("Payment failed: " + errMsg);
         } finally {
             setLoading(false);
         }

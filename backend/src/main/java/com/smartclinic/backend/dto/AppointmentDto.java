@@ -24,4 +24,5 @@ public class AppointmentDto {
     private AppointmentStatus status;
     private Integer queueNumber;
     private Boolean isReviewed;
+    private String paymentStatus;
 }

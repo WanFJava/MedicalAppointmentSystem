@@ -3,13 +3,13 @@ import { AuthContext } from '../../context/AuthContext';
 import { getDoctorByUserId } from '../../api/adminApi';
 import { getDoctorAppointments, updateAppointmentStatus } from '../../api/appointmentApi';
 import { getPatientProfile } from '../../api/patientApi';
-import { CheckCircle, ClipboardList, Calendar, Info, X, Star, FileText, Check, XCircle, UserX } from 'lucide-react';
+import { CheckCircle, ClipboardList, Calendar, Info, X, Star, FileText, Check, XCircle, UserX, UserCheck, Clock } from 'lucide-react';
 import ScheduleManager from './ScheduleManager';
 import DoctorDiagnoseModal from './DoctorDiagnoseModal';
 import FeedbackModal from '../FeedbackModal';
 import PatientRecordModal from '../PatientRecordModal';
 
-const DoctorDashboard = () => {
+const DoctorDashboard = ({ tab = 'appointments' }) => {
     const { user } = useContext(AuthContext);
     const [doctor, setDoctor] = useState(null);
     const [appointments, setAppointments] = useState([]);
@@ -18,7 +18,7 @@ const DoctorDashboard = () => {
     const [viewingPatient, setViewingPatient] = useState(null);
     const [feedbackApt, setFeedbackApt] = useState(null);
     const [viewingRecordApt, setViewingRecordApt] = useState(null);
-    const [activeTab, setActiveTab] = useState('appointments'); // 'appointments' or 'schedule'
+    const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
 
     useEffect(() => {
         if (user && user.role === 'DOCTOR') {
@@ -89,9 +89,13 @@ const DoctorDashboard = () => {
         );
     }
 
-    // Filter to show active appointments at top, completed at bottom
-    const activeAppointments = appointments.filter(a => ['PENDING', 'CONFIRMED', 'CHECKED_IN'].includes(a.status));
-    const otherAppointments = appointments.filter(a => !['PENDING', 'CONFIRMED', 'CHECKED_IN'].includes(a.status));
+    // Filter appointments by selected date first
+    const filteredAppointments = appointments.filter(a => a.scheduleDate === filterDate);
+
+    // Then filter by status
+    const waitingAppointments = filteredAppointments.filter(a => ['PENDING', 'CONFIRMED', 'CHECKED_IN'].includes(a.status));
+    const inProgressAppointments = filteredAppointments.filter(a => a.status === 'IN_PROGRESS');
+    const otherAppointments = filteredAppointments.filter(a => !['PENDING', 'CONFIRMED', 'CHECKED_IN', 'IN_PROGRESS'].includes(a.status));
 
     const renderTable = (apts, title) => (
         <div className="table-container" style={{ marginBottom: '2rem' }}>
@@ -150,13 +154,6 @@ const DoctorDashboard = () => {
                                         <>
                                             <button 
                                                 className="btn-primary" 
-                                                style={{ padding: '0.5rem 0.75rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#059669' }}
-                                                onClick={() => handleComplete(apt)}
-                                            >
-                                                <CheckCircle size={16} /> Diagnose
-                                            </button>
-                                            <button 
-                                                className="btn-primary" 
                                                 style={{ padding: '0.5rem 0.75rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#6b7280' }}
                                                 onClick={() => handleUpdateStatus(apt.id, 'NO_SHOW')}
                                                 title="Đánh dấu bệnh nhân không đến khám"
@@ -164,6 +161,16 @@ const DoctorDashboard = () => {
                                                 <UserX size={16} /> No Show
                                             </button>
                                         </>
+                                    )}
+
+                                    {apt.status === 'IN_PROGRESS' && (
+                                        <button 
+                                            className="btn-primary" 
+                                            style={{ padding: '0.5rem 0.75rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#059669' }}
+                                            onClick={() => handleComplete(apt)}
+                                        >
+                                            <CheckCircle size={16} /> Diagnose
+                                        </button>
                                     )}
                                     {apt.status === 'COMPLETED' && apt.isReviewed && (
                                         <button 
@@ -210,32 +217,28 @@ const DoctorDashboard = () => {
                         Doctor: {doctor.fullName} | {doctor.specialtyName}
                     </div>
                 </div>
-                
-                <div style={{ display: 'flex', gap: '1rem' }}>
-                    <button 
-                        onClick={() => setActiveTab('appointments')}
-                        className={`btn-primary`}
-                        style={{ backgroundColor: activeTab === 'appointments' ? 'var(--primary-color)' : 'white', color: activeTab === 'appointments' ? 'white' : 'var(--text-color)', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                    >
-                        <ClipboardList size={18} /> Appointments
-                    </button>
-                    <button 
-                        onClick={() => setActiveTab('schedule')}
-                        className={`btn-primary`}
-                        style={{ backgroundColor: activeTab === 'schedule' ? 'var(--primary-color)' : 'white', color: activeTab === 'schedule' ? 'white' : 'var(--text-color)', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                    >
-                        <Calendar size={18} /> Working Schedule
-                    </button>
-                </div>
             </div>
 
-            {activeTab === 'appointments' ? (
+            {tab === 'appointments' && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem', backgroundColor: 'white', padding: '1rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+                    <label style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>Xem theo ngày:</label>
+                    <input 
+                        type="date" 
+                        value={filterDate} 
+                        onChange={(e) => setFilterDate(e.target.value)} 
+                        style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #d1d5db' }}
+                    />
+                </div>
+            )}
+
+            {tab === 'appointments' ? (
                 <>
-                    {renderTable(activeAppointments, "Waiting & In-Progress Patients (PENDING / CHECKED_IN / CONFIRMED)")}
+                    {renderTable(inProgressAppointments, "In-Progress Patients (IN_PROGRESS)")}
+                    {renderTable(waitingAppointments, "Waiting Patients (PENDING / CHECKED_IN / CONFIRMED)")}
                     {renderTable(otherAppointments, "Other Appointments (COMPLETED / CANCELLED)")}
                 </>
             ) : (
-                <ScheduleManager doctorId={doctor.id} />
+                <ScheduleManager doctorId={doctor.id} viewTab={tab} />
             )}
 
             {diagnosingApt && (

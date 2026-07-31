@@ -55,7 +55,9 @@ function App() {
         <Route path="doctors" element={<DoctorManager />} />
         <Route path="schedules" element={<AdminSchedulePage />} />
         <Route path="appointments" element={<ReceptionistDashboard />} />
-        <Route path="my-schedule" element={<DoctorDashboard />} />
+        <Route path="my-schedule" element={<DoctorDashboard tab="appointments" />} />
+        <Route path="my-shifts" element={<DoctorDashboard tab="myShifts" />} />
+        <Route path="open-shifts" element={<DoctorDashboard tab="openShifts" />} />
         <Route path="medicines" element={<MedicineManager />} />
         <Route path="users" element={<UserManager />} />
         <Route path="queue" element={<QueueManager />} />

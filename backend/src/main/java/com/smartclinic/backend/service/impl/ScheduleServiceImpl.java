@@ -11,6 +11,8 @@ import com.smartclinic.backend.repository.ScheduleRepository;
 import com.smartclinic.backend.service.ScheduleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -60,19 +62,20 @@ public class ScheduleServiceImpl implements ScheduleService {
         if (doctorId == null) return;
         List<Schedule> existingDoctorSchedules = scheduleRepository.findByDoctorIdAndDate(doctorId, date);
         for (Schedule existing : existingDoctorSchedules) {
-            if (existing.getStatus() != ScheduleStatus.CANCELLED) {
-                if (currentScheduleId != null && existing.getId().equals(currentScheduleId)) {
-                    continue;
-                }
-                boolean overlaps = startTime.isBefore(existing.getEndTime()) && endTime.isAfter(existing.getStartTime());
-                if (overlaps) {
-                    if (existing.getStatus() == ScheduleStatus.IN_PROGRESS) {
-                        throw new IllegalArgumentException("Bác sĩ đang có ca trực ĐANG DIỄN RA trùng khung giờ (" 
-                                + existing.getStartTime() + " - " + existing.getEndTime() + ") trong ngày " + date + ". Không thể đăng ký/tạo ca khác!");
-                    } else {
-                        throw new IllegalArgumentException("Bác sĩ đã có ca trực trùng khung giờ (" 
-                                + existing.getStartTime() + " - " + existing.getEndTime() + ", Trạng thái: " + existing.getStatus() + ") trong ngày " + date + "!");
-                    }
+            if (existing.getStatus() == ScheduleStatus.CANCELLED || existing.getStatus() == ScheduleStatus.COMPLETED) {
+                continue;
+            }
+            if (currentScheduleId != null && existing.getId().equals(currentScheduleId)) {
+                continue;
+            }
+            boolean overlaps = startTime.isBefore(existing.getEndTime()) && endTime.isAfter(existing.getStartTime());
+            if (overlaps) {
+                if (existing.getStatus() == ScheduleStatus.IN_PROGRESS) {
+                    throw new IllegalArgumentException("Bác sĩ đang có ca trực ĐANG DIỄN RA trùng khung giờ (" 
+                            + existing.getStartTime() + " - " + existing.getEndTime() + ") trong ngày " + date + ". Không thể đăng ký/tạo ca khác!");
+                } else {
+                    throw new IllegalArgumentException("Bác sĩ đã có ca trực trùng khung giờ (" 
+                            + existing.getStartTime() + " - " + existing.getEndTime() + ", Trạng thái: " + existing.getStatus() + ") trong ngày " + date + "!");
                 }
             }
         }
@@ -286,6 +289,13 @@ public class ScheduleServiceImpl implements ScheduleService {
     public ScheduleDto updateScheduleStatus(Long scheduleId, ScheduleStatus status) {
         Schedule schedule = scheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> new RuntimeException("Schedule not found"));
+                
+        if (status == ScheduleStatus.CANCELLED) {
+            if (schedule.getStatus() == ScheduleStatus.IN_PROGRESS || schedule.getStatus() == ScheduleStatus.COMPLETED) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Không thể hủy ca khám đã bắt đầu hoặc đã hoàn thành.");
+            }
+        }
+        
         schedule.setStatus(status);
         return mapToDto(scheduleRepository.save(schedule));
     }
@@ -311,7 +321,8 @@ public class ScheduleServiceImpl implements ScheduleService {
                 schedule.getEndTime(),
                 schedule.getMaxPatient(),
                 schedule.getCurrentPatient(),
-                schedule.getStatus()
+                schedule.getStatus(),
+                schedule.getNote()
         );
     }
 }

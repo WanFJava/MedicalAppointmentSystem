@@ -24,6 +24,7 @@ public class DoctorServiceImpl implements DoctorService {
     private final UserRepository userRepository;
     private final SpecialtyRepository specialtyRepository;
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+    private final com.smartclinic.backend.repository.FeedbackRepository feedbackRepository;
 
     @Override
     @Transactional
@@ -156,8 +157,16 @@ public class DoctorServiceImpl implements DoctorService {
         dto.setDegree(doctor.getDegree());
         dto.setExperience(doctor.getExperience());
         dto.setConsultationFee(doctor.getConsultationFee());
-        dto.setAverageRating(doctor.getAverageRating());
-        dto.setTotalReviews(doctor.getTotalReviews());
+        java.util.List<com.smartclinic.backend.entity.Feedback> fbs = feedbackRepository.findByDoctorIdOrderByIdDesc(doctor.getId());
+        if (fbs != null && !fbs.isEmpty()) {
+            dto.setTotalReviews(fbs.size());
+            double sum = fbs.stream().mapToInt(com.smartclinic.backend.entity.Feedback::getRating).sum();
+            dto.setAverageRating(new java.math.BigDecimal(sum / fbs.size()).setScale(1, java.math.RoundingMode.HALF_UP));
+        } else {
+            dto.setAverageRating(java.math.BigDecimal.ZERO);
+            dto.setTotalReviews(0);
+        }
+
         dto.setBiography(doctor.getBiography());
         return dto;
     }

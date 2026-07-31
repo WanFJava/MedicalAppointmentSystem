@@ -41,4 +41,7 @@ public class Schedule {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ScheduleStatus status = ScheduleStatus.AVAILABLE;
+
+    @Column(name = "note")
+    private String note;
 }

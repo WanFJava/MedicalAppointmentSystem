@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { getDoctorSchedules, getOpenSchedules, registerDoctorSchedule, updateScheduleStatus } from '../../api/appointmentApi';
 import { Calendar, UserCheck, Clock, CheckCircle } from 'lucide-react';
 
-const ScheduleManager = ({ doctorId }) => {
+const ScheduleManager = ({ doctorId, viewTab }) => {
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-    const [viewTab, setViewTab] = useState('myShifts'); // 'myShifts' or 'openShifts'
     
     const [mySchedules, setMySchedules] = useState([]);
     const [openSchedules, setOpenSchedules] = useState([]);
@@ -75,43 +74,7 @@ const ScheduleManager = ({ doctorId }) => {
     return (
         <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', marginBottom: '2rem' }}>
             {/* Header & Date Picker */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid #e5e7eb', paddingBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button 
-                        onClick={() => setViewTab('myShifts')}
-                        style={{
-                            padding: '0.5rem 1rem',
-                            borderRadius: '6px',
-                            fontWeight: 'bold',
-                            border: '1px solid var(--border-color)',
-                            backgroundColor: viewTab === 'myShifts' ? 'var(--primary-color)' : '#f9fafb',
-                            color: viewTab === 'myShifts' ? 'white' : '#374151',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.4rem'
-                        }}
-                    >
-                        <UserCheck size={18} /> Ca trực của tôi
-                    </button>
-                    <button 
-                        onClick={() => setViewTab('openShifts')}
-                        style={{
-                            padding: '0.5rem 1rem',
-                            borderRadius: '6px',
-                            fontWeight: 'bold',
-                            border: '1px solid var(--border-color)',
-                            backgroundColor: viewTab === 'openShifts' ? '#d97706' : '#f9fafb',
-                            color: viewTab === 'openShifts' ? 'white' : '#374151',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.4rem'
-                        }}
-                    >
-                        <Clock size={18} /> Đăng ký ca làm (Admin tạo mở)
-                    </button>
-                </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid #e5e7eb', paddingBottom: '1rem' }}>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <label style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>Ngày khám:</label>
@@ -147,6 +110,11 @@ const ScheduleManager = ({ doctorId }) => {
                                             <div style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
                                                 Bệnh nhân đăng ký: <strong style={{ color: '#059669' }}>{sch.currentPatient || 0}</strong> / {sch.maxPatient}
                                             </div>
+                                            {sch.note && (
+                                                <div style={{ fontSize: '0.875rem', color: '#dc2626', marginTop: '0.25rem', fontWeight: 'bold', fontStyle: 'italic' }}>
+                                                    Ghi chú: {sch.note}
+                                                </div>
+                                            )}
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                             <span style={{ backgroundColor: st.bg, color: st.color, padding: '0.35rem 0.85rem', borderRadius: '1rem', fontSize: '0.8rem', fontWeight: 'bold' }}>

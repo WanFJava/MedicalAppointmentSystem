@@ -26,6 +26,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -146,12 +148,12 @@ public class AppointmentServiceImpl implements AppointmentService {
             appointment.setQueueNumber(maxQueue == null ? 1 : maxQueue + 1);
         }
 
-        // If cancelled or NO_SHOW, free up and reset the schedule spot to AVAILABLE
-        boolean isCancellationOrNoShow = status == AppointmentStatus.CANCELLED_BY_PATIENT || 
-                                          status == AppointmentStatus.CANCELLED_BY_DOCTOR || 
-                                          status == AppointmentStatus.NO_SHOW;
+        // If cancelled, free up and reset the schedule spot to AVAILABLE.
+        // NO_SHOW is treated like COMPLETED for schedule capacity, so it doesn't free the spot.
+        boolean isCancellation = status == AppointmentStatus.CANCELLED_BY_PATIENT || 
+                                 status == AppointmentStatus.CANCELLED_BY_DOCTOR;
 
-        if (isCancellationOrNoShow) {
+        if (isCancellation) {
             Schedule schedule = appointment.getSchedule();
             if (schedule != null) {
                 int currentPatientCount = schedule.getCurrentPatient() == null ? 0 : schedule.getCurrentPatient();
@@ -206,6 +208,11 @@ public class AppointmentServiceImpl implements AppointmentService {
     public void callNext(Long appointmentId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
+                
+        if (appointment.getSchedule() != null && appointment.getSchedule().getStatus() != ScheduleStatus.IN_PROGRESS) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bác sĩ chưa bắt đầu ca làm việc này. Lễ tân không thể gọi bệnh nhân.");
+        }
+        
         appointment.setStatus(AppointmentStatus.IN_PROGRESS);
         appointmentRepository.save(appointment);
     }
@@ -253,6 +260,14 @@ public class AppointmentServiceImpl implements AppointmentService {
         String timeSlot = (appointment.getSchedule() != null)
                 ? appointment.getSchedule().getStartTime() + " - " + appointment.getSchedule().getEndTime() : "";
 
+        String paymentStatus = "UNPAID";
+        if (appointment.getId() != null) {
+            java.util.Optional<com.smartclinic.backend.entity.Bill> billOpt = billRepository.findByAppointmentId(appointment.getId());
+            if (billOpt.isPresent() && billOpt.get().getStatus() == com.smartclinic.backend.entity.BillStatus.PAID) {
+                paymentStatus = "PAID";
+            }
+        }
+
         return new AppointmentDto(
                 appointment.getId(),
                 patientUserId,
@@ -265,7 +280,8 @@ public class AppointmentServiceImpl implements AppointmentService {
                 appointment.getSymptom(),
                 appointment.getStatus(),
                 appointment.getQueueNumber(),
-                appointment.getIsReviewed()
+                appointment.getIsReviewed(),
+                paymentStatus
         );
     }
 }

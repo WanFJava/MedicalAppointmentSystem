@@ -23,7 +23,7 @@ const Home = () => {
                     .filter(d => d.averageRating >= 4.0)
                     .sort((a, b) => b.averageRating - a.averageRating);
                 
-                setDoctors(highRatedDocs.length > 0 ? highRatedDocs : docs.sort((a, b) => b.averageRating - a.averageRating)); // fallback to top rated if no one is >= 4
+                setDoctors(highRatedDocs);
                 setSpecialties(specs);
             } catch (error) {
                 console.error("Error fetching data:", error);

@@ -39,8 +39,8 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
             throw new IllegalArgumentException("You can only diagnose your own patients.");
         }
 
-        if (appointment.getStatus() != AppointmentStatus.CHECKED_IN) {
-            throw new IllegalArgumentException("Patient must be checked in before diagnosis.");
+        if (appointment.getStatus() != AppointmentStatus.CHECKED_IN && appointment.getStatus() != AppointmentStatus.IN_PROGRESS) {
+            throw new IllegalArgumentException("Patient must be in CHECKED_IN or IN_PROGRESS status before diagnosis.");
         }
 
         MedicalRecord record = new MedicalRecord();

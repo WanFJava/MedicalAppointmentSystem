@@ -47,7 +47,8 @@ const QueueManager = () => {
                 Swal.fire('Thành công', `Đã gọi ${patientName} vào khám.`, 'success');
                 fetchQueue();
             } catch (error) {
-                Swal.fire('Lỗi', 'Không thể gọi bệnh nhân', 'error');
+                const errMsg = error.response?.data?.message || error.response?.data || error.message || 'Không thể gọi bệnh nhân';
+                Swal.fire('Lỗi', errMsg, 'error');
             }
         }
     };

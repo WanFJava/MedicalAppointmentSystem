@@ -11,6 +11,7 @@ const ReceptionistDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [billingApt, setBillingApt] = useState(null);
     const [feedbackApt, setFeedbackApt] = useState(null);
+    const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
 
     useEffect(() => {
         fetchAppointments();
@@ -63,11 +64,33 @@ const ReceptionistDashboard = () => {
 
     if (loading) return <div style={{ padding: '2rem' }}>Loading dashboard...</div>;
 
+    const filteredAppointments = filterDate 
+        ? appointments.filter(apt => apt.scheduleDate === filterDate)
+        : appointments;
+
     return (
         <div>
-            <div className="page-header">
-                <h2>Receptionist Dashboard</h2>
-                <div style={{ color: 'var(--text-secondary)' }}>Welcome, {user?.fullName}</div>
+            <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                    <h2>Receptionist Dashboard</h2>
+                    <div style={{ color: 'var(--text-secondary)' }}>Welcome, {user?.fullName}</div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', backgroundColor: 'white', padding: '0.75rem 1rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+                    <label style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>Xem lịch ngày:</label>
+                    <input 
+                        type="date" 
+                        value={filterDate} 
+                        onChange={(e) => setFilterDate(e.target.value)} 
+                        style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #d1d5db' }}
+                    />
+                    <button 
+                        onClick={() => setFilterDate('')}
+                        style={{ padding: '0.5rem', backgroundColor: '#f3f4f6', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }}
+                        title="Xem tất cả ngày"
+                    >
+                        Tất cả
+                    </button>
+                </div>
             </div>
 
             <div className="table-container">
@@ -79,11 +102,12 @@ const ReceptionistDashboard = () => {
                             <th>Date & Time</th>
                             <th>Symptoms</th>
                             <th>Status</th>
+                            <th>Payment</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {appointments.map((apt) => {
+                        {filteredAppointments.map((apt) => {
                             const statusStyle = getStatusStyle(apt.status);
                             return (
                                 <tr key={apt.id}>
@@ -103,6 +127,19 @@ const ReceptionistDashboard = () => {
                                         }}>
                                             {apt.status}
                                         </span>
+                                    </td>
+                                    <td>
+                                        {['COMPLETED', 'PAID'].includes(apt.status) ? (
+                                            <span style={{ 
+                                                backgroundColor: apt.paymentStatus === 'PAID' ? '#d1fae5' : '#fee2e2', 
+                                                color: apt.paymentStatus === 'PAID' ? '#059669' : '#dc2626', 
+                                                padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 600 
+                                            }}>
+                                                {apt.paymentStatus === 'PAID' ? 'Đã thanh toán' : 'Chưa thanh toán'}
+                                            </span>
+                                        ) : (
+                                            <span style={{ color: '#9ca3af', fontSize: '0.85rem' }}>-</span>
+                                        )}
                                     </td>
                                     <td>
                                         <div className="action-buttons">
@@ -164,9 +201,9 @@ const ReceptionistDashboard = () => {
                                 </tr>
                             );
                         })}
-                        {appointments.length === 0 && (
+                        {filteredAppointments.length === 0 && (
                             <tr>
-                                <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>No appointments found.</td>
+                                <td colSpan="7" style={{ textAlign: 'center', padding: '2rem' }}>No appointments found.</td>
                             </tr>
                         )}
                     </tbody>

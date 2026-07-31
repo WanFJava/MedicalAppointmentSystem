@@ -341,7 +341,7 @@ const AdminSchedulePage = () => {
                                                     Duyệt ca (Set Available)
                                                 </button>
                                             )}
-                                            {sch.status !== 'CANCELLED' && sch.status !== 'COMPLETED' && (
+                                            {sch.status !== 'CANCELLED' && sch.status !== 'COMPLETED' && sch.status !== 'IN_PROGRESS' && (
                                                 <button 
                                                     onClick={() => handleStatusUpdate(sch.id, 'CANCELLED')} 
                                                     style={{ padding: '0.35rem 0.75rem', backgroundColor: '#fee2e2', color: '#991b1b', border: '1px solid #fca5a5', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}

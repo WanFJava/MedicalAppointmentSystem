@@ -96,25 +96,6 @@ public class BillServiceImpl implements BillService {
         bill.setPaymentMethod("CASH"); // Or whatever default
         Bill savedBill = billRepository.save(bill);
 
-        // Deduct medicine quantity
-        Optional<MedicalRecord> recordOpt = medicalRecordRepository.findByAppointmentId(bill.getAppointment().getId());
-        if (recordOpt.isPresent()) {
-            List<Prescription> prescriptions = prescriptionRepository.findByMedicalRecordId(recordOpt.get().getId());
-            if (!prescriptions.isEmpty()) {
-                Prescription p = prescriptions.get(0);
-                List<PrescriptionDetail> details = prescriptionDetailRepository.findByPrescriptionId(p.getId());
-                for (PrescriptionDetail d : details) {
-                    Medicine m = d.getMedicine();
-                    int deductAmount = d.getQuantity() != null ? d.getQuantity() : 0;
-                    if (m != null && m.getQuantity() != null && deductAmount > 0) {
-                        int newQuantity = m.getQuantity() - deductAmount;
-                        m.setQuantity(Math.max(0, newQuantity));
-                        medicineRepository.save(m);
-                    }
-                }
-            }
-        }
-
         return mapToDto(savedBill);
     }
 

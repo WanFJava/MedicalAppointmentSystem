@@ -58,14 +58,15 @@ public class FeedbackServiceImpl implements FeedbackService {
         appointment.setIsReviewed(true);
         appointmentRepository.save(appointment);
 
-        // Update doctor rating
-        int currentTotal = doctor.getTotalReviews() != null ? doctor.getTotalReviews() : 0;
-        int newTotalReviews = currentTotal + 1;
-        BigDecimal currentAverage = doctor.getAverageRating() != null ? doctor.getAverageRating() : BigDecimal.ZERO;
+        // Update doctor rating by recalculating from all feedbacks to ensure correctness
+        List<Feedback> allFeedbacks = feedbackRepository.findByDoctorIdOrderByIdDesc(doctor.getId());
+        int newTotalReviews = allFeedbacks.size();
         
-        // newAverage = (currentAverage * currentTotal + newRating) / newTotal
-        BigDecimal totalScore = currentAverage.multiply(new BigDecimal(currentTotal)).add(new BigDecimal(dto.getRating()));
-        BigDecimal newAverage = totalScore.divide(new BigDecimal(newTotalReviews), 2, RoundingMode.HALF_UP);
+        BigDecimal newAverage = BigDecimal.ZERO;
+        if (newTotalReviews > 0) {
+            double sum = allFeedbacks.stream().mapToInt(Feedback::getRating).sum();
+            newAverage = new BigDecimal(sum / newTotalReviews).setScale(2, RoundingMode.HALF_UP);
+        }
 
         doctor.setTotalReviews(newTotalReviews);
         doctor.setAverageRating(newAverage);
