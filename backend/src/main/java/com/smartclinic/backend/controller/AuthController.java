@@ -37,6 +37,7 @@ public class AuthController {
         jwtAuthResponse.setFullName(user.getFullName());
         jwtAuthResponse.setEmail(user.getEmail());
         jwtAuthResponse.setRole(user.getRole());
+        jwtAuthResponse.setAvatar(user.getAvatar());
 
         return ResponseEntity.ok(jwtAuthResponse);
     }

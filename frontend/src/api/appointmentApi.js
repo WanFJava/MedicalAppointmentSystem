@@ -93,3 +93,19 @@ export const deleteAppointment = async (id) => {
     const response = await api.delete(`/appointments/${id}`);
     return response.data;
 };
+
+// Queue APIs
+export const callNextQueue = async (id) => {
+    const response = await api.put(`/appointments/${id}/queue/call`);
+    return response.data;
+};
+
+export const swapQueue = async (id1, id2) => {
+    const response = await api.put(`/appointments/queue/swap?id1=${id1}&id2=${id2}`);
+    return response.data;
+};
+
+export const skipQueue = async (id) => {
+    const response = await api.put(`/appointments/${id}/queue/skip`);
+    return response.data;
+};

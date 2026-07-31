@@ -11,6 +11,8 @@ import AdminSchedulePage from './pages/admin/AdminSchedulePage';
 import ReceptionistDashboard from './pages/admin/ReceptionistDashboard';
 import DoctorDashboard from './pages/admin/DoctorDashboard';
 import MedicineManager from './pages/admin/MedicineManager';
+import UserManager from './pages/admin/UserManager';
+import QueueManager from './pages/admin/QueueManager';
 import MainLayout from './layouts/MainLayout';
 import Home from './pages/Home';
 import DoctorProfile from './pages/DoctorProfile';
@@ -55,6 +57,8 @@ function App() {
         <Route path="appointments" element={<ReceptionistDashboard />} />
         <Route path="my-schedule" element={<DoctorDashboard />} />
         <Route path="medicines" element={<MedicineManager />} />
+        <Route path="users" element={<UserManager />} />
+        <Route path="queue" element={<QueueManager />} />
       </Route>
     </Routes>
   );

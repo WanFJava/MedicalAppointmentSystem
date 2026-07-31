@@ -153,8 +153,17 @@ const DoctorManager = () => {
                             <tr key={doc.id}>
                                 <td>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                        <div className="user-avatar" style={{ width: '32px', height: '32px', fontSize: '1rem' }}>
-                                            {doc.fullName?.charAt(0) || 'D'}
+                                        <div className="user-avatar" style={{ width: '32px', height: '32px', fontSize: '1rem', overflow: 'hidden', borderRadius: '50%' }}>
+                                            {doc.avatar ? (
+                                                <img 
+                                                    src={doc.avatar} 
+                                                    alt="Avatar" 
+                                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                                                    onError={(e) => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(doc.fullName || 'D')}&background=random`; }}
+                                                />
+                                            ) : (
+                                                doc.fullName?.charAt(0) || 'D'
+                                            )}
                                         </div>
                                         <div>
                                             <div style={{ fontWeight: 500 }}>{doc.fullName}</div>

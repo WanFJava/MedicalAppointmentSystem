@@ -35,6 +35,9 @@ public class Appointment {
     @Column(nullable = false)
     private AppointmentStatus status;
 
+    @Column(name = "queue_number")
+    private Integer queueNumber;
+
     @Column(name = "is_reviewed")
     private Boolean isReviewed = false;
 }

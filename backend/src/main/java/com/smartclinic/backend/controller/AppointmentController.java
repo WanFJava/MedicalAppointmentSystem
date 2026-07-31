@@ -58,4 +58,25 @@ public class AppointmentController {
         appointmentService.deleteAppointment(appointmentId);
         return ResponseEntity.ok().build();
     }
+
+    @PutMapping("/{appointmentId}/queue/call")
+    @PreAuthorize("hasAnyRole('RECEPTIONIST', 'ADMIN')")
+    public ResponseEntity<Void> callNext(@PathVariable Long appointmentId) {
+        appointmentService.callNext(appointmentId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/queue/swap")
+    @PreAuthorize("hasAnyRole('RECEPTIONIST', 'ADMIN')")
+    public ResponseEntity<Void> swapQueue(@RequestParam Long id1, @RequestParam Long id2) {
+        appointmentService.swapQueue(id1, id2);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{appointmentId}/queue/skip")
+    @PreAuthorize("hasAnyRole('RECEPTIONIST', 'ADMIN')")
+    public ResponseEntity<Void> skipQueue(@PathVariable Long appointmentId) {
+        appointmentService.skipQueue(appointmentId);
+        return ResponseEntity.ok().build();
+    }
 }

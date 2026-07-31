@@ -13,4 +13,9 @@ public interface AppointmentService {
     List<AppointmentDto> getAllAppointments();
     AppointmentDto updateAppointmentStatus(Long appointmentId, AppointmentStatus status);
     void deleteAppointment(Long appointmentId);
+
+    // Queue Management
+    void callNext(Long appointmentId);
+    void swapQueue(Long id1, Long id2);
+    void skipQueue(Long appointmentId);
 }

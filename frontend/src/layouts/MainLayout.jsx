@@ -41,7 +41,16 @@ const MainLayout = () => {
                     {user ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#4b5563' }}>
-                                <UserIcon size={20} />
+                                {user?.avatar ? (
+                                    <img 
+                                        src={user.avatar} 
+                                        alt="Avatar" 
+                                        style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }} 
+                                        onError={(e) => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'A')}&background=random`; }}
+                                    />
+                                ) : (
+                                    <UserIcon size={20} />
+                                )}
                                 <Link to="/profile" style={{ fontWeight: 500, color: '#4b5563', textDecoration: 'none' }}>
                                     {user.fullName}
                                 </Link>

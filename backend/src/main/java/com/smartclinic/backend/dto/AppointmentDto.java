@@ -22,5 +22,6 @@ public class AppointmentDto {
     private String timeSlot;
     private String symptom;
     private AppointmentStatus status;
+    private Integer queueNumber;
     private Boolean isReviewed;
 }

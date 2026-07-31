@@ -138,6 +138,14 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         appointment.setStatus(status);
 
+        if (status == AppointmentStatus.CHECKED_IN && appointment.getQueueNumber() == null) {
+            Integer maxQueue = appointmentRepository.findMaxQueueNumberForDoctorAndDate(
+                    appointment.getDoctor().getId(),
+                    appointment.getSchedule().getDate()
+            );
+            appointment.setQueueNumber(maxQueue == null ? 1 : maxQueue + 1);
+        }
+
         // If cancelled or NO_SHOW, free up and reset the schedule spot to AVAILABLE
         boolean isCancellationOrNoShow = status == AppointmentStatus.CANCELLED_BY_PATIENT || 
                                           status == AppointmentStatus.CANCELLED_BY_DOCTOR || 
@@ -193,6 +201,43 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointmentRepository.delete(appointment);
     }
 
+    @Override
+    @Transactional
+    public void callNext(Long appointmentId) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+        appointment.setStatus(AppointmentStatus.IN_PROGRESS);
+        appointmentRepository.save(appointment);
+    }
+
+    @Override
+    @Transactional
+    public void swapQueue(Long id1, Long id2) {
+        Appointment apt1 = appointmentRepository.findById(id1).orElseThrow();
+        Appointment apt2 = appointmentRepository.findById(id2).orElseThrow();
+        
+        Integer temp = apt1.getQueueNumber();
+        apt1.setQueueNumber(apt2.getQueueNumber());
+        apt2.setQueueNumber(temp);
+        
+        appointmentRepository.save(apt1);
+        appointmentRepository.save(apt2);
+    }
+
+    @Override
+    @Transactional
+    public void skipQueue(Long appointmentId) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+        
+        Integer maxQueue = appointmentRepository.findMaxQueueNumberForDoctorAndDate(
+                appointment.getDoctor().getId(),
+                appointment.getSchedule().getDate()
+        );
+        appointment.setQueueNumber(maxQueue == null ? 1 : maxQueue + 1);
+        appointmentRepository.save(appointment);
+    }
+
     private AppointmentDto mapToDto(Appointment appointment) {
         Long patientUserId = (appointment.getPatient() != null && appointment.getPatient().getUser() != null)
                 ? appointment.getPatient().getUser().getId() : null;
@@ -219,6 +264,7 @@ public class AppointmentServiceImpl implements AppointmentService {
                 timeSlot,
                 appointment.getSymptom(),
                 appointment.getStatus(),
+                appointment.getQueueNumber(),
                 appointment.getIsReviewed()
         );
     }

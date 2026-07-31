@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { Users, LayoutDashboard, Stethoscope, LogOut, Pill, Calendar } from 'lucide-react';
+import { Users, LayoutDashboard, Stethoscope, LogOut, Pill, Calendar, UserCog, ListOrdered } from 'lucide-react';
 
 const AdminLayout = () => {
     const { user, logout } = useContext(AuthContext);
@@ -11,9 +11,11 @@ const AdminLayout = () => {
         { path: '/admin', name: 'Dashboard', icon: <LayoutDashboard size={20} />, roles: ['ADMIN'] },
         { path: '/admin/specialties', name: 'Specialties', icon: <Stethoscope size={20} />, roles: ['ADMIN'] },
         { path: '/admin/doctors', name: 'Doctors', icon: <Users size={20} />, roles: ['ADMIN'] },
+        { path: '/admin/users', name: 'Users', icon: <UserCog size={20} />, roles: ['ADMIN'] },
         { path: '/admin/schedules', name: 'Schedules', icon: <Calendar size={20} />, roles: ['ADMIN'] },
         { path: '/admin/medicines', name: 'Medicines', icon: <Pill size={20} />, roles: ['ADMIN'] },
         { path: '/admin/appointments', name: 'Appointments', icon: <Users size={20} />, roles: ['ADMIN', 'RECEPTIONIST'] },
+        { path: '/admin/queue', name: 'Queue Manager', icon: <ListOrdered size={20} />, roles: ['ADMIN', 'RECEPTIONIST'] },
         { path: '/admin/my-schedule', name: 'My Schedule', icon: <Stethoscope size={20} />, roles: ['DOCTOR'] },
     ];
 
@@ -38,7 +40,18 @@ const AdminLayout = () => {
                 </nav>
                 <div className="sidebar-footer">
                     <div className="user-info">
-                        <div className="user-avatar">{user?.fullName?.charAt(0) || 'A'}</div>
+                        <div className="user-avatar" style={{ overflow: 'hidden' }}>
+                            {user?.avatar ? (
+                                <img 
+                                    src={user.avatar} 
+                                    alt="Avatar" 
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                                    onError={(e) => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'A')}&background=random`; }}
+                                />
+                            ) : (
+                                user?.fullName?.charAt(0) || 'A'
+                            )}
+                        </div>
                         <div className="user-details">
                             <span className="user-name">{user?.fullName}</span>
                             <span className="user-role">{user?.role}</span>
