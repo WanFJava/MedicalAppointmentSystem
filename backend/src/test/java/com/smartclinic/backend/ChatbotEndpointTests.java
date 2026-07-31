@@ -66,4 +66,17 @@ class ChatbotEndpointTests {
                                 """))
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    void customerCanRequestHumanReceptionistHandoff() throws Exception {
+        mockMvc.perform(post("/api/chatbot/messages")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"message":"Tôi cần nói chuyện với lễ tân"}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.handoffRequested").value(true))
+                .andExpect(jsonPath("$.quickReplies").isEmpty())
+                .andExpect(jsonPath("$.actions").isEmpty());
+    }
 }

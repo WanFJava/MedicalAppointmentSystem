@@ -63,7 +63,11 @@ public class SecurityConfig {
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/auth/**", "/api/chatbot/**").permitAll()
+                        .requestMatchers(
+                                "/api/auth/**",
+                                "/api/chatbot/**",
+                                "/api/live-chat/customer/**"
+                        ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/specialties/**", "/api/doctors/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/schedules/available/**", "/api/feedbacks/doctor/**").permitAll()
                         .anyRequest().authenticated()
@@ -77,9 +81,19 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000")); // React default ports
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "http://127.0.0.1:5173",
+                "http://localhost:3000",
+                "http://127.0.0.1:3000"
+        ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
+        configuration.setAllowedHeaders(List.of(
+                "Authorization",
+                "Content-Type",
+                "Accept",
+                "X-Chat-Token"
+        ));
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

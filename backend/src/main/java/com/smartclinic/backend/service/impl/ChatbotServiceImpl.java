@@ -56,6 +56,20 @@ public class ChatbotServiceImpl implements ChatbotService {
             );
         }
 
+        if (containsAny(normalizedMessage,
+                "toi can noi chuyen voi le tan",
+                "noi chuyen voi le tan",
+                "gap le tan",
+                "le tan that",
+                "nhan vien le tan",
+                "tu van vien",
+                "noi chuyen voi nguoi that")) {
+            return handoffResponse(
+                    "Tôi đang chuyển bạn sang lễ tân trực tiếp. "
+                            + "Bạn có thể tiếp tục nhắn tin trong cửa sổ này."
+            );
+        }
+
         Specialty matchingSpecialty = findMatchingSpecialty(normalizedMessage, specialties);
         if (matchingSpecialty != null) {
             return specialtyResponse(matchingSpecialty, doctors);
@@ -408,7 +422,17 @@ public class ChatbotServiceImpl implements ChatbotService {
         return new ChatbotResponseDto(
                 message,
                 new ArrayList<>(quickReplies),
-                new ArrayList<>(actions)
+                new ArrayList<>(actions),
+                false
+        );
+    }
+
+    private ChatbotResponseDto handoffResponse(String message) {
+        return new ChatbotResponseDto(
+                message,
+                List.of(),
+                List.of(),
+                true
         );
     }
 

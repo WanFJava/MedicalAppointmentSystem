@@ -1,0 +1,18 @@
+package com.smartclinic.backend.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class LiveChatCreateRequestDto {
+
+    @Size(max = 255)
+    private String customerName;
+
+    @NotBlank
+    @Size(max = 1000)
+    private String initialMessage;
+}

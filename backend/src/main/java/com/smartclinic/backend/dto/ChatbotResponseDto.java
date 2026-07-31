@@ -15,4 +15,5 @@ public class ChatbotResponseDto {
     private String message;
     private List<String> quickReplies;
     private List<ChatbotActionDto> actions;
+    private boolean handoffRequested;
 }

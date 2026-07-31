@@ -21,6 +21,7 @@ import SpecialtyDoctorsPage from './pages/SpecialtyDoctorsPage';
 import SpecialtiesPage from './pages/SpecialtiesPage';
 import FavoriteDoctors from './pages/FavoriteDoctors';
 import FeedbackManager from './pages/admin/FeedbackManager';
+import LiveChatDashboard from './pages/admin/LiveChatDashboard';
 
 const RoleRoute = ({ user, roles, children }) => {
   if (!user) {
@@ -62,6 +63,7 @@ function App() {
         <Route path="specialties" element={<RoleRoute user={user} roles={['ADMIN']}><SpecialtyManager /></RoleRoute>} />
         <Route path="doctors" element={<RoleRoute user={user} roles={['ADMIN']}><DoctorManager /></RoleRoute>} />
         <Route path="appointments" element={<RoleRoute user={user} roles={['ADMIN', 'RECEPTIONIST']}><ReceptionistDashboard /></RoleRoute>} />
+        <Route path="live-chat" element={<RoleRoute user={user} roles={['ADMIN', 'RECEPTIONIST']}><LiveChatDashboard /></RoleRoute>} />
         <Route path="feedbacks" element={<RoleRoute user={user} roles={['ADMIN']}><FeedbackManager /></RoleRoute>} />
         <Route path="my-schedule" element={<RoleRoute user={user} roles={['DOCTOR']}><DoctorDashboard /></RoleRoute>} />
         <Route path="medicines" element={<RoleRoute user={user} roles={['ADMIN']}><MedicineManager /></RoleRoute>} />
