@@ -5,6 +5,7 @@ import java.util.List;
 
 public interface FeedbackService {
     FeedbackDto createFeedback(FeedbackDto feedbackDto);
+    List<FeedbackDto> getAllFeedbacks();
     List<FeedbackDto> getFeedbacksByDoctor(Long doctorId);
     FeedbackDto getFeedbackByAppointment(Long appointmentId);
 }

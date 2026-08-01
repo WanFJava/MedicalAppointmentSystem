@@ -26,7 +26,7 @@ public class Feedback {
     private Doctor doctor;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "appointment_id")
+    @JoinColumn(name = "appointment_id", nullable = false, unique = true)
     private Appointment appointment;
 
     @Column(nullable = false)

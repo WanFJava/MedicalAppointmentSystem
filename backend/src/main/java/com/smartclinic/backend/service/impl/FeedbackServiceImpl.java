@@ -9,9 +9,11 @@ import com.smartclinic.backend.entity.Patient;
 import com.smartclinic.backend.repository.AppointmentRepository;
 import com.smartclinic.backend.repository.DoctorRepository;
 import com.smartclinic.backend.repository.FeedbackRepository;
-import com.smartclinic.backend.repository.PatientRepository;
 import com.smartclinic.backend.service.FeedbackService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,19 +29,28 @@ public class FeedbackServiceImpl implements FeedbackService {
     private final FeedbackRepository feedbackRepository;
     private final AppointmentRepository appointmentRepository;
     private final DoctorRepository doctorRepository;
-    private final PatientRepository patientRepository;
 
     @Override
     @Transactional
     public FeedbackDto createFeedback(FeedbackDto dto) {
+        if (dto == null || dto.getAppointmentId() == null) {
+            throw new IllegalArgumentException("Appointment is required.");
+        }
+        if (dto.getRating() == null || dto.getRating() < 1 || dto.getRating() > 5) {
+            throw new IllegalArgumentException("Rating must be between 1 and 5.");
+        }
+
         Appointment appointment = appointmentRepository.findById(dto.getAppointmentId())
-                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Appointment not found."));
 
         if (appointment.getStatus() != AppointmentStatus.COMPLETED) {
-            throw new RuntimeException("Can only review completed appointments");
+            throw new IllegalArgumentException("Can only review completed appointments.");
         }
-        if (Boolean.TRUE.equals(appointment.getIsReviewed())) {
-            throw new RuntimeException("This appointment is already reviewed");
+        ensureCurrentPatientOwns(appointment);
+
+        if (Boolean.TRUE.equals(appointment.getIsReviewed())
+                || feedbackRepository.findByAppointmentId(appointment.getId()).isPresent()) {
+            throw new IllegalArgumentException("This appointment is already reviewed.");
         }
 
         Patient patient = appointment.getPatient();
@@ -50,7 +61,7 @@ public class FeedbackServiceImpl implements FeedbackService {
         feedback.setDoctor(doctor);
         feedback.setAppointment(appointment);
         feedback.setRating(dto.getRating());
-        feedback.setComment(dto.getComment());
+        feedback.setComment(dto.getComment() == null ? "" : dto.getComment().trim());
 
         Feedback savedFeedback = feedbackRepository.save(feedback);
 
@@ -58,34 +69,78 @@ public class FeedbackServiceImpl implements FeedbackService {
         appointment.setIsReviewed(true);
         appointmentRepository.save(appointment);
 
-        // Update doctor rating by recalculating from all feedbacks to ensure correctness
-        List<Feedback> allFeedbacks = feedbackRepository.findByDoctorIdOrderByIdDesc(doctor.getId());
-        int newTotalReviews = allFeedbacks.size();
-        
-        BigDecimal newAverage = BigDecimal.ZERO;
-        if (newTotalReviews > 0) {
-            double sum = allFeedbacks.stream().mapToInt(Feedback::getRating).sum();
-            newAverage = new BigDecimal(sum / newTotalReviews).setScale(2, RoundingMode.HALF_UP);
-        }
-
-        doctor.setTotalReviews(newTotalReviews);
-        doctor.setAverageRating(newAverage);
+        // Update doctor rating
+        List<Feedback> doctorFeedbacks = feedbackRepository.findByDoctorIdOrderByIdDesc(doctor.getId());
+        BigDecimal totalScore = doctorFeedbacks.stream()
+                .map(Feedback::getRating)
+                .map(BigDecimal::valueOf)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        doctor.setTotalReviews(doctorFeedbacks.size());
+        doctor.setAverageRating(totalScore.divide(
+                BigDecimal.valueOf(doctorFeedbacks.size()), 2, RoundingMode.HALF_UP));
         doctorRepository.save(doctor);
 
         return mapToDto(savedFeedback);
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<FeedbackDto> getAllFeedbacks() {
+        return feedbackRepository.findAllByOrderByCreatedAtDesc().stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<FeedbackDto> getFeedbacksByDoctor(Long doctorId) {
         return feedbackRepository.findByDoctorIdOrderByIdDesc(doctorId).stream()
                 .map(this::mapToDto).collect(Collectors.toList());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public FeedbackDto getFeedbackByAppointment(Long appointmentId) {
-        return feedbackRepository.findByAppointmentId(appointmentId)
-                .map(this::mapToDto)
-                .orElse(null);
+        Feedback feedback = feedbackRepository.findByAppointmentId(appointmentId).orElse(null);
+        if (feedback == null) {
+            return null;
+        }
+        ensureCanViewAppointment(feedback.getAppointment());
+        return mapToDto(feedback);
+    }
+
+    private void ensureCurrentPatientOwns(Appointment appointment) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null
+                && authentication.isAuthenticated()
+                && hasRole(authentication, "PATIENT")
+                && !appointment.getPatient().getUser().getEmail().equals(authentication.getName())) {
+            throw new AccessDeniedException("You can only review your own appointment.");
+        }
+    }
+
+    private void ensureCanViewAppointment(Appointment appointment) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new AccessDeniedException("Authentication is required.");
+        }
+        if (hasRole(authentication, "ADMIN") || hasRole(authentication, "RECEPTIONIST")) {
+            return;
+        }
+        if (hasRole(authentication, "PATIENT")
+                && appointment.getPatient().getUser().getEmail().equals(authentication.getName())) {
+            return;
+        }
+        if (hasRole(authentication, "DOCTOR")
+                && appointment.getDoctor().getUser().getEmail().equals(authentication.getName())) {
+            return;
+        }
+        throw new AccessDeniedException("You do not have access to this feedback.");
+    }
+
+    private boolean hasRole(Authentication authentication, String role) {
+        return authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_" + role));
     }
 
     private FeedbackDto mapToDto(Feedback feedback) {

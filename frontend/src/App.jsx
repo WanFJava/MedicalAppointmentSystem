@@ -23,6 +23,18 @@ import SearchPage from './pages/SearchPage';
 import SpecialtyDoctorsPage from './pages/SpecialtyDoctorsPage';
 import SpecialtiesPage from './pages/SpecialtiesPage';
 import FavoriteDoctors from './pages/FavoriteDoctors';
+import FeedbackManager from './pages/admin/FeedbackManager';
+import LiveChatDashboard from './pages/admin/LiveChatDashboard';
+
+const RoleRoute = ({ user, roles, children }) => {
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  if (!roles.includes(user.role)) {
+    return <Navigate to={['ADMIN', 'RECEPTIONIST', 'DOCTOR'].includes(user.role) ? '/admin' : '/'} replace />;
+  }
+  return children;
+};
 
 function App() {
   const { user } = useContext(AuthContext);
@@ -38,10 +50,10 @@ function App() {
         <Route path="/doctor/:id" element={<DoctorProfile />} />
         <Route path="/login" element={user ? (['ADMIN', 'RECEPTIONIST', 'DOCTOR'].includes(user.role) ? <Navigate to="/admin" /> : <Navigate to="/" />) : <Login />} />
         <Route path="/register" element={user ? (['ADMIN', 'RECEPTIONIST', 'DOCTOR'].includes(user.role) ? <Navigate to="/admin" /> : <Navigate to="/" />) : <Register />} />
-        <Route path="/book" element={<BookingPage />} />
-        <Route path="/my-appointments" element={<MyAppointments />} />
-        <Route path="/favorites" element={user && user.role === 'PATIENT' ? <FavoriteDoctors /> : <Navigate to="/login" />} />
-        <Route path="/profile" element={user ? <PatientProfile /> : <Navigate to="/login" />} />
+        <Route path="/book" element={<RoleRoute user={user} roles={['PATIENT']}><BookingPage /></RoleRoute>} />
+        <Route path="/my-appointments" element={<RoleRoute user={user} roles={['PATIENT']}><MyAppointments /></RoleRoute>} />
+        <Route path="/favorites" element={<RoleRoute user={user} roles={['PATIENT']}><FavoriteDoctors /></RoleRoute>} />
+        <Route path="/profile" element={<RoleRoute user={user} roles={['PATIENT']}><PatientProfile /></RoleRoute>} />
       </Route>
       
       {/* Admin Protected routes */}
@@ -51,16 +63,18 @@ function App() {
           user?.role === 'DOCTOR' ? <Navigate to="/admin/my-schedule" replace /> :
           <Dashboard />
         } />
-        <Route path="specialties" element={<SpecialtyManager />} />
-        <Route path="doctors" element={<DoctorManager />} />
-        <Route path="schedules" element={<AdminSchedulePage />} />
-        <Route path="appointments" element={<ReceptionistDashboard />} />
-        <Route path="my-schedule" element={<DoctorDashboard tab="appointments" />} />
-        <Route path="my-shifts" element={<DoctorDashboard tab="myShifts" />} />
-        <Route path="open-shifts" element={<DoctorDashboard tab="openShifts" />} />
-        <Route path="medicines" element={<MedicineManager />} />
-        <Route path="users" element={<UserManager />} />
-        <Route path="queue" element={<QueueManager />} />
+        <Route path="specialties" element={<RoleRoute user={user} roles={['ADMIN']}><SpecialtyManager /></RoleRoute>} />
+        <Route path="doctors" element={<RoleRoute user={user} roles={['ADMIN']}><DoctorManager /></RoleRoute>} />
+        <Route path="schedules" element={<RoleRoute user={user} roles={['ADMIN']}><AdminSchedulePage /></RoleRoute>} />
+        <Route path="appointments" element={<RoleRoute user={user} roles={['ADMIN', 'RECEPTIONIST']}><ReceptionistDashboard /></RoleRoute>} />
+        <Route path="live-chat" element={<RoleRoute user={user} roles={['ADMIN', 'RECEPTIONIST']}><LiveChatDashboard /></RoleRoute>} />
+        <Route path="feedbacks" element={<RoleRoute user={user} roles={['ADMIN']}><FeedbackManager /></RoleRoute>} />
+        <Route path="my-schedule" element={<RoleRoute user={user} roles={['DOCTOR']}><DoctorDashboard tab="appointments" /></RoleRoute>} />
+        <Route path="my-shifts" element={<RoleRoute user={user} roles={['DOCTOR']}><DoctorDashboard tab="myShifts" /></RoleRoute>} />
+        <Route path="open-shifts" element={<RoleRoute user={user} roles={['DOCTOR']}><DoctorDashboard tab="openShifts" /></RoleRoute>} />
+        <Route path="medicines" element={<RoleRoute user={user} roles={['ADMIN']}><MedicineManager /></RoleRoute>} />
+        <Route path="users" element={<RoleRoute user={user} roles={['ADMIN']}><UserManager /></RoleRoute>} />
+        <Route path="queue" element={<RoleRoute user={user} roles={['RECEPTIONIST']}><QueueManager /></RoleRoute>} />
       </Route>
     </Routes>
   );

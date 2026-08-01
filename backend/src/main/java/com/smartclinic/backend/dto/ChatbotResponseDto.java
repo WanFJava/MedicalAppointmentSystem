@@ -5,14 +5,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class DashboardDto {
-    private long totalDoctors;
-    private long totalPatients;
-    private long appointmentsToday;
-    private long activeSpecialties;
-    private long totalFeedbacks;
+public class ChatbotResponseDto {
+    private String message;
+    private List<String> quickReplies;
+    private List<ChatbotActionDto> actions;
+    private boolean handoffRequested;
 }

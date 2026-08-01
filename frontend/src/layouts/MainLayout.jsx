@@ -2,6 +2,7 @@ import React, { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { LogOut, User as UserIcon, Heart } from 'lucide-react';
+import ReceptionistChatbot from '../components/ReceptionistChatbot';
 
 const MainLayout = () => {
     const { user, logout } = useContext(AuthContext);
@@ -80,6 +81,8 @@ const MainLayout = () => {
             <main style={{ flex: 1 }}>
                 <Outlet />
             </main>
+
+            <ReceptionistChatbot />
 
             {/* Footer */}
             <footer style={{ backgroundColor: '#1f2937', color: 'white', padding: '3rem 2rem', marginTop: 'auto' }}>

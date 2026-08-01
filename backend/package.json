@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Spring Boot Backend Runner",
   "scripts": {
-    "spring-boot": ".\\mvnw.cmd spring-boot:run"
+    "dev": ".\\mvnw.cmd spring-boot:run",
+    "dev:h2": ".\\mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=dev",
+    "spring-boot": ".\\mvnw.cmd spring-boot:run",
+    "test": ".\\mvnw.cmd test"
   }
 }

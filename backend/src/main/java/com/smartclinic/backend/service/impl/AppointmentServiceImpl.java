@@ -9,6 +9,7 @@ import com.smartclinic.backend.entity.Patient;
 import com.smartclinic.backend.entity.Schedule;
 import com.smartclinic.backend.entity.ScheduleStatus;
 import com.smartclinic.backend.entity.User;
+import com.smartclinic.backend.entity.Role;
 import com.smartclinic.backend.entity.Prescription;
 import com.smartclinic.backend.entity.PrescriptionDetail;
 import com.smartclinic.backend.repository.AppointmentRepository;
@@ -22,6 +23,7 @@ import com.smartclinic.backend.repository.PrescriptionRepository;
 import com.smartclinic.backend.repository.PrescriptionDetailRepository;
 import com.smartclinic.backend.service.AppointmentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -32,6 +34,7 @@ import org.springframework.http.HttpStatus;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Sort;
+import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
@@ -50,12 +53,24 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     @Transactional
     public AppointmentDto bookAppointment(Long patientId, BookingRequestDto requestDto) {
+        if (requestDto == null || requestDto.getDoctorId() == null || requestDto.getScheduleId() == null) {
+            throw new IllegalArgumentException("Doctor and schedule are required.");
+        }
+        if (requestDto.getSymptom() == null || requestDto.getSymptom().trim().isEmpty()) {
+            throw new IllegalArgumentException("Symptoms are required.");
+        }
+
         User user = userRepository.findById(patientId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (user.getStatus() != com.smartclinic.backend.entity.Status.ACTIVE) {
             throw new IllegalArgumentException("Tài khoản của bạn đang bị khóa hoặc ngừng hoạt động. Không thể đặt lịch khám.");
         }
+
+        if (user.getRole() != Role.PATIENT) {
+            throw new IllegalArgumentException("Appointments can only be booked for patient accounts.");
+        }
+        ensurePatientIsSelf(user);
 
         Patient patient = patientRepository.findByUserId(patientId)
                 .orElseGet(() -> {
@@ -70,12 +85,27 @@ public class AppointmentServiceImpl implements AppointmentService {
         Schedule schedule = scheduleRepository.findById(requestDto.getScheduleId())
                 .orElseThrow(() -> new RuntimeException("Schedule not found"));
 
+        if (schedule.getDoctor() == null || !schedule.getDoctor().getId().equals(doctor.getId())) {
+            throw new IllegalArgumentException("The selected schedule does not belong to this doctor.");
+        }
+        if (schedule.getDate().isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("Cannot book an appointment in the past.");
+        }
+        if (appointmentRepository.existsByPatientIdAndScheduleIdAndStatusNotIn(
+                patient.getId(),
+                schedule.getId(),
+                List.of(AppointmentStatus.CANCELLED_BY_PATIENT, AppointmentStatus.CANCELLED_BY_DOCTOR))) {
+            throw new IllegalArgumentException("You already have an appointment in this schedule.");
+        }
         if (schedule.getStatus() != ScheduleStatus.AVAILABLE) {
             throw new IllegalArgumentException("Ca làm việc này không ở trạng thái AVAILABLE để đặt lịch.");
         }
 
         int current = schedule.getCurrentPatient() == null ? 0 : schedule.getCurrentPatient();
-        int max = schedule.getMaxPatient() == null ? 10 : schedule.getMaxPatient();
+        int max = schedule.getMaxPatient() == null ? 0 : schedule.getMaxPatient();
+        if (max <= 0 || current >= max) {
+            throw new IllegalArgumentException("Schedule is full.");
+        }
         schedule.setCurrentPatient(current + 1);
         if (schedule.getCurrentPatient() >= max) {
             schedule.setStatus(ScheduleStatus.FULL);
@@ -87,8 +117,9 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setPatient(patient);
         appointment.setDoctor(doctor);
         appointment.setSchedule(schedule);
-        appointment.setSymptom(requestDto.getSymptom());
+        appointment.setSymptom(requestDto.getSymptom().trim());
         appointment.setStatus(AppointmentStatus.PENDING); // Default status
+        appointment.setIsReviewed(false);
 
         Appointment savedAppointment = appointmentRepository.save(appointment);
 
@@ -97,12 +128,18 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public List<AppointmentDto> getPatientAppointments(Long patientId) {
+        User patientUser = userRepository.findById(patientId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        ensurePatientIsSelf(patientUser);
         return appointmentRepository.findByPatient_UserIdOrderByIdDesc(patientId).stream()
                 .map(this::mapToDto).collect(Collectors.toList());
     }
 
     @Override
     public List<AppointmentDto> getDoctorAppointments(Long doctorId) {
+        Doctor doctor = doctorRepository.findById(doctorId)
+                .orElseThrow(() -> new RuntimeException("Doctor not found"));
+        ensureDoctorIsSelf(doctor);
         return appointmentRepository.findByDoctorIdOrderByIdDesc(doctorId).stream()
                 .map(this::mapToDto).collect(Collectors.toList());
     }
@@ -124,6 +161,9 @@ public class AppointmentServiceImpl implements AppointmentService {
         // Enforce patient rules
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_PATIENT") || a.getAuthority().equals("PATIENT"))) {
+            if (!appointment.getPatient().getUser().getEmail().equals(auth.getName())) {
+                throw new AccessDeniedException("You can only cancel your own appointment.");
+            }
             if (oldStatus != AppointmentStatus.PENDING && oldStatus != AppointmentStatus.CONFIRMED) {
                 throw new IllegalArgumentException("Bệnh nhân chỉ có thể hủy lịch hẹn ở trạng thái Đang chờ (PENDING) hoặc Đã xác nhận (CONFIRMED).");
             }
@@ -247,6 +287,31 @@ public class AppointmentServiceImpl implements AppointmentService {
         );
         appointment.setQueueNumber(maxQueue == null ? 1 : maxQueue + 1);
         appointmentRepository.save(appointment);
+    }
+
+    private void ensurePatientIsSelf(User patientUser) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null
+                && authentication.isAuthenticated()
+                && hasRole(authentication, "PATIENT")
+                && !patientUser.getEmail().equals(authentication.getName())) {
+            throw new AccessDeniedException("You do not have access to this patient's appointments.");
+        }
+    }
+
+    private void ensureDoctorIsSelf(Doctor doctor) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null
+                && authentication.isAuthenticated()
+                && hasRole(authentication, "DOCTOR")
+                && !doctor.getUser().getEmail().equals(authentication.getName())) {
+            throw new AccessDeniedException("You do not have access to this doctor's appointments.");
+        }
+    }
+
+    private boolean hasRole(Authentication authentication, String role) {
+        return authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_" + role));
     }
 
     private AppointmentDto mapToDto(Appointment appointment) {

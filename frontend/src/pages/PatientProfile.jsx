@@ -19,31 +19,37 @@ const PatientProfile = () => {
     const [message, setMessage] = useState({ type: '', text: '' });
 
     useEffect(() => {
-        if (user) {
-            fetchProfile();
-        }
+        if (!user) return;
+        let isCancelled = false;
+        const loadProfile = async () => {
+            try {
+                setLoading(true);
+                const data = await getPatientProfile(user.id);
+                if (!isCancelled) {
+                    setProfile({
+                        fullName: data.fullName || '',
+                        phone: data.phone || '',
+                        birthday: data.birthday || '',
+                        gender: data.gender || '',
+                        address: data.address || '',
+                        bloodGroup: data.bloodGroup || '',
+                        allergy: data.allergy || ''
+                    });
+                }
+            } catch (requestError) {
+                console.error("Failed to fetch profile", requestError);
+                if (!isCancelled) {
+                    setMessage({ type: 'error', text: 'Failed to load profile data.' });
+                }
+            } finally {
+                if (!isCancelled) setLoading(false);
+            }
+        };
+        loadProfile();
+        return () => {
+            isCancelled = true;
+        };
     }, [user]);
-
-    const fetchProfile = async () => {
-        try {
-            setLoading(true);
-            const data = await getPatientProfile(user.id);
-            setProfile({
-                fullName: data.fullName || '',
-                phone: data.phone || '',
-                birthday: data.birthday || '',
-                gender: data.gender || '',
-                address: data.address || '',
-                bloodGroup: data.bloodGroup || '',
-                allergy: data.allergy || ''
-            });
-        } catch (error) {
-            console.error("Failed to fetch profile", error);
-            setMessage({ type: 'error', text: 'Failed to load profile data.' });
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;

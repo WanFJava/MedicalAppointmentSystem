@@ -22,12 +22,19 @@ public class FeedbackController {
         return ResponseEntity.ok(feedbackService.createFeedback(feedbackDto));
     }
 
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<FeedbackDto>> getAllFeedbacks() {
+        return ResponseEntity.ok(feedbackService.getAllFeedbacks());
+    }
+
     @GetMapping("/doctor/{doctorId}")
     public ResponseEntity<List<FeedbackDto>> getFeedbacksByDoctor(@PathVariable Long doctorId) {
         return ResponseEntity.ok(feedbackService.getFeedbacksByDoctor(doctorId));
     }
 
     @GetMapping("/appointment/{appointmentId}")
+    @PreAuthorize("hasAnyRole('PATIENT', 'DOCTOR', 'RECEPTIONIST', 'ADMIN')")
     public ResponseEntity<FeedbackDto> getFeedbackByAppointment(@PathVariable Long appointmentId) {
         FeedbackDto feedbackDto = feedbackService.getFeedbackByAppointment(appointmentId);
         if (feedbackDto != null) {

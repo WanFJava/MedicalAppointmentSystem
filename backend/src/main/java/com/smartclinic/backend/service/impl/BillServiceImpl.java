@@ -11,6 +11,9 @@ import com.smartclinic.backend.repository.PrescriptionDetailRepository;
 import com.smartclinic.backend.repository.MedicineRepository;
 import com.smartclinic.backend.service.BillService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -103,7 +106,27 @@ public class BillServiceImpl implements BillService {
     public BillDto getBillByAppointmentId(Long appointmentId) {
         Bill bill = billRepository.findByAppointmentId(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Bill", "appointmentId", appointmentId));
+        ensureCanView(bill.getAppointment());
         return mapToDto(bill);
+    }
+
+    private void ensureCanView(Appointment appointment) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new AccessDeniedException("Authentication is required.");
+        }
+        boolean staff = authentication.getAuthorities().stream().anyMatch(authority ->
+                authority.getAuthority().equals("ROLE_ADMIN")
+                        || authority.getAuthority().equals("ROLE_RECEPTIONIST"));
+        if (staff) {
+            return;
+        }
+        boolean patientOwnsAppointment = authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_PATIENT"))
+                && appointment.getPatient().getUser().getEmail().equals(authentication.getName());
+        if (!patientOwnsAppointment) {
+            throw new AccessDeniedException("You do not have access to this invoice.");
+        }
     }
 
     private BillDto mapToDto(Bill bill) {

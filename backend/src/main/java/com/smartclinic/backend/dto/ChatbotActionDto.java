@@ -9,10 +9,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class DashboardDto {
-    private long totalDoctors;
-    private long totalPatients;
-    private long appointmentsToday;
-    private long activeSpecialties;
-    private long totalFeedbacks;
+public class ChatbotActionDto {
+    private String label;
+    private String path;
 }

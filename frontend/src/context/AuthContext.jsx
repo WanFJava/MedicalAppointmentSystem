@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getFavoriteDoctors, addFavoriteDoctor, removeFavoriteDoctor } from '../api/patientApi';
 
+// oxlint-disable-next-line react/only-export-components
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {

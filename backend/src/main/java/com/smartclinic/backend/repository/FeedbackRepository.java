@@ -10,5 +10,6 @@ import java.util.Optional;
 @Repository
 public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
     List<Feedback> findByDoctorIdOrderByIdDesc(Long doctorId);
+    List<Feedback> findAllByOrderByCreatedAtDesc();
     Optional<Feedback> findByAppointmentId(Long appointmentId);
 }

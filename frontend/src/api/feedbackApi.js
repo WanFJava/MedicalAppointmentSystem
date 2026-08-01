@@ -5,6 +5,11 @@ export const createFeedback = async (feedbackData) => {
     return response.data;
 };
 
+export const getAllFeedbacks = async () => {
+    const response = await axiosConfig.get('/feedbacks');
+    return response.data;
+};
+
 export const getFeedbackByAppointment = async (appointmentId) => {
     try {
         const response = await axiosConfig.get(`/feedbacks/appointment/${appointmentId}`);
