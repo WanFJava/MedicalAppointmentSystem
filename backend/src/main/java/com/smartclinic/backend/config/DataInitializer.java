@@ -149,21 +149,7 @@ public class DataInitializer implements CommandLineRunner {
 
         }
 
-        // Replenish the next three days without duplicating existing schedules.
-        LocalDate today = LocalDate.now();
-        List<Doctor> doctors = doctorRepository.findAll();
-        for (Doctor doc : doctors) {
-            for (int i = 0; i < 3; i++) {
-                LocalDate scheduleDate = today.plusDays(i);
-                if (scheduleRepository.findByDoctorIdAndDate(doc.getId(), scheduleDate).isEmpty()) {
-                    try {
-                        scheduleService.generateSchedules(doc.getId(), scheduleDate);
-                    } catch (IllegalArgumentException e) {
-                        System.out.println("Skipped schedule generation for " + scheduleDate + ": " + e.getMessage());
-                    }
-                }
-            }
-        }
+        // Auto-generation of schedules removed as requested by user.
     }
 
     private boolean hasText(String value) {

@@ -12,6 +12,9 @@ public interface AppointmentService {
     List<AppointmentDto> getDoctorAppointments(Long doctorId);
     List<AppointmentDto> getAllAppointments();
     AppointmentDto updateAppointmentStatus(Long appointmentId, AppointmentStatus status);
+    
+    AppointmentDto changeAppointmentSchedule(Long appointmentId, Long newScheduleId);
+
     void deleteAppointment(Long appointmentId);
 
     // Queue Management

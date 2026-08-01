@@ -12,6 +12,7 @@ import com.smartclinic.backend.dto.DoctorDto;
 import com.smartclinic.backend.service.PatientService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,37 @@ public class PatientServiceImpl implements PatientService {
     private final UserRepository userRepository;
     private final DoctorRepository doctorRepository;
     private final com.smartclinic.backend.repository.AppointmentRepository appointmentRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    @Override
+    @Transactional
+    public PatientDto createPatient(PatientDto patientDto) {
+        if (userRepository.existsByEmail(patientDto.getEmail())) {
+            throw new RuntimeException("Email is already in use!");
+        }
+
+        User user = new User();
+        user.setFullName(patientDto.getFullName());
+        user.setEmail(patientDto.getEmail());
+        user.setPassword(passwordEncoder.encode(patientDto.getPassword()));
+        user.setPhone(patientDto.getPhone());
+        user.setRole(com.smartclinic.backend.entity.Role.PATIENT);
+        user.setStatus(com.smartclinic.backend.entity.Status.ACTIVE);
+
+        User savedUser = userRepository.save(user);
+
+        Patient patient = new Patient();
+        patient.setUser(savedUser);
+        patient.setBirthday(patientDto.getBirthday());
+        patient.setGender(patientDto.getGender());
+        patient.setAddress(patientDto.getAddress());
+        patient.setBloodGroup(patientDto.getBloodGroup());
+        patient.setAllergy(patientDto.getAllergy());
+
+        Patient savedPatient = patientRepository.save(patient);
+
+        return mapToDto(savedUser, savedPatient);
+    }
 
     @Override
     public PatientDto getPatientProfileByUserId(Long userId) {
@@ -37,6 +69,18 @@ public class PatientServiceImpl implements PatientService {
         Patient patient = patientRepository.findByUserId(userId).orElse(null);
 
         return mapToDto(user, patient);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PatientDto> getAllPatients() {
+        return userRepository.findAll().stream()
+                .filter(u -> u.getRole() == com.smartclinic.backend.entity.Role.PATIENT)
+                .map(u -> {
+                    Patient p = patientRepository.findByUserId(u.getId()).orElse(null);
+                    return mapToDto(u, p);
+                })
+                .collect(Collectors.toList());
     }
 
     @Override

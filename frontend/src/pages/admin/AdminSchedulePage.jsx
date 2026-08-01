@@ -104,32 +104,6 @@ const AdminSchedulePage = () => {
         }
     };
 
-    const handleGenerateShifts = async () => {
-        if (selectedDoctorId) {
-            const doc = doctors.find(d => String(d.id) === String(selectedDoctorId));
-            if (window.confirm(`Tự động sinh ca sáng & chiều cho bác sĩ ${doc ? doc.fullName : ''} ngày ${selectedDate}?`)) {
-                try {
-                    await generateSchedules(selectedDoctorId, selectedDate);
-                    fetchSchedules();
-                } catch (error) {
-                    console.error("Failed to generate schedules", error);
-                    const errMsg = typeof error.response?.data === 'string' ? error.response.data : (error.response?.data?.message || error.message);
-                    alert("Tự động tạo lịch thất bại: " + errMsg);
-                }
-            }
-        } else {
-            if (window.confirm(`Tự động sinh ca MỞ (sáng & chiều) chờ bác sĩ đăng ký cho ngày ${selectedDate}?`)) {
-                try {
-                    await generateOpenSchedules(selectedDate);
-                    fetchSchedules();
-                } catch (error) {
-                    console.error("Failed to generate open schedules", error);
-                    const errMsg = typeof error.response?.data === 'string' ? error.response.data : (error.response?.data?.message || error.message);
-                    alert("Tự động tạo ca mở thất bại: " + errMsg);
-                }
-            }
-        }
-    };
 
     const handleStatusUpdate = async (id, status) => {
         try {
@@ -194,13 +168,7 @@ const AdminSchedulePage = () => {
                     </p>
                 </div>
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
-                    <button
-                        onClick={handleGenerateShifts}
-                        className="btn-secondary"
-                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1rem' }}
-                    >
-                        <Zap size={18} color="#d97706" /> Tự động sinh ca
-                    </button>
+
                     <button
                         onClick={() => {
                             setCreateForm(prev => ({
@@ -299,7 +267,7 @@ const AdminSchedulePage = () => {
                     <div style={{ padding: '3rem', textAlign: 'center', color: '#6b7280' }}>
                         <Calendar size={48} style={{ margin: '0 auto 1rem', opacity: 0.4 }} />
                         <div style={{ fontSize: '1.1rem', fontWeight: '500' }}>Không tìm thấy ca khám nào vào ngày {selectedDate}</div>
-                        <div style={{ fontSize: '0.875rem', marginTop: '0.25rem' }}>Hãy bấm nút "Tạo ca khám mới" hoặc "Tự động sinh ca" ở trên.</div>
+                        <div style={{ fontSize: '0.875rem', marginTop: '0.25rem' }}>Hãy bấm nút "Tạo ca khám mới" ở trên.</div>
                     </div>
                 ) : (
                     <table>

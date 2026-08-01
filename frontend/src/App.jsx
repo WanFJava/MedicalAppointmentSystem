@@ -25,6 +25,9 @@ import SpecialtiesPage from './pages/SpecialtiesPage';
 import FavoriteDoctors from './pages/FavoriteDoctors';
 import FeedbackManager from './pages/admin/FeedbackManager';
 import LiveChatDashboard from './pages/admin/LiveChatDashboard';
+import ComplaintManager from './pages/admin/ComplaintManager';
+import PatientManager from './pages/admin/PatientManager';
+import ReceptionistStats from './pages/admin/ReceptionistStats';
 
 const RoleRoute = ({ user, roles, children }) => {
   if (!user) {
@@ -59,7 +62,7 @@ function App() {
       {/* Admin Protected routes */}
       <Route path="/admin" element={['ADMIN', 'RECEPTIONIST', 'DOCTOR'].includes(user?.role) ? <AdminLayout /> : <Navigate to="/" />}>
         <Route index element={
-          user?.role === 'RECEPTIONIST' ? <Navigate to="/admin/appointments" replace /> :
+          user?.role === 'RECEPTIONIST' ? <ReceptionistStats /> :
           user?.role === 'DOCTOR' ? <Navigate to="/admin/my-schedule" replace /> :
           <Dashboard />
         } />
@@ -75,6 +78,8 @@ function App() {
         <Route path="medicines" element={<RoleRoute user={user} roles={['ADMIN']}><MedicineManager /></RoleRoute>} />
         <Route path="users" element={<RoleRoute user={user} roles={['ADMIN']}><UserManager /></RoleRoute>} />
         <Route path="queue" element={<RoleRoute user={user} roles={['RECEPTIONIST']}><QueueManager /></RoleRoute>} />
+        <Route path="complaints" element={<RoleRoute user={user} roles={['ADMIN', 'RECEPTIONIST']}><ComplaintManager /></RoleRoute>} />
+        <Route path="patients" element={<RoleRoute user={user} roles={['ADMIN', 'RECEPTIONIST']}><PatientManager /></RoleRoute>} />
       </Route>
     </Routes>
   );

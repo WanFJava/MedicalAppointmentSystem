@@ -4,6 +4,9 @@ import { getAllAppointments, updateAppointmentStatus, deleteAppointment } from '
 import { CheckCircle, XCircle, UserCheck, Trash2, Star } from 'lucide-react';
 import BillModal from './BillModal';
 import FeedbackModal from '../FeedbackModal';
+import ChangeDoctorModal from './ChangeDoctorModal';
+import AdminBookingModal from './AdminBookingModal';
+import { Plus } from 'lucide-react';
 
 const ReceptionistDashboard = () => {
     const { user } = useContext(AuthContext);
@@ -11,6 +14,8 @@ const ReceptionistDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [billingApt, setBillingApt] = useState(null);
     const [feedbackApt, setFeedbackApt] = useState(null);
+    const [changeDoctorApt, setChangeDoctorApt] = useState(null);
+    const [showBookingModal, setShowBookingModal] = useState(false);
     const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
 
     useEffect(() => {
@@ -72,10 +77,17 @@ const ReceptionistDashboard = () => {
         <div>
             <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                    <h2>Receptionist Dashboard</h2>
+                    <h2>Quản lý Lịch hẹn</h2>
                     <div style={{ color: 'var(--text-secondary)' }}>Welcome, {user?.fullName}</div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', backgroundColor: 'white', padding: '0.75rem 1rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+                    <button 
+                        className="btn-primary" 
+                        onClick={() => setShowBookingModal(true)} 
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginRight: '1rem', padding: '0.5rem 1rem' }}
+                    >
+                        <Plus size={16} /> Đặt lịch hộ
+                    </button>
                     <label style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>Xem lịch ngày:</label>
                     <input
                         type="date"
@@ -193,13 +205,17 @@ const ReceptionistDashboard = () => {
                                                 </button>
                                             )}
                                             {/* Note: DOCTOR will change status to COMPLETED */}
-                                            {user?.role === 'ADMIN' && (
-                                                <button
-                                                    title="Delete Appointment Permanently"
-                                                    onClick={() => handleDelete(apt.id)}
-                                                    style={{ padding: '0.5rem', backgroundColor: '#fca5a5', color: '#991b1b', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', marginLeft: '0.5rem' }}>
-                                                    <Trash2 size={16} />
-                                                </button>
+                                            {(user?.role === 'ADMIN' || user?.role === 'RECEPTIONIST') && (
+                                                <>
+                                                    {(apt.status === 'PENDING' || apt.status === 'CONFIRMED') && (
+                                                        <button
+                                                            title="Change Doctor / Schedule"
+                                                            onClick={() => setChangeDoctorApt(apt)}
+                                                            style={{ padding: '0.5rem', backgroundColor: '#f3e8ff', color: '#7e22ce', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', marginLeft: '0.5rem' }}>
+                                                            <UserCheck size={16} />
+                                                        </button>
+                                                    )}
+                                                </>
                                             )}
                                         </div>
                                     </td>
@@ -231,6 +247,27 @@ const ReceptionistDashboard = () => {
                     appointment={feedbackApt}
                     isReadOnly={true}
                     onClose={() => setFeedbackApt(null)}
+                />
+            )}
+
+            {changeDoctorApt && (
+                <ChangeDoctorModal
+                    appointment={changeDoctorApt}
+                    onClose={() => setChangeDoctorApt(null)}
+                    onSuccess={() => {
+                        setChangeDoctorApt(null);
+                        fetchAppointments();
+                    }}
+                />
+            )}
+
+            {showBookingModal && (
+                <AdminBookingModal
+                    onClose={() => setShowBookingModal(false)}
+                    onSuccess={() => {
+                        setShowBookingModal(false);
+                        fetchAppointments();
+                    }}
                 />
             )}
         </div>

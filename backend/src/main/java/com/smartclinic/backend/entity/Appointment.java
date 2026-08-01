@@ -44,4 +44,8 @@ public class Appointment {
 
     @Column(name = "note", columnDefinition = "NVARCHAR(255)")
     private String note;
+
+    @Column(name = "is_reminded")
+    @Builder.Default
+    private Boolean isReminded = false;
 }

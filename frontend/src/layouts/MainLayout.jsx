@@ -3,6 +3,7 @@ import { AuthContext } from '../context/AuthContext';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { LogOut, User as UserIcon, Heart } from 'lucide-react';
 import ReceptionistChatbot from '../components/ReceptionistChatbot';
+import NotificationBell from '../components/NotificationBell';
 
 const MainLayout = () => {
     const { user, logout } = useContext(AuthContext);
@@ -40,7 +41,8 @@ const MainLayout = () => {
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     {user ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                            <NotificationBell />
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#4b5563' }}>
                                 {user?.avatar ? (
                                     <img

@@ -105,7 +105,12 @@ export const swapQueue = async (id1, id2) => {
     return response.data;
 };
 
-export const skipQueue = async (id) => {
-    const response = await api.put(`/appointments/${id}/queue/skip`);
+export const skipQueue = async (appointmentId) => {
+    const response = await api.put(`/appointments/${appointmentId}/queue/skip`);
+    return response.data;
+};
+
+export const changeAppointmentSchedule = async (appointmentId, newScheduleId) => {
+    const response = await api.put(`/appointments/${appointmentId}/change-schedule?newScheduleId=${newScheduleId}`);
     return response.data;
 };

@@ -12,6 +12,7 @@ import com.smartclinic.backend.repository.MedicineRepository;
 import com.smartclinic.backend.repository.PrescriptionRepository;
 import com.smartclinic.backend.repository.PrescriptionDetailRepository;
 import com.smartclinic.backend.service.MedicalRecordService;
+import com.smartclinic.backend.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +29,7 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
     private final MedicineRepository medicineRepository;
     private final PrescriptionRepository prescriptionRepository;
     private final PrescriptionDetailRepository prescriptionDetailRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -80,6 +82,12 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
 
         appointment.setStatus(AppointmentStatus.COMPLETED);
         appointmentRepository.save(appointment);
+
+        // Notify patient
+        if (appointment.getPatient() != null) {
+            notificationService.sendNotification(appointment.getPatient().getUser().getId(),
+                "Lịch khám ngày " + appointment.getSchedule().getDate() + " đã hoàn thành. Kết quả khám và đơn thuốc của bạn đã có, vui lòng kiểm tra lịch sử khám.");
+        }
 
         return getMedicalRecordByAppointmentId(appointmentId);
     }

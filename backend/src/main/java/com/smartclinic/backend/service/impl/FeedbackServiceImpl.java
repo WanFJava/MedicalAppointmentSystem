@@ -9,7 +9,10 @@ import com.smartclinic.backend.entity.Patient;
 import com.smartclinic.backend.repository.AppointmentRepository;
 import com.smartclinic.backend.repository.DoctorRepository;
 import com.smartclinic.backend.repository.FeedbackRepository;
+import com.smartclinic.backend.repository.UserRepository;
 import com.smartclinic.backend.service.FeedbackService;
+import com.smartclinic.backend.service.NotificationService;
+import com.smartclinic.backend.entity.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -29,6 +32,8 @@ public class FeedbackServiceImpl implements FeedbackService {
     private final FeedbackRepository feedbackRepository;
     private final AppointmentRepository appointmentRepository;
     private final DoctorRepository doctorRepository;
+    private final NotificationService notificationService;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
@@ -79,6 +84,11 @@ public class FeedbackServiceImpl implements FeedbackService {
         doctor.setAverageRating(totalScore.divide(
                 BigDecimal.valueOf(doctorFeedbacks.size()), 2, RoundingMode.HALF_UP));
         doctorRepository.save(doctor);
+
+        // Notify admin
+        userRepository.findByRole(Role.ADMIN).forEach(admin -> {
+            notificationService.sendNotification(admin.getId(), "Có phản hồi mới từ bệnh nhân " + patient.getUser().getFullName() + " đánh giá bác sĩ " + doctor.getUser().getFullName() + ".");
+        });
 
         return mapToDto(savedFeedback);
     }

@@ -8,7 +8,10 @@ import com.smartclinic.backend.entity.Doctor;
 import com.smartclinic.backend.entity.Schedule;
 import com.smartclinic.backend.repository.DoctorRepository;
 import com.smartclinic.backend.repository.ScheduleRepository;
+import com.smartclinic.backend.repository.UserRepository;
 import com.smartclinic.backend.service.ScheduleService;
+import com.smartclinic.backend.service.NotificationService;
+import com.smartclinic.backend.entity.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -31,6 +34,8 @@ public class ScheduleServiceImpl implements ScheduleService {
     private final ScheduleRepository scheduleRepository;
     private final DoctorRepository doctorRepository;
     private final com.smartclinic.backend.repository.AppointmentRepository appointmentRepository;
+    private final NotificationService notificationService;
+    private final UserRepository userRepository;
 
     private void autoCancelExpiredOpenSchedules(List<Schedule> schedules) {
         LocalDateTime now = LocalDateTime.now();
@@ -298,7 +303,17 @@ public class ScheduleServiceImpl implements ScheduleService {
         schedule.setDoctor(doctor);
         schedule.setStatus(ScheduleStatus.AVAILABLE);
 
-        return mapToDto(scheduleRepository.save(schedule));
+        Schedule savedSchedule = scheduleRepository.save(schedule);
+
+        // Notify Admin
+        userRepository.findByRole(Role.ADMIN).forEach(admin -> {
+            notificationService.sendNotification(admin.getId(), "Bác sĩ " + doctor.getUser().getFullName() + " đã đăng ký ca khám ngày " + schedule.getDate() + " (" + schedule.getStartTime() + " - " + schedule.getEndTime() + ").");
+        });
+
+        // Notify Doctor
+        notificationService.sendNotification(doctor.getUser().getId(), "Đăng ký ca làm việc ngày " + schedule.getDate() + " thành công.");
+
+        return mapToDto(savedSchedule);
     }
 
     @Override
@@ -329,7 +344,16 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
 
         schedule.setStatus(status);
-        return mapToDto(scheduleRepository.save(schedule));
+        Schedule savedSchedule = scheduleRepository.save(schedule);
+
+        if (status == ScheduleStatus.CANCELLED && schedule.getDoctor() != null) {
+            notificationService.sendNotification(schedule.getDoctor().getUser().getId(), "Ca làm việc ngày " + schedule.getDate() + " (" + schedule.getStartTime() + " - " + schedule.getEndTime() + ") đã bị hủy.");
+            userRepository.findByRole(Role.ADMIN).forEach(admin -> {
+                notificationService.sendNotification(admin.getId(), "Ca làm việc của bác sĩ " + schedule.getDoctor().getUser().getFullName() + " ngày " + schedule.getDate() + " đã bị hủy.");
+            });
+        }
+
+        return mapToDto(savedSchedule);
     }
 
     @Override

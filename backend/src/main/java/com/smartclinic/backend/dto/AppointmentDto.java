@@ -26,4 +26,5 @@ public class AppointmentDto {
     private Boolean isReviewed;
     private String paymentStatus;
     private String note;
+    private Boolean hasComplaint;
 }

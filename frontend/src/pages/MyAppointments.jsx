@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { getPatientAppointments, updateAppointmentStatus } from '../api/appointmentApi';
+import { createComplaint } from '../api/complaintApi';
 import { Calendar, Clock, Stethoscope, FileText, Info, MessageSquare, Star } from 'lucide-react';
 import PatientRecordModal from './PatientRecordModal';
 import ViewBookingModal from './ViewBookingModal';
@@ -45,6 +46,23 @@ const MyAppointments = () => {
                     : (error.response?.data?.message || error.message);
                 alert("Hủy lịch hẹn thất bại: " + errMsg);
             }
+        }
+    };
+
+    const handleComplaint = async (apt) => {
+        try {
+            await createComplaint(user.id, {
+                appointmentId: apt.id,
+                reason: "Bác sĩ vắng mặt"
+            });
+            alert("Gửi khiếu nại thành công đến bộ phận Lễ tân. Chúng tôi sẽ xử lý và liên hệ lại với bạn sớm nhất!");
+            fetchAppointments(); // Refresh to update hasComplaint status
+        } catch (error) {
+            console.error("Failed to submit complaint", error);
+            const errMsg = typeof error.response?.data === 'string'
+                ? error.response.data
+                : (error.response?.data?.message || error.message);
+            alert("Gửi khiếu nại thất bại: " + errMsg);
         }
     };
 
@@ -125,12 +143,23 @@ const MyAppointments = () => {
                                         <div style={{ fontSize: '0.9rem', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.5rem' }}>
                                             <Stethoscope size={16} /> Bác sĩ
                                         </div>
-                                        <span style={{
-                                            backgroundColor: statusStyle.bg, color: statusStyle.color,
-                                            padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.8rem', fontWeight: 600, display: 'inline-block'
-                                        }}>
-                                            {apt.status}
-                                        </span>
+                                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                            <span style={{
+                                                backgroundColor: statusStyle.bg, color: statusStyle.color,
+                                                padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.8rem', fontWeight: 600, display: 'inline-block'
+                                            }}>
+                                                {apt.status}
+                                            </span>
+                                            {['COMPLETED', 'PAID'].includes(apt.status) && (
+                                                <span style={{
+                                                    backgroundColor: apt.paymentStatus === 'PAID' ? '#d1fae5' : '#fee2e2',
+                                                    color: apt.paymentStatus === 'PAID' ? '#059669' : '#dc2626',
+                                                    padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.8rem', fontWeight: 600, display: 'inline-block'
+                                                }}>
+                                                    {apt.paymentStatus === 'PAID' ? 'Đã thanh toán' : 'Chưa thanh toán'}
+                                                </span>
+                                            )}
+                                        </div>
                                         {apt.note && (
                                             <div style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: '#b91c1c', fontWeight: 500 }}>
                                                 Ghi chú: {(apt.note === 'V\\u1EAFng b\\u00E1c s\\u0129' || apt.note === 'V?ng bác s?') ? 'Vắng bác sĩ' : apt.note}
@@ -185,18 +214,28 @@ const MyAppointments = () => {
                                         )}
 
                                         {apt.status === 'CANCELLED_BY_DOCTOR' && (apt.note === 'Vắng bác sĩ' || apt.note === 'V\\u1EAFng b\\u00E1c s\\u0129' || apt.note === 'V?ng bác s?') && (
-                                            <button
-                                                onClick={() => alert('Gửi khiếu nại thành công đến bộ phận Lễ tân. Chúng tôi sẽ xử lý và liên hệ lại với bạn sớm nhất!')}
-                                                style={{
-                                                    padding: '0.5rem 1rem', backgroundColor: '#fef2f2', color: '#ef4444',
-                                                    border: '1px solid #fca5a5', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s'
-                                                }}
-                                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#fee2e2'}
-                                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#fef2f2'}
-                                                title="Gửi khiếu nại về việc bác sĩ vắng mặt"
-                                            >
-                                                Khiếu nại
-                                            </button>
+                                            !apt.hasComplaint ? (
+                                                <button
+                                                    onClick={() => handleComplaint(apt)}
+                                                    style={{
+                                                        padding: '0.5rem 1rem', backgroundColor: '#fef2f2', color: '#ef4444',
+                                                        border: '1px solid #fca5a5', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s'
+                                                    }}
+                                                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#fee2e2'}
+                                                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#fef2f2'}
+                                                    title="Gửi khiếu nại về việc bác sĩ vắng mặt"
+                                                >
+                                                    Khiếu nại
+                                                </button>
+                                            ) : (
+                                                <span style={{
+                                                    padding: '0.5rem 1rem', backgroundColor: '#f3f4f6', color: '#6b7280',
+                                                    border: '1px solid #d1d5db', borderRadius: '0.5rem', fontWeight: 600,
+                                                    display: 'inline-flex', alignItems: 'center', cursor: 'not-allowed'
+                                                }}>
+                                                    Đã gửi khiếu nại
+                                                </span>
+                                            )
                                         )}
 
                                         {['COMPLETED', 'PAID'].includes(apt.status) && (

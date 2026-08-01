@@ -330,10 +330,15 @@ const UserManager = () => {
                                         value={formData.status}
                                         onChange={(e) => setFormData({...formData, status: e.target.value})}
                                     >
-                                        <option value="ACTIVE">ACTIVE – Đang hoạt động</option>
-                                        <option value="INACTIVE">INACTIVE – Ngưng hoạt động (Có điều kiện)</option>
-                                        <option value="LOCKED">LOCKED – Tạm khóa</option>
+                                        <option value="ACTIVE" title="Được đăng nhập và sử dụng hệ thống.">ACTIVE – Được đăng nhập và sử dụng hệ thống</option>
+                                        <option value="INACTIVE" title="Không được đăng nhập; dùng khi tài khoản tạm thời hoặc vĩnh viễn không còn hoạt động.">INACTIVE – Không được đăng nhập (ngừng hoạt động)</option>
+                                        <option value="LOCKED" title="Không được đăng nhập; dùng cho các trường hợp liên quan đến bảo mật hoặc xử lý vi phạm.">LOCKED – Không được đăng nhập (khóa bảo mật/vi phạm)</option>
                                     </select>
+                                    <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#6b7280' }}>
+                                        {formData.status === 'ACTIVE' && 'Được đăng nhập và sử dụng hệ thống.'}
+                                        {formData.status === 'INACTIVE' && 'Không được đăng nhập; dùng khi tài khoản tạm thời hoặc vĩnh viễn không còn hoạt động.'}
+                                        {formData.status === 'LOCKED' && 'Không được đăng nhập; dùng cho các trường hợp liên quan đến bảo mật hoặc xử lý vi phạm.'}
+                                    </div>
                                 </div>
                                 <div className="form-group" style={{ gridColumn: '1 / -1' }}>
                                     <label>Avatar</label>

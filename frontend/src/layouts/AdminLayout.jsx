@@ -1,14 +1,15 @@
 import React, { useContext } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { Users, LayoutDashboard, Stethoscope, LogOut, Pill, Calendar, UserCog, ListOrdered, Star, MessagesSquare } from 'lucide-react';
+import { Users, LayoutDashboard, Stethoscope, LogOut, Pill, Calendar, UserCog, ListOrdered, Star, MessagesSquare, AlertCircle } from 'lucide-react';
+import NotificationBell from '../components/NotificationBell';
 
 const AdminLayout = () => {
     const { user, logout } = useContext(AuthContext);
     const location = useLocation();
 
     const menuItems = [
-        { path: '/admin', name: 'Dashboard', icon: <LayoutDashboard size={20} />, roles: ['ADMIN'] },
+        { path: '/admin', name: 'Dashboard', icon: <LayoutDashboard size={20} />, roles: ['ADMIN', 'RECEPTIONIST'] },
         { path: '/admin/specialties', name: 'Specialties', icon: <Stethoscope size={20} />, roles: ['ADMIN'] },
         { path: '/admin/doctors', name: 'Doctors', icon: <Users size={20} />, roles: ['ADMIN'] },
         { path: '/admin/users', name: 'Users', icon: <UserCog size={20} />, roles: ['ADMIN'] },
@@ -21,6 +22,8 @@ const AdminLayout = () => {
         { path: '/admin/my-schedule', name: 'Lịch khám bệnh', icon: <Stethoscope size={20} />, roles: ['DOCTOR'] },
         { path: '/admin/my-shifts', name: 'Ca trực của tôi', icon: <UserCog size={20} />, roles: ['DOCTOR'] },
         { path: '/admin/open-shifts', name: 'Đăng ký ca làm', icon: <Calendar size={20} />, roles: ['DOCTOR'] },
+        { path: '/admin/patients', name: 'Quản lý bệnh nhân', icon: <Users size={20} />, roles: ['RECEPTIONIST'] },
+        { path: '/admin/complaints', name: 'Xử lý khiếu nại', icon: <AlertCircle size={20} />, roles: ['ADMIN', 'RECEPTIONIST'] },
     ];
 
     return (
@@ -70,6 +73,9 @@ const AdminLayout = () => {
                 <header className="topbar">
                     <div className="topbar-title">
                         {menuItems.find(item => item.path === location.pathname)?.name || 'Admin'}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <NotificationBell />
                     </div>
                 </header>
                 <div className="content-area">

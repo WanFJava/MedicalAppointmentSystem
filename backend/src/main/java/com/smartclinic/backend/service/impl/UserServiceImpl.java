@@ -9,6 +9,7 @@ import com.smartclinic.backend.entity.Status;
 import com.smartclinic.backend.repository.UserRepository;
 import com.smartclinic.backend.service.UserService;
 import com.smartclinic.backend.service.DoctorService;
+import com.smartclinic.backend.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final DoctorService doctorService;
     private final com.smartclinic.backend.service.PatientService patientService;
+    private final NotificationService notificationService;
 
     @Override
     public List<UserDto> getAllUsers() {
@@ -80,6 +82,12 @@ public class UserServiceImpl implements UserService {
                 }
             }
             user.setStatus(userDto.getStatus());
+            
+            if (userDto.getStatus() == Status.LOCKED) {
+                userRepository.findByRole(Role.ADMIN).forEach(admin -> {
+                    notificationService.sendNotification(admin.getId(), "Tài khoản của " + user.getFullName() + " (" + user.getEmail() + ") đã bị khóa.");
+                });
+            }
         }
         if (userDto.getAvatar() != null) {
             user.setAvatar(userDto.getAvatar());
@@ -112,6 +120,10 @@ public class UserServiceImpl implements UserService {
 
         user.setStatus(Status.LOCKED);
         userRepository.save(user);
+        
+        userRepository.findByRole(Role.ADMIN).forEach(admin -> {
+            notificationService.sendNotification(admin.getId(), "Tài khoản của " + user.getFullName() + " (" + user.getEmail() + ") đã bị khóa.");
+        });
     }
 
     private UserDto mapToDto(User user) {

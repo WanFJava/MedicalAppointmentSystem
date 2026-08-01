@@ -15,19 +15,32 @@ import com.smartclinic.backend.dto.DoctorDto;
 public class PatientController {
 
     private final PatientService patientService;
+    private final com.smartclinic.backend.service.UserService userService;
 
     @GetMapping("/profile/{userId}")
-    @PreAuthorize("hasRole('PATIENT') or hasRole('ADMIN') or hasRole('DOCTOR')")
+    @PreAuthorize("hasRole('PATIENT') or hasRole('ADMIN') or hasRole('DOCTOR') or hasRole('RECEPTIONIST')")
     public ResponseEntity<PatientDto> getPatientProfile(@PathVariable Long userId) {
         return ResponseEntity.ok(patientService.getPatientProfileByUserId(userId));
     }
 
     @PutMapping("/profile/{userId}")
-    @PreAuthorize("hasRole('PATIENT') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('PATIENT') or hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<PatientDto> updatePatientProfile(
             @PathVariable Long userId,
             @RequestBody PatientDto patientDto) {
         return ResponseEntity.ok(patientService.updatePatientProfile(userId, patientDto));
+    }
+
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
+    public ResponseEntity<List<PatientDto>> getAllPatients() {
+        return ResponseEntity.ok(patientService.getAllPatients());
+    }
+
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
+    public ResponseEntity<PatientDto> createPatient(@RequestBody PatientDto patientDto) {
+        return new ResponseEntity<>(patientService.createPatient(patientDto), org.springframework.http.HttpStatus.CREATED);
     }
 
     @PostMapping("/{userId}/favorites/{doctorId}")
