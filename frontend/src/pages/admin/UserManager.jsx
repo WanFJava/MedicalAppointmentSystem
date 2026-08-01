@@ -9,15 +9,15 @@ const UserManager = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [avatarUploadType, setAvatarUploadType] = useState('url');
-    
+
     // Filter & Search states
     const [searchTerm, setSearchTerm] = useState('');
     const [roleFilter, setRoleFilter] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
 
     const [editingId, setEditingId] = useState(null);
-    const [formData, setFormData] = useState({ 
-        fullName: '', email: '', password: '', phone: '', role: 'PATIENT', status: 'ACTIVE', avatar: '' 
+    const [formData, setFormData] = useState({
+        fullName: '', email: '', password: '', phone: '', role: 'PATIENT', status: 'ACTIVE', avatar: ''
     });
 
     useEffect(() => {
@@ -27,8 +27,8 @@ const UserManager = () => {
     useEffect(() => {
         let result = users;
         if (searchTerm) {
-            result = result.filter(u => 
-                u.fullName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+            result = result.filter(u =>
+                u.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 u.email.toLowerCase().includes(searchTerm.toLowerCase())
             );
         }
@@ -55,19 +55,19 @@ const UserManager = () => {
 
     const handleOpenModal = (user = null) => {
         if (user) {
-            setFormData({ 
-                fullName: user.fullName || '', 
-                email: user.email || '', 
+            setFormData({
+                fullName: user.fullName || '',
+                email: user.email || '',
                 password: '', // blank on edit
-                phone: user.phone || '', 
-                role: user.role, 
+                phone: user.phone || '',
+                role: user.role,
                 status: user.status,
                 avatar: user.avatar || ''
             });
             setEditingId(user.id);
         } else {
-            setFormData({ 
-                fullName: '', email: '', password: '', phone: '', role: 'PATIENT', status: 'ACTIVE', avatar: '' 
+            setFormData({
+                fullName: '', email: '', password: '', phone: '', role: 'PATIENT', status: 'ACTIVE', avatar: ''
             });
             setEditingId(null);
         }
@@ -152,10 +152,10 @@ const UserManager = () => {
                 <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                     <div style={{ position: 'relative' }}>
                         <Search size={18} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#666' }} />
-                        <input 
-                            type="text" 
-                            placeholder="Search by name or email..." 
-                            className="form-control" 
+                        <input
+                            type="text"
+                            placeholder="Search by name or email..."
+                            className="form-control"
                             style={{ paddingLeft: '2.5rem', width: '250px' }}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -199,10 +199,10 @@ const UserManager = () => {
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                         <div className="user-avatar" style={{ width: '32px', height: '32px', fontSize: '1rem', overflow: 'hidden', borderRadius: '50%' }}>
                                             {u.avatar ? (
-                                                <img 
-                                                    src={u.avatar} 
-                                                    alt="Avatar" 
-                                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                                                <img
+                                                    src={u.avatar}
+                                                    alt="Avatar"
+                                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                                     onError={(e) => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(u.fullName || 'U')}&background=random`; }}
                                                 />
                                             ) : (
@@ -227,9 +227,9 @@ const UserManager = () => {
                                 </td>
                                 <td>
                                     <span style={{
-                                        padding: '0.35rem 0.75rem', 
-                                        borderRadius: '1rem', 
-                                        fontSize: '0.8rem', 
+                                        padding: '0.35rem 0.75rem',
+                                        borderRadius: '1rem',
+                                        fontSize: '0.8rem',
                                         fontWeight: 'bold',
                                         backgroundColor: u.status === 'ACTIVE' ? '#d1fae5' : (u.status === 'LOCKED' ? '#fee2e2' : '#fef3c7'),
                                         color: u.status === 'ACTIVE' ? '#047857' : (u.status === 'LOCKED' ? '#b91c1c' : '#b45309'),
@@ -244,8 +244,8 @@ const UserManager = () => {
                                         <button className="btn-icon btn-edit" onClick={() => handleOpenModal(u)}>
                                             <Edit2 size={16} />
                                         </button>
-                                        <button 
-                                            className="btn-icon" 
+                                        <button
+                                            className="btn-icon"
                                             style={{ color: u.status === 'LOCKED' ? '#059669' : '#dc2626' }}
                                             onClick={() => handleToggleLock(u)}
                                             title={u.status === 'LOCKED' ? 'Unlock User' : 'Lock User'}
@@ -278,41 +278,41 @@ const UserManager = () => {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div className="form-group">
                                     <label>Full Name</label>
-                                    <input 
+                                    <input
                                         type="text" required className="form-control"
-                                        value={formData.fullName} 
+                                        value={formData.fullName}
                                         onChange={(e) => setFormData({...formData, fullName: e.target.value})}
                                     />
                                 </div>
                                 <div className="form-group">
                                     <label>Email</label>
-                                    <input 
+                                    <input
                                         type="email" required className="form-control"
-                                        value={formData.email} 
+                                        value={formData.email}
                                         disabled={!!editingId}
                                         onChange={(e) => setFormData({...formData, email: e.target.value})}
                                     />
                                 </div>
                                 <div className="form-group">
                                     <label>Phone</label>
-                                    <input 
+                                    <input
                                         type="tel" className="form-control"
-                                        value={formData.phone} 
+                                        value={formData.phone}
                                         onChange={(e) => setFormData({...formData, phone: e.target.value})}
                                     />
                                 </div>
                                 <div className="form-group">
                                     <label>{editingId ? 'New Password (leave blank to keep)' : 'Password'}</label>
-                                    <input 
+                                    <input
                                         type="password" className="form-control"
                                         required={!editingId}
-                                        value={formData.password} 
+                                        value={formData.password}
                                         onChange={(e) => setFormData({...formData, password: e.target.value})}
                                     />
                                 </div>
                                 <div className="form-group">
                                     <label>Role</label>
-                                    <select 
+                                    <select
                                         className="form-control" required
                                         value={formData.role}
                                         onChange={(e) => setFormData({...formData, role: e.target.value})}
@@ -325,7 +325,7 @@ const UserManager = () => {
                                 </div>
                                 <div className="form-group">
                                     <label>Status</label>
-                                    <select 
+                                    <select
                                         className="form-control" required
                                         value={formData.status}
                                         onChange={(e) => setFormData({...formData, status: e.target.value})}
@@ -346,23 +346,23 @@ const UserManager = () => {
                                         </label>
                                     </div>
                                     {avatarUploadType === 'url' ? (
-                                        <input 
+                                        <input
                                             type="text" className="form-control" placeholder="https://example.com/avatar.png"
-                                            value={formData.avatar} 
+                                            value={formData.avatar}
                                             onChange={(e) => setFormData({...formData, avatar: e.target.value})}
                                         />
                                     ) : (
-                                        <input 
+                                        <input
                                             type="file" className="form-control" accept="image/*"
                                             onChange={handleFileChange}
                                         />
                                     )}
                                     {formData.avatar && (
                                         <div style={{ marginTop: '0.5rem' }}>
-                                            <img 
-                                                src={formData.avatar} 
-                                                alt="Preview" 
-                                                style={{ width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #ccc' }} 
+                                            <img
+                                                src={formData.avatar}
+                                                alt="Preview"
+                                                style={{ width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #ccc' }}
                                                 onError={(e) => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.fullName || 'U')}&background=random`; }}
                                             />
                                         </div>

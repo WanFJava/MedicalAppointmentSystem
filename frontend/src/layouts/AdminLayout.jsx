@@ -32,8 +32,8 @@ const AdminLayout = () => {
                 </div>
                 <nav className="sidebar-nav">
                     {menuItems.filter(item => item.roles.includes(user?.role)).map((item) => (
-                        <Link 
-                            key={item.path} 
+                        <Link
+                            key={item.path}
                             to={item.path}
                             className={`nav-item ${location.pathname === item.path ? 'active' : ''}`}
                         >
@@ -46,10 +46,10 @@ const AdminLayout = () => {
                     <div className="user-info">
                         <div className="user-avatar" style={{ overflow: 'hidden' }}>
                             {user?.avatar ? (
-                                <img 
-                                    src={user.avatar} 
-                                    alt="Avatar" 
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                                <img
+                                    src={user.avatar}
+                                    alt="Avatar"
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                     onError={(e) => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'A')}&background=random`; }}
                                 />
                             ) : (

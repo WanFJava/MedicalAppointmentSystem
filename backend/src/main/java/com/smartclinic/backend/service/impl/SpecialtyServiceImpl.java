@@ -24,7 +24,7 @@ public class SpecialtyServiceImpl implements SpecialtyService {
         Specialty specialty = new Specialty();
         specialty.setName(specialtyDto.getName());
         specialty.setDescription(specialtyDto.getDescription());
-        
+
         Specialty savedSpecialty = specialtyRepository.save(specialty);
         return mapToDto(savedSpecialty);
     }
@@ -46,10 +46,10 @@ public class SpecialtyServiceImpl implements SpecialtyService {
     public SpecialtyDto updateSpecialty(Long id, SpecialtyDto specialtyDto) {
         Specialty specialty = specialtyRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Specialty not found with id: " + id));
-        
+
         specialty.setName(specialtyDto.getName());
         specialty.setDescription(specialtyDto.getDescription());
-        
+
         Specialty updatedSpecialty = specialtyRepository.save(specialty);
         return mapToDto(updatedSpecialty);
     }
@@ -61,7 +61,7 @@ public class SpecialtyServiceImpl implements SpecialtyService {
 
         List<Doctor> doctorsInSpecialty = doctorRepository.findBySpecialtyId(id);
         if (!doctorsInSpecialty.isEmpty()) {
-            throw new IllegalArgumentException("Không thể xóa chuyên khoa '" + specialty.getName() 
+            throw new IllegalArgumentException("Không thể xóa chuyên khoa '" + specialty.getName()
                     + "' vì đang có " + doctorsInSpecialty.size() + " bác sĩ đang hoạt động thuộc khoa này!");
         }
 

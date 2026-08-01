@@ -23,15 +23,19 @@ public class Bill {
     private Appointment appointment;
 
     @Column(name = "consultation_fee", nullable = false)
+    @Builder.Default
     private BigDecimal consultationFee = BigDecimal.ZERO;
 
     @Column(name = "medicine_fee", nullable = false)
+    @Builder.Default
     private BigDecimal medicineFee = BigDecimal.ZERO;
 
     @Column(name = "discount")
+    @Builder.Default
     private BigDecimal discount = BigDecimal.ZERO;
 
     @Column(name = "total_amount", nullable = false)
+    @Builder.Default
     private BigDecimal totalAmount = BigDecimal.ZERO;
 
     @Enumerated(EnumType.STRING)

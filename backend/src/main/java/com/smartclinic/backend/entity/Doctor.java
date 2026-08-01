@@ -33,9 +33,11 @@ public class Doctor {
     private BigDecimal consultationFee;
 
     @Column(name = "average_rating")
+    @Builder.Default
     private BigDecimal averageRating = BigDecimal.ZERO;
 
     @Column(name = "total_reviews")
+    @Builder.Default
     private Integer totalReviews = 0;
 
     @Column(name = "biography", columnDefinition = "NVARCHAR(MAX)")

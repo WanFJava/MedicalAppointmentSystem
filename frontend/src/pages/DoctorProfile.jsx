@@ -32,7 +32,7 @@ const DoctorProfile = () => {
                     acc[curr.date].push(curr);
                     return acc;
                 }, {});
-                
+
                 setSchedulesByDate(grouped);
                 const dates = Object.keys(grouped).sort();
                 if (dates.length > 0) {
@@ -76,22 +76,22 @@ const DoctorProfile = () => {
     return (
         <div style={{ backgroundColor: '#f8fafc', minHeight: '100vh', padding: '3rem 1rem' }}>
             <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-                
-                <button 
+
+                <button
                     onClick={() => {
                         if (window.history.state && window.history.state.idx > 0) {
                             navigate(-1);
                         } else {
                             navigate('/');
                         }
-                    }} 
+                    }}
                     style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '500' }}
                 >
                     ← Back
                 </button>
 
                 <div style={{ backgroundColor: 'white', borderRadius: '0.5rem', overflow: 'hidden', boxShadow: '0 2px 4px -1px rgba(0, 0, 0, 0.05)', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'row', position: 'relative', marginBottom: '2rem' }}>
-                    
+
                     {/* LEFT COLUMN: Doctor Info */}
                     <div style={{ padding: '2rem', flex: '1 1 45%', display: 'flex', gap: '1.5rem', borderRight: '1px solid #e2e8f0', alignItems: 'flex-start' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '120px' }}>
@@ -102,16 +102,16 @@ const DoctorProfile = () => {
                                     <span style={{ fontSize: '3rem', color: '#9ca3af', fontWeight: 'bold' }}>{doctor.fullName?.charAt(0)}</span>
                                 )}
                             </div>
-                            
+
                             {user && user.role === 'PATIENT' && doctor && (
-                                <button 
+                                <button
                                     onClick={() => toggleFavorite(doctor.id)}
                                     style={{
-                                        background: favoriteDoctorIds?.has(doctor.id) ? '#fbbf24' : 'transparent', 
-                                        border: `1px solid ${favoriteDoctorIds?.has(doctor.id) ? '#fbbf24' : '#d1d5db'}`, 
+                                        background: favoriteDoctorIds?.has(doctor.id) ? '#fbbf24' : 'transparent',
+                                        border: `1px solid ${favoriteDoctorIds?.has(doctor.id) ? '#fbbf24' : '#d1d5db'}`,
                                         borderRadius: '1rem',
                                         padding: '0.25rem 0.75rem', display: 'flex', alignItems: 'center', gap: '0.25rem',
-                                        color: favoriteDoctorIds?.has(doctor.id) ? 'white' : '#6b7280', 
+                                        color: favoriteDoctorIds?.has(doctor.id) ? 'white' : '#6b7280',
                                         cursor: 'pointer', transition: 'all 0.2s',
                                         fontSize: '0.85rem', fontWeight: '600'
                                     }}
@@ -146,7 +146,7 @@ const DoctorProfile = () => {
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '700', color: '#4b5563', fontSize: '1rem', textTransform: 'uppercase' }}>
                                     <CalendarIcon size={18} /> Lịch khám
                                 </div>
-                                <input 
+                                <input
                                     type="date"
                                     value={selectedDate}
                                     onChange={(e) => {
@@ -159,7 +159,7 @@ const DoctorProfile = () => {
                                     }}
                                 />
                             </div>
-                            
+
                             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
                                 {Object.keys(schedulesByDate).length === 0 ? (
                                     <div style={{ color: '#ef4444', fontSize: '0.95rem' }}>Bác sĩ hiện chưa có lịch khám.</div>
@@ -167,21 +167,21 @@ const DoctorProfile = () => {
                                     <div style={{ color: '#6b7280', fontSize: '0.95rem' }}>Không có lịch vào ngày này. Vui lòng chọn ngày khác.</div>
                                 ) : (
                                     schedulesByDate[selectedDate].map(sched => (
-                                        <button key={sched.id} 
+                                        <button key={sched.id}
                                             onClick={() => setSelectedSchedule(sched)}
-                                            style={{ 
-                                                padding: '0.5rem 1rem', 
-                                                backgroundColor: selectedSchedule?.id === sched.id ? '#0ea5e9' : '#f1f5f9', 
+                                            style={{
+                                                padding: '0.5rem 1rem',
+                                                backgroundColor: selectedSchedule?.id === sched.id ? '#0ea5e9' : '#f1f5f9',
                                                 border: 'none',
-                                                color: selectedSchedule?.id === sched.id ? 'white' : '#334155', 
-                                                borderRadius: '0.25rem', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem', transition: 'all 0.2s' 
+                                                color: selectedSchedule?.id === sched.id ? 'white' : '#334155',
+                                                borderRadius: '0.25rem', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem', transition: 'all 0.2s'
                                             }}>
                                             {formatTime(sched.startTime)} - {formatTime(sched.endTime)}
                                         </button>
                                     ))
                                 )}
                             </div>
-                            
+
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', color: '#6b7280' }}>
                                 Chọn một khung giờ và nhấn nút đặt lịch bên dưới
                             </div>
@@ -194,9 +194,9 @@ const DoctorProfile = () => {
                             </div>
                         </div>
 
-                        <button 
-                            style={{ 
-                                width: '100%', padding: '0.75rem', fontSize: '1rem', borderRadius: '0.5rem', 
+                        <button
+                            style={{
+                                width: '100%', padding: '0.75rem', fontSize: '1rem', borderRadius: '0.5rem',
                                 backgroundColor: !selectedSchedule ? '#cbd5e1' : '#0ea5e9',
                                 color: 'white', fontWeight: '600', border: 'none',
                                 transition: 'background-color 0.2s',
@@ -227,7 +227,7 @@ const DoctorProfile = () => {
                     {/* FEEDBACKS SECTION */}
                     <div style={{ marginTop: '3rem', backgroundColor: 'white', padding: '2.5rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
                         <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <MessageSquare size={28} color="#4f46e5" /> 
+                            <MessageSquare size={28} color="#4f46e5" />
                             Recent Patient Feedbacks ({feedbacks.length})
                         </h3>
 
@@ -238,9 +238,9 @@ const DoctorProfile = () => {
                         ) : (
                             <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth > 768 ? '1fr 1fr' : '1fr', gap: '1.5rem' }}>
                                 {feedbacks.map(fb => (
-                                    <div key={fb.id} style={{ 
-                                        backgroundColor: '#f8fafc', padding: '1.5rem', borderRadius: '0.5rem', 
-                                        border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '0.75rem' 
+                                    <div key={fb.id} style={{
+                                        backgroundColor: '#f8fafc', padding: '1.5rem', borderRadius: '0.5rem',
+                                        border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '0.75rem'
                                     }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                             <div>
@@ -251,11 +251,11 @@ const DoctorProfile = () => {
                                             </div>
                                             <div style={{ display: 'flex', gap: '0.25rem' }}>
                                                 {[1, 2, 3, 4, 5].map(star => (
-                                                    <Star 
-                                                        key={star} 
-                                                        size={16} 
-                                                        fill={star <= fb.rating ? '#fbbf24' : 'none'} 
-                                                        color={star <= fb.rating ? '#fbbf24' : '#cbd5e1'} 
+                                                    <Star
+                                                        key={star}
+                                                        size={16}
+                                                        fill={star <= fb.rating ? '#fbbf24' : 'none'}
+                                                        color={star <= fb.rating ? '#fbbf24' : '#cbd5e1'}
                                                     />
                                                 ))}
                                             </div>

@@ -4,7 +4,7 @@ import { Calendar, UserCheck, Clock, CheckCircle } from 'lucide-react';
 
 const ScheduleManager = ({ doctorId, viewTab }) => {
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-    
+
     const [mySchedules, setMySchedules] = useState([]);
     const [openSchedules, setOpenSchedules] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -79,10 +79,10 @@ const ScheduleManager = ({ doctorId, viewTab }) => {
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <label style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>Ngày khám:</label>
-                    <input 
-                        type="date" 
-                        value={date} 
-                        onChange={(e) => setDate(e.target.value)} 
+                    <input
+                        type="date"
+                        value={date}
+                        onChange={(e) => setDate(e.target.value)}
                         style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #d1d5db' }}
                     />
                 </div>
@@ -121,7 +121,7 @@ const ScheduleManager = ({ doctorId, viewTab }) => {
                                             <span style={{ backgroundColor: st.bg, color: st.color, padding: '0.35rem 0.85rem', borderRadius: '1rem', fontSize: '0.8rem', fontWeight: 'bold' }}>
                                                 {st.label}
                                             </span>
-                                            
+
                                             <div style={{ display: 'flex', gap: '0.5rem' }}>
                                                 {['AVAILABLE', 'FULL'].includes(sch.status) && (
                                                     <button onClick={() => handleStatusUpdate(sch.id, 'IN_PROGRESS')} style={{ padding: '0.4rem 0.85rem', backgroundColor: '#fef3c7', color: '#b45309', border: '1px solid #fde68a', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.85rem' }}>
@@ -178,16 +178,16 @@ const ScheduleManager = ({ doctorId, viewTab }) => {
                                                     <span style={{ backgroundColor: '#ffedd5', color: '#c2410c', border: '1px solid #fdba74', padding: '0.35rem 0.85rem', borderRadius: '1rem', fontSize: '0.8rem', fontWeight: 'bold' }}>
                                                         OPEN – Chờ nhận ca
                                                     </span>
-                                                    
-                                                    <button 
-                                                        onClick={() => handleRegisterShift(sch.id)} 
-                                                        style={{ 
-                                                            padding: '0.5rem 1.25rem', 
-                                                            backgroundColor: '#2563eb', 
-                                                            color: 'white', 
-                                                            border: 'none', 
-                                                            borderRadius: '6px', 
-                                                            cursor: 'pointer', 
+
+                                                    <button
+                                                        onClick={() => handleRegisterShift(sch.id)}
+                                                        style={{
+                                                            padding: '0.5rem 1.25rem',
+                                                            backgroundColor: '#2563eb',
+                                                            color: 'white',
+                                                            border: 'none',
+                                                            borderRadius: '6px',
+                                                            cursor: 'pointer',
                                                             fontWeight: 'bold',
                                                             fontSize: '0.9rem',
                                                             display: 'flex',

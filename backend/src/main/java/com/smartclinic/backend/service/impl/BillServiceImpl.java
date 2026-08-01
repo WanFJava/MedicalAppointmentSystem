@@ -48,10 +48,10 @@ public class BillServiceImpl implements BillService {
             return mapToDto(existingBill.get());
         }
 
-        BigDecimal consultationFee = appointment.getDoctor().getConsultationFee() != null 
-                ? appointment.getDoctor().getConsultationFee() 
+        BigDecimal consultationFee = appointment.getDoctor().getConsultationFee() != null
+                ? appointment.getDoctor().getConsultationFee()
                 : BigDecimal.ZERO;
-        
+
         BigDecimal medicineFee = BigDecimal.ZERO;
 
         Optional<MedicalRecord> recordOpt = medicalRecordRepository.findByAppointmentId(appointmentId);

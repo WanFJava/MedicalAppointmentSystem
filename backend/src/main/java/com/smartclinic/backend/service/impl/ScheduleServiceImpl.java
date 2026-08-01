@@ -13,6 +13,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -80,10 +83,10 @@ public class ScheduleServiceImpl implements ScheduleService {
             boolean overlaps = startTime.isBefore(existing.getEndTime()) && endTime.isAfter(existing.getStartTime());
             if (overlaps) {
                 if (existing.getStatus() == ScheduleStatus.IN_PROGRESS) {
-                    throw new IllegalArgumentException("Bác sĩ đang có ca trực ĐANG DIỄN RA trùng khung giờ (" 
+                    throw new IllegalArgumentException("Bác sĩ đang có ca trực ĐANG DIỄN RA trùng khung giờ ("
                             + existing.getStartTime() + " - " + existing.getEndTime() + ") trong ngày " + date + ". Không thể đăng ký/tạo ca khác!");
                 } else {
-                    throw new IllegalArgumentException("Bác sĩ đã có ca trực trùng khung giờ (" 
+                    throw new IllegalArgumentException("Bác sĩ đã có ca trực trùng khung giờ ("
                             + existing.getStartTime() + " - " + existing.getEndTime() + ", Trạng thái: " + existing.getStatus() + ") trong ngày " + date + "!");
                 }
             }
@@ -98,7 +101,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
         Doctor doctor = doctorId != null ? doctorRepository.findById(doctorId).orElse(null) : null;
         checkDoctorIsActive(doctor);
-                
+
         Schedule schedule = new Schedule();
         schedule.setDoctor(doctor);
         schedule.setDate(requestDto.getDate());
@@ -107,7 +110,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         schedule.setMaxPatient(requestDto.getMaxPatient());
         schedule.setCurrentPatient(0);
         schedule.setStatus(ScheduleStatus.OPEN);
-        
+
         return mapToDto(scheduleRepository.save(schedule));
     }
 
@@ -122,7 +125,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         schedule.setMaxPatient(requestDto.getMaxPatient());
         schedule.setCurrentPatient(0);
         schedule.setStatus(ScheduleStatus.OPEN);
-        
+
         return mapToDto(scheduleRepository.save(schedule));
     }
 
@@ -133,8 +136,9 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
         Doctor doctor = doctorRepository.findById(doctorId)
                 .orElseThrow(() -> new RuntimeException("Doctor not found with id: " + doctorId));
+        ensureDoctorIsSelf(doctor);
         checkDoctorIsActive(doctor);
-                
+
         List<Schedule> existingSchedules = scheduleRepository.findByDoctorIdAndDate(doctorId, date);
         if (!existingSchedules.isEmpty()) {
             return existingSchedules.stream().map(this::mapToDto).collect(Collectors.toList());
@@ -301,7 +305,8 @@ public class ScheduleServiceImpl implements ScheduleService {
     public ScheduleDto updateScheduleStatus(Long scheduleId, ScheduleStatus status) {
         Schedule schedule = scheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> new RuntimeException("Schedule not found"));
-                
+        ensureDoctorIsSelf(schedule.getDoctor());
+
         if (status == ScheduleStatus.CANCELLED) {
             if (schedule.getStatus() == ScheduleStatus.IN_PROGRESS || schedule.getStatus() == ScheduleStatus.COMPLETED) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Không thể hủy ca khám đã bắt đầu hoặc đã hoàn thành.");
@@ -310,11 +315,11 @@ public class ScheduleServiceImpl implements ScheduleService {
 
         if (status == ScheduleStatus.COMPLETED) {
             boolean hasUnexamined = appointmentRepository.existsByScheduleIdAndStatusIn(
-                scheduleId, 
+                scheduleId,
                 java.util.Arrays.asList(
-                    com.smartclinic.backend.entity.AppointmentStatus.PENDING, 
-                    com.smartclinic.backend.entity.AppointmentStatus.CONFIRMED, 
-                    com.smartclinic.backend.entity.AppointmentStatus.CHECKED_IN, 
+                    com.smartclinic.backend.entity.AppointmentStatus.PENDING,
+                    com.smartclinic.backend.entity.AppointmentStatus.CONFIRMED,
+                    com.smartclinic.backend.entity.AppointmentStatus.CHECKED_IN,
                     com.smartclinic.backend.entity.AppointmentStatus.IN_PROGRESS
                 )
             );
@@ -322,7 +327,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Không thể kết thúc ca làm việc vì vẫn còn bệnh nhân chưa được khám xong (hoặc chưa đánh dấu vắng mặt).");
             }
         }
-        
+
         schedule.setStatus(status);
         return mapToDto(scheduleRepository.save(schedule));
     }
@@ -333,6 +338,19 @@ public class ScheduleServiceImpl implements ScheduleService {
             throw new RuntimeException("Schedule not found with id: " + scheduleId);
         }
         scheduleRepository.deleteById(scheduleId);
+    }
+
+    private void ensureDoctorIsSelf(Doctor doctor) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isDoctor = authentication != null
+                && authentication.isAuthenticated()
+                && authentication.getAuthorities().stream()
+                        .anyMatch(authority -> authority.getAuthority().equals("ROLE_DOCTOR"));
+        if (isDoctor && (doctor == null
+                || doctor.getUser() == null
+                || !doctor.getUser().getEmail().equals(authentication.getName()))) {
+            throw new AccessDeniedException("You do not have access to this doctor's schedule.");
+        }
     }
 
     private ScheduleDto mapToDto(Schedule schedule) {

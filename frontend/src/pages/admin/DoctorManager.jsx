@@ -33,13 +33,13 @@ const DoctorManager = () => {
 
     const handleOpenModal = (doctor = null) => {
         if (doctor) {
-            setFormData({ 
-                userId: doctor.userId, 
+            setFormData({
+                userId: doctor.userId,
                 email: doctor.email || '',
                 password: '',
                 fullName: doctor.fullName || '',
                 phone: doctor.phone || '',
-                specialtyId: doctor.specialtyId, 
+                specialtyId: doctor.specialtyId,
                 degree: doctor.degree,
                 experience: doctor.experience,
                 consultationFee: doctor.consultationFee,
@@ -48,16 +48,16 @@ const DoctorManager = () => {
             });
             setEditingId(doctor.id);
         } else {
-            setFormData({ 
-                userId: '', 
-                email: '', 
-                password: '', 
-                fullName: '', 
-                phone: '', 
-                specialtyId: (specialties && specialties.length > 0) ? specialties[0].id : '', 
-                degree: '', 
-                experience: 0, 
-                consultationFee: 0, 
+            setFormData({
+                userId: '',
+                email: '',
+                password: '',
+                fullName: '',
+                phone: '',
+                specialtyId: (specialties && specialties.length > 0) ? specialties[0].id : '',
+                degree: '',
+                experience: 0,
+                consultationFee: 0,
                 biography: '',
                 status: 'ACTIVE'
             });
@@ -155,10 +155,10 @@ const DoctorManager = () => {
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                         <div className="user-avatar" style={{ width: '32px', height: '32px', fontSize: '1rem', overflow: 'hidden', borderRadius: '50%' }}>
                                             {doc.avatar ? (
-                                                <img 
-                                                    src={doc.avatar} 
-                                                    alt="Avatar" 
-                                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                                                <img
+                                                    src={doc.avatar}
+                                                    alt="Avatar"
+                                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                                     onError={(e) => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(doc.fullName || 'D')}&background=random`; }}
                                                 />
                                             ) : (
@@ -190,8 +190,8 @@ const DoctorManager = () => {
                                 </td>
                                 <td>
                                     <div className="action-buttons" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                                        <button 
-                                            className="btn-secondary" 
+                                        <button
+                                            className="btn-secondary"
                                             style={{ padding: '0.35rem 0.6rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
                                             onClick={() => navigate(`/admin/schedules?doctorId=${doc.id}`)}
                                             title="Quản lý lịch khám bác sĩ"
@@ -201,7 +201,7 @@ const DoctorManager = () => {
                                         <button className="btn-icon btn-edit" onClick={() => handleOpenModal(doc)}>
                                             <Edit2 size={16} />
                                         </button>
-                                        <button 
+                                        <button
                                             onClick={() => handleToggleStatus(doc)}
                                             style={{
                                                 padding: '0.35rem 0.6rem',
@@ -248,40 +248,40 @@ const DoctorManager = () => {
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                     <div className="form-group">
                                         <label>Full Name</label>
-                                        <input 
-                                            type="text" 
-                                            required 
-                                            value={formData.fullName} 
+                                        <input
+                                            type="text"
+                                            required
+                                            value={formData.fullName}
                                             onChange={(e) => setFormData({...formData, fullName: e.target.value})}
                                             placeholder="Dr. John Doe"
                                         />
                                     </div>
                                     <div className="form-group">
                                         <label>Email</label>
-                                        <input 
-                                            type="email" 
-                                            required 
-                                            value={formData.email} 
+                                        <input
+                                            type="email"
+                                            required
+                                            value={formData.email}
                                             onChange={(e) => setFormData({...formData, email: e.target.value})}
                                             placeholder="doctor@clinic.com"
                                         />
                                     </div>
                                     <div className="form-group">
                                         <label>Phone</label>
-                                        <input 
-                                            type="tel" 
-                                            required 
-                                            value={formData.phone} 
+                                        <input
+                                            type="tel"
+                                            required
+                                            value={formData.phone}
                                             onChange={(e) => setFormData({...formData, phone: e.target.value})}
                                             placeholder="Phone number"
                                         />
                                     </div>
                                     <div className="form-group">
                                         <label>Password</label>
-                                        <input 
-                                            type="password" 
-                                            required 
-                                            value={formData.password} 
+                                        <input
+                                            type="password"
+                                            required
+                                            value={formData.password}
                                             onChange={(e) => setFormData({...formData, password: e.target.value})}
                                             placeholder="Password for login"
                                         />
@@ -291,7 +291,7 @@ const DoctorManager = () => {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div className="form-group">
                                     <label>Specialty</label>
-                                    <select 
+                                    <select
                                         className="form-control"
                                         value={formData.specialtyId}
                                         onChange={(e) => setFormData({...formData, specialtyId: e.target.value})}
@@ -305,35 +305,35 @@ const DoctorManager = () => {
                                 </div>
                                 <div className="form-group">
                                     <label>Degree</label>
-                                    <input 
-                                        type="text" 
-                                        required 
-                                        value={formData.degree} 
+                                    <input
+                                        type="text"
+                                        required
+                                        value={formData.degree}
                                         onChange={(e) => setFormData({...formData, degree: e.target.value})}
                                     />
                                 </div>
                                 <div className="form-group">
                                     <label>Experience (Years)</label>
-                                    <input 
-                                        type="number" 
-                                        required 
-                                        value={formData.experience} 
+                                    <input
+                                        type="number"
+                                        required
+                                        value={formData.experience}
                                         onChange={(e) => setFormData({...formData, experience: e.target.value})}
                                     />
                                 </div>
                                 <div className="form-group">
                                     <label>Consultation Fee</label>
-                                    <input 
-                                        type="number" 
+                                    <input
+                                        type="number"
                                         step="0.01"
-                                        required 
-                                        value={formData.consultationFee} 
+                                        required
+                                        value={formData.consultationFee}
                                         onChange={(e) => setFormData({...formData, consultationFee: e.target.value})}
                                     />
                                 </div>
                                 <div className="form-group">
                                     <label>Account Status</label>
-                                    <select 
+                                    <select
                                         className="form-control"
                                         value={formData.status}
                                         onChange={(e) => setFormData({...formData, status: e.target.value})}
@@ -346,10 +346,10 @@ const DoctorManager = () => {
                             </div>
                             <div className="form-group">
                                 <label>Biography</label>
-                                <textarea 
+                                <textarea
                                     className="form-control"
                                     rows="4"
-                                    value={formData.biography} 
+                                    value={formData.biography}
                                     onChange={(e) => setFormData({...formData, biography: e.target.value})}
                                     placeholder="Enter doctor's biography..."
                                 ></textarea>

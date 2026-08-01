@@ -7,6 +7,7 @@
   ],
   "scripts": {
     "dev": "concurrently --kill-others-on-fail --names api,web --prefix-colors yellow,cyan \"npm run dev --workspace=backend\" \"npm run dev --workspace=frontend\"",
+    "dev:h2": "concurrently --kill-others-on-fail --names api,web --prefix-colors yellow,cyan \"npm run dev:h2 --workspace=backend\" \"npm run dev --workspace=frontend\"",
     "build": "npm run build --workspace=frontend",
     "lint": "npm run lint --workspace=frontend",
     "test": "npm run test --workspace=backend"

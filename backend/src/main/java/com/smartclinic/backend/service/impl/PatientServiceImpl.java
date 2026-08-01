@@ -11,6 +11,9 @@ import com.smartclinic.backend.entity.Doctor;
 import com.smartclinic.backend.dto.DoctorDto;
 import com.smartclinic.backend.service.PatientService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -29,6 +32,7 @@ public class PatientServiceImpl implements PatientService {
     public PatientDto getPatientProfileByUserId(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+        ensurePatientIsSelf(user);
 
         Patient patient = patientRepository.findByUserId(userId).orElse(null);
 
@@ -40,6 +44,7 @@ public class PatientServiceImpl implements PatientService {
     public PatientDto updatePatientProfile(Long userId, PatientDto patientDto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+        ensurePatientIsSelf(user);
 
         // Update User info
         user.setFullName(patientDto.getFullName());
@@ -48,11 +53,11 @@ public class PatientServiceImpl implements PatientService {
 
         // Update or create Patient info
         Patient patient = patientRepository.findByUserId(userId).orElse(new Patient());
-        
+
         if (patient.getId() == null) {
             patient.setUser(user);
         }
-        
+
         patient.setBirthday(patientDto.getBirthday());
         patient.setGender(patientDto.getGender());
         patient.setAddress(patientDto.getAddress());
@@ -87,9 +92,10 @@ public class PatientServiceImpl implements PatientService {
     public void addFavoriteDoctor(Long userId, Long doctorId) {
         Patient patient = patientRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Patient", "userId", userId));
+        ensurePatientIsSelf(patient.getUser());
         Doctor doctor = doctorRepository.findById(doctorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor", "id", doctorId));
-        
+
         patient.getFavoriteDoctors().add(doctor);
         patientRepository.save(patient);
     }
@@ -99,9 +105,10 @@ public class PatientServiceImpl implements PatientService {
     public void removeFavoriteDoctor(Long userId, Long doctorId) {
         Patient patient = patientRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Patient", "userId", userId));
+        ensurePatientIsSelf(patient.getUser());
         Doctor doctor = doctorRepository.findById(doctorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor", "id", doctorId));
-        
+
         patient.getFavoriteDoctors().remove(doctor);
         patientRepository.save(patient);
     }
@@ -111,7 +118,8 @@ public class PatientServiceImpl implements PatientService {
     public List<DoctorDto> getFavoriteDoctors(Long userId) {
         Patient patient = patientRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Patient", "userId", userId));
-        
+        ensurePatientIsSelf(patient.getUser());
+
         return patient.getFavoriteDoctors().stream().map(doctor -> {
             DoctorDto dto = new DoctorDto();
             dto.setId(doctor.getId());
@@ -139,26 +147,37 @@ public class PatientServiceImpl implements PatientService {
         }
 
         if (newStatus == com.smartclinic.backend.entity.Status.INACTIVE) {
-            int activeAppointments = appointmentRepository.countByPatientIdAndStatusIn(patientId, 
+            int activeAppointments = appointmentRepository.countByPatientIdAndStatusIn(patientId,
                 java.util.Arrays.asList(
                     com.smartclinic.backend.entity.AppointmentStatus.CONFIRMED,
                     com.smartclinic.backend.entity.AppointmentStatus.CHECKED_IN,
                     com.smartclinic.backend.entity.AppointmentStatus.IN_PROGRESS
                 ));
-            
+
             if (activeAppointments > 0) {
                 throw new IllegalArgumentException("Không thể ngừng hoạt động tài khoản vì bệnh nhân vẫn còn lịch khám chưa hoàn tất.");
             }
         } else if (newStatus == com.smartclinic.backend.entity.Status.LOCKED) {
-            int ongoingAppointments = appointmentRepository.countByPatientIdAndStatusIn(patientId, 
+            int ongoingAppointments = appointmentRepository.countByPatientIdAndStatusIn(patientId,
                 java.util.Arrays.asList(
                     com.smartclinic.backend.entity.AppointmentStatus.CHECKED_IN,
                     com.smartclinic.backend.entity.AppointmentStatus.IN_PROGRESS
                 ));
-            
+
             if (ongoingAppointments > 0) {
                 throw new IllegalArgumentException("Không thể khóa tài khoản vì bệnh nhân đang ở phòng khám (đã Check-in hoặc đang khám).");
             }
+        }
+    }
+
+    private void ensurePatientIsSelf(User user) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null
+                && authentication.isAuthenticated()
+                && authentication.getAuthorities().stream()
+                        .anyMatch(authority -> authority.getAuthority().equals("ROLE_PATIENT"))
+                && !user.getEmail().equals(authentication.getName())) {
+            throw new AccessDeniedException("You do not have access to this patient profile.");
         }
     }
 }

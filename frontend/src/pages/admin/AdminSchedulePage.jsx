@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getDoctors } from '../../api/adminApi';
-import { 
-    getAllSchedules, 
-    createSchedule, 
+import {
+    getAllSchedules,
+    createSchedule,
     createOpenSchedule,
-    generateSchedules, 
+    generateSchedules,
     generateOpenSchedules,
-    updateScheduleStatus, 
-    deleteSchedule 
+    updateScheduleStatus,
+    deleteSchedule
 } from '../../api/appointmentApi';
 import { Calendar, Plus, Zap, Trash2, Filter, Clock, UserCheck, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
 
@@ -194,14 +194,14 @@ const AdminSchedulePage = () => {
                     </p>
                 </div>
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
-                    <button 
-                        onClick={handleGenerateShifts} 
-                        className="btn-secondary" 
+                    <button
+                        onClick={handleGenerateShifts}
+                        className="btn-secondary"
                         style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1rem' }}
                     >
                         <Zap size={18} color="#d97706" /> Tự động sinh ca
                     </button>
-                    <button 
+                    <button
                         onClick={() => {
                             setCreateForm(prev => ({
                                 ...prev,
@@ -209,8 +209,8 @@ const AdminSchedulePage = () => {
                                 date: selectedDate
                             }));
                             setIsCreateModalOpen(true);
-                        }} 
-                        className="btn-primary" 
+                        }}
+                        className="btn-primary"
                         style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: 'auto', padding: '0.6rem 1.25rem' }}
                     >
                         <Plus size={18} /> Tạo ca khám mới
@@ -219,11 +219,11 @@ const AdminSchedulePage = () => {
             </div>
 
             {/* Filter Bar */}
-            <div style={{ 
-                backgroundColor: 'white', 
-                padding: '1.25rem', 
-                borderRadius: '10px', 
-                boxShadow: '0 1px 3px rgba(0,0,0,0.08)', 
+            <div style={{
+                backgroundColor: 'white',
+                padding: '1.25rem',
+                borderRadius: '10px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
                 marginBottom: '1.5rem',
                 display: 'flex',
                 alignItems: 'center',
@@ -237,18 +237,18 @@ const AdminSchedulePage = () => {
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <label style={{ fontSize: '0.9rem', color: '#4b5563' }}>Ngày khám:</label>
-                    <input 
-                        type="date" 
-                        value={selectedDate} 
-                        onChange={(e) => setSelectedDate(e.target.value)} 
+                    <input
+                        type="date"
+                        value={selectedDate}
+                        onChange={(e) => setSelectedDate(e.target.value)}
                         style={{ padding: '0.5rem', borderRadius: '6px', border: '1px solid #d1d5db' }}
                     />
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <label style={{ fontSize: '0.9rem', color: '#4b5563' }}>Bác sĩ:</label>
-                    <select 
-                        value={selectedDoctorId} 
+                    <select
+                        value={selectedDoctorId}
                         onChange={(e) => setSelectedDoctorId(e.target.value)}
                         style={{ padding: '0.5rem 1rem', borderRadius: '6px', border: '1px solid #d1d5db', minWidth: '200px' }}
                     >
@@ -262,7 +262,7 @@ const AdminSchedulePage = () => {
                 </div>
 
                 {selectedDoctorId && (
-                    <button 
+                    <button
                         onClick={() => setSelectedDoctorId('')}
                         style={{ padding: '0.4rem 0.8rem', backgroundColor: '#f3f4f6', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }}
                     >
@@ -272,11 +272,11 @@ const AdminSchedulePage = () => {
             </div>
 
             {/* Shift Status Reference Card */}
-            <div style={{ 
-                backgroundColor: '#f8fafc', 
-                border: '1px solid #e2e8f0', 
-                borderRadius: '8px', 
-                padding: '1rem 1.25rem', 
+            <div style={{
+                backgroundColor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '8px',
+                padding: '1rem 1.25rem',
                 marginBottom: '1.5rem',
                 fontSize: '0.875rem'
             }}>
@@ -334,16 +334,16 @@ const AdminSchedulePage = () => {
                                     <td>
                                         <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', alignItems: 'center' }}>
                                             {sch.status === 'OPEN' && (
-                                                <button 
-                                                    onClick={() => handleStatusUpdate(sch.id, 'AVAILABLE')} 
+                                                <button
+                                                    onClick={() => handleStatusUpdate(sch.id, 'AVAILABLE')}
                                                     style={{ padding: '0.35rem 0.75rem', backgroundColor: '#dbeafe', color: '#1e40af', border: '1px solid #93c5fd', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}
                                                 >
                                                     Duyệt ca (Set Available)
                                                 </button>
                                             )}
                                             {sch.status !== 'CANCELLED' && sch.status !== 'COMPLETED' && sch.status !== 'IN_PROGRESS' && (
-                                                <button 
-                                                    onClick={() => handleStatusUpdate(sch.id, 'CANCELLED')} 
+                                                <button
+                                                    onClick={() => handleStatusUpdate(sch.id, 'CANCELLED')}
                                                     style={{ padding: '0.35rem 0.75rem', backgroundColor: '#fee2e2', color: '#991b1b', border: '1px solid #fca5a5', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}
                                                 >
                                                     Hủy ca
@@ -370,7 +370,7 @@ const AdminSchedulePage = () => {
                             <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem 0' }}>
                                 <div className="form-group">
                                     <label>Gán Bác Sĩ (Tùy chọn)</label>
-                                    <select 
+                                    <select
                                         className="form-control"
                                         value={createForm.doctorId}
                                         onChange={(e) => setCreateForm({...createForm, doctorId: e.target.value})}
@@ -386,11 +386,11 @@ const AdminSchedulePage = () => {
 
                                 <div className="form-group">
                                     <label>Ngày khám <span style={{ color: 'red' }}>*</span></label>
-                                    <input 
-                                        type="date" 
-                                        required 
+                                    <input
+                                        type="date"
+                                        required
                                         className="form-control"
-                                        value={createForm.date} 
+                                        value={createForm.date}
                                         onChange={(e) => setCreateForm({...createForm, date: e.target.value})}
                                     />
                                 </div>
@@ -398,21 +398,21 @@ const AdminSchedulePage = () => {
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                     <div className="form-group">
                                         <label>Giờ bắt đầu <span style={{ color: 'red' }}>*</span></label>
-                                        <input 
-                                            type="time" 
-                                            required 
+                                        <input
+                                            type="time"
+                                            required
                                             className="form-control"
-                                            value={createForm.startTime} 
+                                            value={createForm.startTime}
                                             onChange={(e) => setCreateForm({...createForm, startTime: e.target.value})}
                                         />
                                     </div>
                                     <div className="form-group">
                                         <label>Giờ kết thúc <span style={{ color: 'red' }}>*</span></label>
-                                        <input 
-                                            type="time" 
-                                            required 
+                                        <input
+                                            type="time"
+                                            required
                                             className="form-control"
-                                            value={createForm.endTime} 
+                                            value={createForm.endTime}
                                             onChange={(e) => setCreateForm({...createForm, endTime: e.target.value})}
                                         />
                                     </div>
@@ -420,13 +420,13 @@ const AdminSchedulePage = () => {
 
                                 <div className="form-group">
                                     <label>Số lượng bệnh nhân tối đa <span style={{ color: 'red' }}>*</span></label>
-                                    <input 
-                                        type="number" 
+                                    <input
+                                        type="number"
                                         min="1"
                                         max="50"
-                                        required 
+                                        required
                                         className="form-control"
-                                        value={createForm.maxPatient} 
+                                        value={createForm.maxPatient}
                                         onChange={(e) => setCreateForm({...createForm, maxPatient: e.target.value})}
                                     />
                                 </div>

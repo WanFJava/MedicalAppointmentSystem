@@ -43,10 +43,10 @@ const MainLayout = () => {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#4b5563' }}>
                                 {user?.avatar ? (
-                                    <img 
-                                        src={user.avatar} 
-                                        alt="Avatar" 
-                                        style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }} 
+                                    <img
+                                        src={user.avatar}
+                                        alt="Avatar"
+                                        style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }}
                                         onError={(e) => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'A')}&background=random`; }}
                                     />
                                 ) : (

@@ -64,8 +64,8 @@ const MyAppointments = () => {
     if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading your appointments...</div>;
 
     const today = new Date().toISOString().split('T')[0];
-    const displayedAppointments = showAll 
-        ? appointments 
+    const displayedAppointments = showAll
+        ? appointments
         : appointments.filter(apt => apt.scheduleDate >= today);
 
     return (
@@ -73,7 +73,7 @@ const MyAppointments = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                 <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: '#1f2937', margin: 0 }}>My Appointments</h1>
                 {!showAll ? (
-                    <button 
+                    <button
                         onClick={() => setShowAll(true)}
                         className="btn-primary"
                         style={{ width: 'auto', padding: '0.75rem 1.5rem', borderRadius: '0.75rem' }}
@@ -81,7 +81,7 @@ const MyAppointments = () => {
                         Xem lịch sử hẹn (Tất cả)
                     </button>
                 ) : (
-                    <button 
+                    <button
                         onClick={() => setShowAll(false)}
                         style={{ padding: '0.75rem 1.5rem', backgroundColor: '#f1f5f9', color: '#475569', border: 'none', borderRadius: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
                     >
@@ -89,7 +89,7 @@ const MyAppointments = () => {
                     </button>
                 )}
             </div>
-            
+
             {appointments.length === 0 ? (
                 <div style={{ backgroundColor: 'white', padding: '3rem', textAlign: 'center', borderRadius: '1rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
                     <Calendar size={48} color="#9ca3af" style={{ margin: '0 auto 1rem' }} />
@@ -101,7 +101,7 @@ const MyAppointments = () => {
                     {displayedAppointments.map(apt => {
                         const statusStyle = getStatusStyle(apt.status);
                         return (
-                            <div key={apt.id} style={{ 
+                            <div key={apt.id} style={{
                                 backgroundColor: 'white', borderRadius: '0.5rem', overflow: 'hidden',
                                 boxShadow: '0 2px 4px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0',
                                 display: 'flex', flexDirection: 'row', alignItems: 'stretch'
@@ -109,15 +109,15 @@ const MyAppointments = () => {
                                 {/* LEFT COLUMN */}
                                 <div style={{ padding: '1.5rem', flex: '1 1 45%', display: 'flex', gap: '1.5rem', borderRight: '1px solid #e2e8f0', alignItems: 'center' }}>
                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '80px' }}>
-                                        <div style={{ 
-                                            width: '80px', height: '80px', borderRadius: '50%', 
+                                        <div style={{
+                                            width: '80px', height: '80px', borderRadius: '50%',
                                             backgroundColor: '#f3f4f6', display: 'flex', justifyContent: 'center', alignItems: 'center',
                                             border: '1px solid #e2e8f0', marginBottom: '0.5rem', color: '#9ca3af', fontSize: '1.5rem', fontWeight: 'bold'
                                         }}>
                                             {apt.doctorName?.charAt(0)}
                                         </div>
                                     </div>
-                                    
+
                                     <div style={{ flex: 1 }}>
                                         <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#0ea5e9', margin: '0 0 0.5rem 0' }}>
                                             {apt.doctorName}
@@ -125,8 +125,8 @@ const MyAppointments = () => {
                                         <div style={{ fontSize: '0.9rem', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.5rem' }}>
                                             <Stethoscope size={16} /> Bác sĩ
                                         </div>
-                                        <span style={{ 
-                                            backgroundColor: statusStyle.bg, color: statusStyle.color, 
+                                        <span style={{
+                                            backgroundColor: statusStyle.bg, color: statusStyle.color,
                                             padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.8rem', fontWeight: 600, display: 'inline-block'
                                         }}>
                                             {apt.status}
@@ -138,7 +138,7 @@ const MyAppointments = () => {
                                         )}
                                     </div>
                                 </div>
-                                
+
                                 {/* RIGHT COLUMN */}
                                 <div style={{ padding: '1.5rem', flex: '1 1 55%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                                     <div style={{ display: 'flex', gap: '2rem', marginBottom: '1.5rem' }}>
@@ -155,12 +155,12 @@ const MyAppointments = () => {
                                             <div style={{ fontWeight: 600, color: '#1f2937', fontSize: '1.1rem' }}>{apt.timeSlot}</div>
                                         </div>
                                     </div>
-                                    
+
                                     <div style={{ display: 'flex', gap: '0.75rem', marginTop: 'auto', flexWrap: 'wrap' }}>
-                                        <button 
+                                        <button
                                             onClick={() => setViewingBookingApt(apt)}
-                                            style={{ 
-                                                padding: '0.5rem 1rem', backgroundColor: '#f1f5f9', color: '#475569', 
+                                            style={{
+                                                padding: '0.5rem 1rem', backgroundColor: '#f1f5f9', color: '#475569',
                                                 border: 'none', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer',
                                                 display: 'flex', alignItems: 'center', gap: '0.5rem', transition: 'all 0.2s'
                                             }}
@@ -171,10 +171,10 @@ const MyAppointments = () => {
                                         </button>
 
                                         {apt.status === 'PENDING' && (
-                                            <button 
+                                            <button
                                                 onClick={() => handleCancel(apt.id)}
-                                                style={{ 
-                                                    padding: '0.5rem 1rem', backgroundColor: '#fee2e2', color: '#dc2626', 
+                                                style={{
+                                                    padding: '0.5rem 1rem', backgroundColor: '#fee2e2', color: '#dc2626',
                                                     border: 'none', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s'
                                                 }}
                                                 onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#fecaca'}
@@ -183,12 +183,12 @@ const MyAppointments = () => {
                                                 Hủy lịch
                                             </button>
                                         )}
-                                        
+
                                         {apt.status === 'CANCELLED_BY_DOCTOR' && (apt.note === 'Vắng bác sĩ' || apt.note === 'V\\u1EAFng b\\u00E1c s\\u0129' || apt.note === 'V?ng bác s?') && (
-                                            <button 
+                                            <button
                                                 onClick={() => alert('Gửi khiếu nại thành công đến bộ phận Lễ tân. Chúng tôi sẽ xử lý và liên hệ lại với bạn sớm nhất!')}
-                                                style={{ 
-                                                    padding: '0.5rem 1rem', backgroundColor: '#fef2f2', color: '#ef4444', 
+                                                style={{
+                                                    padding: '0.5rem 1rem', backgroundColor: '#fef2f2', color: '#ef4444',
                                                     border: '1px solid #fca5a5', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s'
                                                 }}
                                                 onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#fee2e2'}
@@ -198,12 +198,12 @@ const MyAppointments = () => {
                                                 Khiếu nại
                                             </button>
                                         )}
-                                        
+
                                         {['COMPLETED', 'PAID'].includes(apt.status) && (
-                                            <button 
+                                            <button
                                                 onClick={() => setViewingRecordApt(apt)}
-                                                style={{ 
-                                                    padding: '0.5rem 1rem', backgroundColor: '#e0e7ff', color: '#4f46e5', 
+                                                style={{
+                                                    padding: '0.5rem 1rem', backgroundColor: '#e0e7ff', color: '#4f46e5',
                                                     border: 'none', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer',
                                                     display: 'flex', alignItems: 'center', gap: '0.5rem'
                                                 }}
@@ -213,12 +213,12 @@ const MyAppointments = () => {
                                         )}
 
                                         {['COMPLETED', 'PAID'].includes(apt.status) && (
-                                            <button 
+                                            <button
                                                 onClick={() => setFeedbackApt(apt)}
-                                                style={{ 
-                                                    padding: '0.5rem 1rem', 
-                                                    backgroundColor: apt.isReviewed ? '#f3f4f6' : '#fef9c3', 
-                                                    color: apt.isReviewed ? '#6b7280' : '#854d0e', 
+                                                style={{
+                                                    padding: '0.5rem 1rem',
+                                                    backgroundColor: apt.isReviewed ? '#f3f4f6' : '#fef9c3',
+                                                    color: apt.isReviewed ? '#6b7280' : '#854d0e',
                                                     border: 'none', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer',
                                                     display: 'flex', alignItems: 'center', gap: '0.5rem'
                                                 }}
@@ -235,21 +235,21 @@ const MyAppointments = () => {
             )}
 
             {viewingRecordApt && (
-                <PatientRecordModal 
-                    appointment={viewingRecordApt} 
-                    onClose={() => setViewingRecordApt(null)} 
+                <PatientRecordModal
+                    appointment={viewingRecordApt}
+                    onClose={() => setViewingRecordApt(null)}
                 />
             )}
 
             {viewingBookingApt && (
-                <ViewBookingModal 
-                    appointment={viewingBookingApt} 
-                    onClose={() => setViewingBookingApt(null)} 
+                <ViewBookingModal
+                    appointment={viewingBookingApt}
+                    onClose={() => setViewingBookingApt(null)}
                 />
             )}
 
             {feedbackApt && (
-                <FeedbackModal 
+                <FeedbackModal
                     appointment={feedbackApt}
                     isReadOnly={feedbackApt.isReviewed}
                     onClose={() => setFeedbackApt(null)}

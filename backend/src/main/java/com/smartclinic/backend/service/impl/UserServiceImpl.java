@@ -98,7 +98,7 @@ public class UserServiceImpl implements UserService {
     public void lockUser(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
-        
+
         if (user.getRole() == Role.DOCTOR && user.getStatus() != Status.LOCKED) {
             try {
                 com.smartclinic.backend.dto.DoctorDto doctorDto = doctorService.getDoctorByUserId(user.getId());
@@ -109,7 +109,7 @@ public class UserServiceImpl implements UserService {
                 // ignore if doctor profile not found yet
             }
         }
-        
+
         user.setStatus(Status.LOCKED);
         userRepository.save(user);
     }

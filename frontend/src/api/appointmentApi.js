@@ -12,7 +12,7 @@ export const getDoctorSchedules = async (doctorId, date) => {
 };
 
 export const getAvailableSchedules = async (doctorId, date) => {
-    const url = date 
+    const url = date
         ? `/schedules/available/doctor/${doctorId}?date=${date}`
         : `/schedules/available/doctor/${doctorId}`;
     const response = await api.get(url);

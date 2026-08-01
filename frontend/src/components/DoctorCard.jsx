@@ -7,7 +7,7 @@ import { getAvailableSchedules } from '../api/appointmentApi';
 const DoctorCard = ({ doc, onDoctorSelect }) => {
     const navigate = useNavigate();
     const { user, favoriteDoctorIds, toggleFavorite } = useContext(AuthContext);
-    
+
     const [schedulesByDate, setSchedulesByDate] = React.useState({});
     const [dates, setDates] = React.useState([]);
     const [selectedDate, setSelectedDate] = React.useState('');
@@ -71,18 +71,18 @@ const DoctorCard = ({ doc, onDoctorSelect }) => {
                     </div>
                     <span style={{ color: '#0ea5e9', fontSize: '0.875rem', fontWeight: '500', cursor: 'pointer' }}>Xem thêm</span>
                 </div>
-                
+
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
                         {user && user.role === 'PATIENT' && (
-                            <button 
+                            <button
                                 onClick={(e) => { e.stopPropagation(); toggleFavorite(doc.id); }}
                                 style={{
-                                    background: favoriteDoctorIds?.has(doc.id) ? '#fbbf24' : 'transparent', 
-                                    border: `1px solid ${favoriteDoctorIds?.has(doc.id) ? '#fbbf24' : '#d1d5db'}`, 
+                                    background: favoriteDoctorIds?.has(doc.id) ? '#fbbf24' : 'transparent',
+                                    border: `1px solid ${favoriteDoctorIds?.has(doc.id) ? '#fbbf24' : '#d1d5db'}`,
                                     borderRadius: '1rem',
                                     padding: '0.15rem 0.5rem', display: 'flex', alignItems: 'center', gap: '0.25rem',
-                                    color: favoriteDoctorIds?.has(doc.id) ? 'white' : '#6b7280', 
+                                    color: favoriteDoctorIds?.has(doc.id) ? 'white' : '#6b7280',
                                     cursor: 'pointer', transition: 'all 0.2s',
                                     fontSize: '0.75rem', fontWeight: '600'
                                 }}
@@ -97,11 +97,11 @@ const DoctorCard = ({ doc, onDoctorSelect }) => {
                             {doc.degree ? `${doc.degree} ` : ''}{doc.fullName}
                         </h3>
                     </div>
-                    
+
                     <div style={{ fontSize: '0.9rem', color: '#4b5563', marginBottom: '0.25rem' }}>
                         {doc.experience ? `Bác sĩ có ${doc.experience} năm kinh nghiệm` : 'Bác sĩ chuyên khoa'}
                     </div>
-                    
+
                     {doc.specialtyName && (
                         <div style={{ fontSize: '0.9rem', color: '#4b5563', marginBottom: '0.25rem' }}>
                             Chuyên khoa: {doc.specialtyName}
@@ -118,11 +118,11 @@ const DoctorCard = ({ doc, onDoctorSelect }) => {
                             <Calendar size={16} /> Lịch khám
                         </div>
                         {dates.length > 0 && (
-                            <select 
-                                value={selectedDate} 
+                            <select
+                                value={selectedDate}
                                 onChange={(e) => setSelectedDate(e.target.value)}
                                 onClick={(e) => e.stopPropagation()}
-                                style={{ 
+                                style={{
                                     padding: '0.25rem 0.5rem', border: 'none', background: 'transparent',
                                     color: '#0ea5e9', fontWeight: '600', fontSize: '0.9rem', cursor: 'pointer', outline: 'none'
                                 }}
@@ -133,13 +133,13 @@ const DoctorCard = ({ doc, onDoctorSelect }) => {
                             </select>
                         )}
                     </div>
-                    
+
                     <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
                         {dates.length === 0 ? (
                             <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>Chưa có lịch khám nào trong thời gian tới.</div>
                         ) : schedulesByDate[selectedDate]?.length > 0 ? (
                             schedulesByDate[selectedDate].map(sched => (
-                                <button key={sched.id} 
+                                <button key={sched.id}
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         if (user) {
@@ -148,7 +148,7 @@ const DoctorCard = ({ doc, onDoctorSelect }) => {
                                             navigate('/login');
                                         }
                                     }}
-                                    style={{ 
+                                    style={{
                                         background: '#f1f5f9', padding: '0.5rem 1rem', borderRadius: '0.25rem', border: 'none',
                                         fontSize: '0.85rem', fontWeight: '600', color: '#334155', cursor: 'pointer', transition: 'background 0.2s'
                                     }}
@@ -162,7 +162,7 @@ const DoctorCard = ({ doc, onDoctorSelect }) => {
                             <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>Không có lịch vào ngày này.</div>
                         )}
                     </div>
-                    
+
                     {dates.length > 0 && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8rem', color: '#6b7280' }}>
                             Chọn <CheckSquare size={12} /> và đặt (Phí đặt lịch 0đ)
@@ -177,7 +177,7 @@ const DoctorCard = ({ doc, onDoctorSelect }) => {
                         <span style={{ color: '#0ea5e9', marginLeft: '0.5rem', fontSize: '0.85rem', cursor: 'pointer' }}>Xem chi tiết</span>
                     </div>
                     {onDoctorSelect && (
-                        <button 
+                        <button
                             onClick={(e) => { e.stopPropagation(); onDoctorSelect(doc); }}
                             style={{
                                 backgroundColor: '#0ea5e9', color: 'white', padding: '0.5rem 1.5rem', borderRadius: '0.5rem',

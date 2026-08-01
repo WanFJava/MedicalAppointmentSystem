@@ -32,7 +32,7 @@ public class AdminController {
         long totalDoctors = doctorRepository.count();
         long totalPatients = patientRepository.count();
         long activeSpecialties = specialtyRepository.count();
-        
+
         // Count appointments today
         LocalDate today = LocalDate.now();
         long appointmentsToday = appointmentRepository.findAll().stream()

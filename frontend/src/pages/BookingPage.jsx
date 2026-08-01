@@ -18,7 +18,7 @@ const BookingPage = () => {
     const [specialties, setSpecialties] = useState([]);
     const [doctors, setDoctors] = useState([]);
     const [filteredDoctors, setFilteredDoctors] = useState([]);
-    
+
     // Selection state
     const [selectedSpec, setSelectedSpec] = useState(location.state?.selectedSpec || '');
     const [selectedDoctor, setSelectedDoctor] = useState(null);
@@ -27,7 +27,7 @@ const BookingPage = () => {
     const [selectedSchedule, setSelectedSchedule] = useState(null);
     const [symptom, setSymptom] = useState('');
     const [patientProfile, setPatientProfile] = useState(null);
-    
+
     const [step, setStep] = useState(location.state?.step || 1);
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
@@ -35,9 +35,9 @@ const BookingPage = () => {
     // Sync step and selectedSpec to history state so it's preserved when navigating back
     useEffect(() => {
         if (step !== (location.state?.step || 1) || selectedSpec !== (location.state?.selectedSpec || '')) {
-            navigate(location.pathname, { 
-                replace: true, 
-                state: { ...location.state, step, selectedSpec } 
+            navigate(location.pathname, {
+                replace: true,
+                state: { ...location.state, step, selectedSpec }
             });
         }
     }, [step, selectedSpec, navigate, location.pathname, location.state]);
@@ -64,13 +64,13 @@ const BookingPage = () => {
             const [specs, docs] = await Promise.all([getSpecialties(), getDoctors()]);
             setSpecialties(specs);
             setDoctors(docs);
-            
+
             if (preselectDoctorId) {
                 const doc = docs.find(d => d.id === preselectDoctorId);
                 if (doc) {
                     setSelectedSpec(doc.specialtyId);
                     setSelectedDoctor(doc);
-                    
+
                     if (initialSelectedDate && initialSelectedSchedule) {
                         setSelectedDate(initialSelectedDate);
                         setSelectedSchedule(initialSelectedSchedule);
@@ -115,7 +115,7 @@ const BookingPage = () => {
                 return acc;
             }, {});
             setSchedulesByDate(grouped);
-            
+
             const availableDates = Object.keys(grouped).sort();
             if (availableDates.length > 0) {
                 setSelectedDate(availableDates[0]);
@@ -153,7 +153,7 @@ const BookingPage = () => {
             alert("Please provide your symptoms.");
             return;
         }
-        
+
         try {
             setLoading(true);
             const response = await bookAppointment(user.id, {
@@ -196,7 +196,7 @@ const BookingPage = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4rem', position: 'relative', maxWidth: '800px', margin: '0 auto 4rem auto' }}>
                 <div style={{ position: 'absolute', top: '24px', left: '10%', right: '10%', height: '4px', backgroundColor: '#e2e8f0', zIndex: 1 }}></div>
                 <div style={{ position: 'absolute', top: '24px', left: '10%', width: `${(step - 1) * 33.33}%`, height: '4px', backgroundColor: 'var(--primary-color)', zIndex: 1, transition: 'width 0.4s ease' }}></div>
-                
+
                 {[
                     { num: 1, label: 'Specialty', icon: <Stethoscope size={24} /> },
                     { num: 2, label: 'Doctor', icon: <User size={24} /> },
@@ -204,8 +204,8 @@ const BookingPage = () => {
                     { num: 4, label: 'Confirm', icon: <CheckCircle size={24} /> }
                 ].map(s => (
                     <div key={s.num} style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
-                        <div style={{ 
-                            width: '52px', height: '52px', borderRadius: '50%', 
+                        <div style={{
+                            width: '52px', height: '52px', borderRadius: '50%',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             backgroundColor: step >= s.num ? 'var(--primary-color)' : 'white',
                             color: step >= s.num ? 'white' : '#94a3b8',
@@ -221,7 +221,7 @@ const BookingPage = () => {
             </div>
 
             <div className="booking-main-card">
-                
+
                 {/* STEP 1: Specialty */}
                 {step === 1 && (
                     <div style={{ animation: 'fadeIn 0.3s ease-out' }}>
@@ -250,15 +250,15 @@ const BookingPage = () => {
                                     cursor: 'pointer'
                                 }}
                                 onClick={() => handleSpecSelect(spec.id)}
-                                onMouseOver={(e) => { 
-                                    e.currentTarget.style.transform = 'translateY(-2px)'; 
-                                    e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)'; 
+                                onMouseOver={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(-2px)';
+                                    e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
                                     const arrow = e.currentTarget.querySelector('.arrow-icon');
                                     if (arrow) arrow.style.transform = 'translateX(5px)';
                                 }}
-                                onMouseOut={(e) => { 
-                                    e.currentTarget.style.transform = 'translateY(0)'; 
-                                    e.currentTarget.style.boxShadow = '0 2px 4px -1px rgba(0, 0, 0, 0.05)'; 
+                                onMouseOut={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                    e.currentTarget.style.boxShadow = '0 2px 4px -1px rgba(0, 0, 0, 0.05)';
                                     const arrow = e.currentTarget.querySelector('.arrow-icon');
                                     if (arrow) arrow.style.transform = 'translateX(0)';
                                 }}
@@ -266,15 +266,15 @@ const BookingPage = () => {
                                     {/* LEFT COLUMN: Icon & Title */}
                                     <div style={{ padding: '1.5rem', flex: '1 1 45%', display: 'flex', gap: '1.5rem', borderRight: '1px solid #e2e8f0', alignItems: 'center' }}>
                                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '100px' }}>
-                                            <div style={{ 
-                                                width: '100px', 
-                                                height: '100px', 
-                                                borderRadius: '50%', 
-                                                backgroundColor: '#e0e7ff', 
-                                                display: 'flex', 
-                                                justifyContent: 'center', 
-                                                alignItems: 'center', 
-                                                marginBottom: '0.5rem', 
+                                            <div style={{
+                                                width: '100px',
+                                                height: '100px',
+                                                borderRadius: '50%',
+                                                backgroundColor: '#e0e7ff',
+                                                display: 'flex',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                                marginBottom: '0.5rem',
                                                 border: '3px solid #c7d2fe',
                                                 color: '#4f46e5'
                                             }}>
@@ -282,7 +282,7 @@ const BookingPage = () => {
                                             </div>
                                             <span style={{ color: '#0ea5e9', fontSize: '0.875rem', fontWeight: '500' }}>Chọn</span>
                                         </div>
-                                        
+
                                         <div style={{ flex: 1 }}>
                                             <h3 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#0ea5e9', margin: 0 }}>
                                                 {spec.name}
@@ -292,7 +292,7 @@ const BookingPage = () => {
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     {/* RIGHT COLUMN: Description & Action */}
                                     <div style={{ padding: '1.5rem', flex: '1 1 55%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                                         <p style={{ color: '#64748b', fontSize: '1rem', lineHeight: '1.6', marginBottom: '1.5rem' }}>
@@ -340,7 +340,7 @@ const BookingPage = () => {
                             ← {preselectDoctorId ? 'Back' : 'Back to Doctors'}
                         </button>
                         <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '2rem', color: '#111827' }}>Select Date & Time</h2>
-                        
+
                         <div style={{ marginBottom: '2.5rem', backgroundColor: '#f8fafc', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #e2e8f0' }}>
                             <label style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 700, color: '#374151', fontSize: '1.125rem' }}>Select Date</label>
                             {loading ? (
@@ -349,12 +349,12 @@ const BookingPage = () => {
                                 <p style={{ color: '#ef4444', fontWeight: 500 }}>This doctor has no available schedules at the moment.</p>
                             ) : (
                                 <div>
-                                    <input 
+                                    <input
                                         type="date"
                                         value={selectedDate}
                                         onChange={(e) => handleDateChange(e.target.value)}
                                         style={{
-                                            padding: '1rem', 
+                                            padding: '1rem',
                                             borderRadius: '0.75rem',
                                             border: '2px solid #cbd5e1',
                                             width: '100%',
@@ -407,7 +407,7 @@ const BookingPage = () => {
                             ← {(preselectDoctorId && initialSelectedDate && initialSelectedSchedule) ? 'Back' : 'Back to Time Slots'}
                         </button>
                         <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '2rem', color: '#111827' }}>Confirm Appointment Details</h2>
-                        
+
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2.5rem' }}>
                             <div style={{ backgroundColor: '#f8fafc', padding: '2rem', borderRadius: '1.25rem', border: '1px solid #e2e8f0' }}>
                                 <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1f2937', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -472,7 +472,7 @@ const BookingPage = () => {
 
                         <div style={{ marginBottom: '2.5rem' }}>
                             <label style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 700, color: '#111827', fontSize: '1.125rem' }}>Describe your symptoms <span style={{color: '#ef4444'}}>*</span></label>
-                            <textarea 
+                            <textarea
                                 value={symptom}
                                 onChange={(e) => setSymptom(e.target.value)}
                                 placeholder="E.g., I have a severe headache and fever..."
@@ -483,8 +483,8 @@ const BookingPage = () => {
                             ></textarea>
                         </div>
 
-                        <button 
-                            className="btn-primary" 
+                        <button
+                            className="btn-primary"
                             style={{ width: '100%', padding: '1.25rem', fontSize: '1.125rem', borderRadius: '1rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.75rem', boxShadow: '0 10px 15px -3px rgba(79, 70, 229, 0.3)' }}
                             onClick={handleBooking}
                             disabled={loading || !symptom.trim()}

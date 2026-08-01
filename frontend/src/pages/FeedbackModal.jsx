@@ -91,7 +91,7 @@ const FeedbackModal = ({ appointment, isReadOnly, onClose, onFeedbackSubmitted }
                     ) : (
                         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                             {error && <div style={{ color: '#ef4444', fontSize: '0.875rem' }}>{error}</div>}
-                            
+
                             {!isReadOnly && (
                                 <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
                                     How was your experience with <strong>{appointment.doctorName}</strong> on {appointment.scheduleDate}?
@@ -127,14 +127,14 @@ const FeedbackModal = ({ appointment, isReadOnly, onClose, onFeedbackSubmitted }
                                 <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#334155', marginBottom: '0.5rem' }}>
                                     Comment
                                 </label>
-                                <textarea 
+                                <textarea
                                     disabled={isReadOnly}
                                     value={comment}
                                     onChange={(e) => setComment(e.target.value)}
                                     placeholder={isReadOnly ? '' : "Tell us about your experience..."}
-                                    style={{ 
-                                        width: '100%', minHeight: '100px', padding: '0.75rem', 
-                                        borderRadius: '0.5rem', border: '1px solid #cbd5e1', 
+                                    style={{
+                                        width: '100%', minHeight: '100px', padding: '0.75rem',
+                                        borderRadius: '0.5rem', border: '1px solid #cbd5e1',
                                         backgroundColor: isReadOnly ? '#f8fafc' : 'white',
                                         color: '#334155', resize: 'vertical'
                                     }}
@@ -143,22 +143,22 @@ const FeedbackModal = ({ appointment, isReadOnly, onClose, onFeedbackSubmitted }
 
                             {!isReadOnly && (
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '0.5rem' }}>
-                                    <button 
-                                        type="button" 
+                                    <button
+                                        type="button"
                                         onClick={onClose}
-                                        style={{ 
-                                            padding: '0.5rem 1rem', backgroundColor: '#f1f5f9', color: '#475569', 
-                                            border: 'none', borderRadius: '0.5rem', fontWeight: 500, cursor: 'pointer' 
+                                        style={{
+                                            padding: '0.5rem 1rem', backgroundColor: '#f1f5f9', color: '#475569',
+                                            border: 'none', borderRadius: '0.5rem', fontWeight: 500, cursor: 'pointer'
                                         }}
                                     >
                                         Cancel
                                     </button>
-                                    <button 
-                                        type="submit" 
+                                    <button
+                                        type="submit"
                                         disabled={loading}
-                                        style={{ 
-                                            padding: '0.5rem 1.5rem', backgroundColor: '#3b82f6', color: 'white', 
-                                            border: 'none', borderRadius: '0.5rem', fontWeight: 500, 
+                                        style={{
+                                            padding: '0.5rem 1.5rem', backgroundColor: '#3b82f6', color: 'white',
+                                            border: 'none', borderRadius: '0.5rem', fontWeight: 500,
                                             cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1
                                         }}
                                     >

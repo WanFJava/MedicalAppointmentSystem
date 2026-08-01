@@ -47,22 +47,22 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
         record.setAppointment(appointment);
         record.setDiagnosis(requestDto.getDiagnosis());
         record.setDoctorNote(requestDto.getAdvice());
-        
+
         MedicalRecord savedRecord = medicalRecordRepository.save(record);
 
         if (requestDto.getPrescriptions() != null && !requestDto.getPrescriptions().isEmpty()) {
             Prescription prescription = new Prescription();
             prescription.setMedicalRecord(savedRecord);
             Prescription savedPrescription = prescriptionRepository.save(prescription);
-            
+
             for (PrescriptionItemDto item : requestDto.getPrescriptions()) {
                 Medicine medicine = medicineRepository.findById(item.getMedicineId())
                         .orElseThrow(() -> new ResourceNotFoundException("Medicine", "id", item.getMedicineId()));
-                
+
                 if (medicine.getQuantity() < item.getQuantity()) {
                     throw new IllegalArgumentException("Thuốc " + medicine.getName() + " không đủ số lượng trong kho. Còn lại: " + medicine.getQuantity());
                 }
-                
+
                 // Deduct stock
                 medicine.setQuantity(medicine.getQuantity() - item.getQuantity());
                 medicineRepository.save(medicine);
@@ -73,7 +73,7 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
                 detail.setDosage(item.getDosage());
                 detail.setInstruction(item.getInstruction());
                 detail.setQuantity(item.getQuantity());
-                
+
                 prescriptionDetailRepository.save(detail);
             }
         }
@@ -90,14 +90,14 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
                 .orElseThrow(() -> new ResourceNotFoundException("MedicalRecord", "appointmentId", appointmentId));
 
         List<Prescription> prescriptions = prescriptionRepository.findByMedicalRecordId(record.getId());
-        
+
         List<PrescriptionDto> prescriptionDtos = java.util.Collections.emptyList();
-        
+
         if (!prescriptions.isEmpty()) {
             // Take the first prescription linked to this record
             Prescription p = prescriptions.get(0);
             List<PrescriptionDetail> details = prescriptionDetailRepository.findByPrescriptionId(p.getId());
-            
+
             prescriptionDtos = details.stream().map(d -> new PrescriptionDto(
                     d.getId(),
                     d.getMedicine().getId(),

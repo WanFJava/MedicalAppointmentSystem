@@ -57,7 +57,7 @@ public class ScheduleAutoUpdateService {
                 if (schedule.getStatus() != ScheduleStatus.IN_PROGRESS) {
                     schedule.setNote("Vắng bác sĩ");
                     schedule.setStatus(ScheduleStatus.CANCELLED);
-                    
+
                     // Cascade cancellation to appointments
                     List<com.smartclinic.backend.entity.Appointment> relatedApts = appointmentRepository.findByScheduleId(schedule.getId());
                     for (com.smartclinic.backend.entity.Appointment apt : relatedApts) {

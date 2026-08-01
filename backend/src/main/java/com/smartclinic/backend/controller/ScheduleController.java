@@ -21,6 +21,7 @@ public class ScheduleController {
     private final com.smartclinic.backend.service.impl.ScheduleAutoUpdateService scheduleAutoUpdateService;
 
     @PostMapping("/force-auto-update")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> forceAutoUpdate() {
         scheduleAutoUpdateService.autoUpdateExpiredSchedules();
         return ResponseEntity.ok("Triggered auto update");

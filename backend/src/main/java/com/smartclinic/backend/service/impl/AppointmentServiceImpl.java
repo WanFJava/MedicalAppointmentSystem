@@ -155,7 +155,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     public AppointmentDto updateAppointmentStatus(Long appointmentId, AppointmentStatus status) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch hẹn với ID: " + appointmentId));
-        
+
         AppointmentStatus oldStatus = appointment.getStatus();
 
         // Enforce patient rules
@@ -174,6 +174,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         // Enforce Doctor rules
         if (auth != null && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_DOCTOR") || a.getAuthority().equals("DOCTOR"))) {
+            ensureDoctorIsSelf(appointment.getDoctor());
             if (status == AppointmentStatus.CONFIRMED) {
                 throw new IllegalArgumentException("Bác sĩ không có quyền xác nhận (CONFIRM) lịch hẹn. Việc này do Lễ tân thực hiện.");
             }
@@ -194,7 +195,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         // If cancelled, free up and reset the schedule spot to AVAILABLE.
         // NO_SHOW is treated like COMPLETED for schedule capacity, so it doesn't free the spot.
-        boolean isCancellation = status == AppointmentStatus.CANCELLED_BY_PATIENT || 
+        boolean isCancellation = status == AppointmentStatus.CANCELLED_BY_PATIENT ||
                                  status == AppointmentStatus.CANCELLED_BY_DOCTOR;
 
         if (isCancellation) {
@@ -203,7 +204,7 @@ public class AppointmentServiceImpl implements AppointmentService {
                 int currentPatientCount = schedule.getCurrentPatient() == null ? 0 : schedule.getCurrentPatient();
                 int newCurrent = Math.max(0, currentPatientCount - 1);
                 schedule.setCurrentPatient(newCurrent);
-                
+
                 // Reset schedule status to AVAILABLE so doctor schedule remains active & available
                 if (schedule.getStatus() != ScheduleStatus.CANCELLED) {
                     schedule.setStatus(ScheduleStatus.AVAILABLE);
@@ -221,7 +222,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     public void deleteAppointment(Long appointmentId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
-        
+
         // If the appointment was occupying a schedule spot, free it up before deleting
         if (appointment.getStatus() != AppointmentStatus.PENDING && appointment.getStatus() != AppointmentStatus.CANCELLED_BY_PATIENT && appointment.getStatus() != AppointmentStatus.CANCELLED_BY_DOCTOR) {
             Schedule schedule = appointment.getSchedule();
@@ -231,10 +232,10 @@ public class AppointmentServiceImpl implements AppointmentService {
                 scheduleRepository.save(schedule);
             }
         }
-        
+
         // Cascading delete
         billRepository.findByAppointmentId(appointmentId).ifPresent(billRepository::delete);
-        
+
         medicalRecordRepository.findByAppointmentId(appointmentId).ifPresent(record -> {
             prescriptionRepository.findByMedicalRecordId(record.getId()).forEach(prescription -> {
                 List<PrescriptionDetail> details = prescriptionDetailRepository.findByPrescriptionId(prescription.getId());
@@ -243,7 +244,7 @@ public class AppointmentServiceImpl implements AppointmentService {
             });
             medicalRecordRepository.delete(record);
         });
-        
+
         appointmentRepository.delete(appointment);
     }
 
@@ -252,11 +253,11 @@ public class AppointmentServiceImpl implements AppointmentService {
     public void callNext(Long appointmentId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
-                
+
         if (appointment.getSchedule() != null && appointment.getSchedule().getStatus() != ScheduleStatus.IN_PROGRESS) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bác sĩ chưa bắt đầu ca làm việc này. Lễ tân không thể gọi bệnh nhân.");
         }
-        
+
         appointment.setStatus(AppointmentStatus.IN_PROGRESS);
         appointmentRepository.save(appointment);
     }
@@ -266,11 +267,11 @@ public class AppointmentServiceImpl implements AppointmentService {
     public void swapQueue(Long id1, Long id2) {
         Appointment apt1 = appointmentRepository.findById(id1).orElseThrow();
         Appointment apt2 = appointmentRepository.findById(id2).orElseThrow();
-        
+
         Integer temp = apt1.getQueueNumber();
         apt1.setQueueNumber(apt2.getQueueNumber());
         apt2.setQueueNumber(temp);
-        
+
         appointmentRepository.save(apt1);
         appointmentRepository.save(apt2);
     }
@@ -280,7 +281,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     public void skipQueue(Long appointmentId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
-        
+
         Integer maxQueue = appointmentRepository.findMaxQueueNumberForDoctorAndDate(
                 appointment.getDoctor().getId(),
                 appointment.getSchedule().getDate()

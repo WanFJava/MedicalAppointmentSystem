@@ -19,9 +19,9 @@ const BillModal = ({ appointment, onClose, onSuccess }) => {
                 generateBill(appointment.id).catch(() => null),
                 getMedicalRecordByAppointment(appointment.id).catch(() => null)
             ]);
-            
+
             if (!billData) throw new Error("Failed to generate bill");
-            
+
             setBill(billData);
             setRecord(recordData);
         } catch (error) {
@@ -52,8 +52,8 @@ const BillModal = ({ appointment, onClose, onSuccess }) => {
     if (loading && !bill) {
         return (
             <div style={{
-                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
-                backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', 
+                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex',
                 justifyContent: 'center', alignItems: 'center', zIndex: 1000
             }}>
                 <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '8px' }}>
@@ -65,12 +65,12 @@ const BillModal = ({ appointment, onClose, onSuccess }) => {
 
     return (
         <div style={{
-            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
-            backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', 
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex',
             justifyContent: 'center', alignItems: 'center', zIndex: 1000
         }}>
             <div style={{
-                backgroundColor: 'white', borderRadius: '8px', padding: '2rem', 
+                backgroundColor: 'white', borderRadius: '8px', padding: '2rem',
                 width: '100%', maxWidth: '500px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
             }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid #e5e7eb', paddingBottom: '1rem' }}>
@@ -94,7 +94,7 @@ const BillModal = ({ appointment, onClose, onSuccess }) => {
                         <span>Phí khám bệnh:</span>
                         <span style={{ fontWeight: '500' }}>{bill.consultationFee?.toLocaleString('vi-VN')}đ</span>
                     </div>
-                    
+
                     {(bill.medicineFee > 0 || bill.medicineFee === 0) && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', color: '#4b5563', fontSize: '1rem' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -120,9 +120,9 @@ const BillModal = ({ appointment, onClose, onSuccess }) => {
                             <span style={{ fontWeight: '500' }}>-{bill.discount?.toLocaleString('vi-VN')}đ</span>
                         </div>
                     )}
-                    
+
                     <hr style={{ border: 'none', borderTop: '1px dashed #cbd5e1', margin: '0.5rem 0' }} />
-                    
+
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '1.25rem', fontWeight: 'bold' }}>
                         <span style={{ color: '#1f2937' }}>Tổng cộng:</span>
                         <span style={{ color: '#0ea5e9', fontSize: '1.5rem' }}>{bill.totalAmount?.toLocaleString('vi-VN')}đ</span>
@@ -134,10 +134,10 @@ const BillModal = ({ appointment, onClose, onSuccess }) => {
                         Đóng
                     </button>
                     {bill.status === 'UNPAID' && (
-                        <button 
-                            onClick={handlePayment} 
-                            disabled={loading} 
-                            className="btn-primary" 
+                        <button
+                            onClick={handlePayment}
+                            disabled={loading}
+                            className="btn-primary"
                             style={{ padding: '0.5rem 1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                         >
                             <CheckCircle size={16} /> Xác nhận thanh toán

@@ -37,7 +37,7 @@ const SearchPage = () => {
 
 
     const currentQuery = searchParams.get("q") || "";
-    
+
     const normalizeString = (str) => {
         if (!str) return '';
         return str.normalize('NFD')
@@ -113,15 +113,15 @@ const SearchPage = () => {
                                         cursor: 'pointer'
                                     }}
                                     onClick={() => navigate(`/specialty/${spec.id}`)}
-                                    onMouseOver={(e) => { 
-                                        e.currentTarget.style.transform = 'translateY(-2px)'; 
-                                        e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)'; 
+                                    onMouseOver={(e) => {
+                                        e.currentTarget.style.transform = 'translateY(-2px)';
+                                        e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
                                         const arrow = e.currentTarget.querySelector('.arrow-icon');
                                         if (arrow) arrow.style.transform = 'translateX(5px)';
                                     }}
-                                    onMouseOut={(e) => { 
-                                        e.currentTarget.style.transform = 'translateY(0)'; 
-                                        e.currentTarget.style.boxShadow = '0 2px 4px -1px rgba(0, 0, 0, 0.05)'; 
+                                    onMouseOut={(e) => {
+                                        e.currentTarget.style.transform = 'translateY(0)';
+                                        e.currentTarget.style.boxShadow = '0 2px 4px -1px rgba(0, 0, 0, 0.05)';
                                         const arrow = e.currentTarget.querySelector('.arrow-icon');
                                         if (arrow) arrow.style.transform = 'translateX(0)';
                                     }}
@@ -129,15 +129,15 @@ const SearchPage = () => {
                                         {/* LEFT COLUMN: Icon & Title */}
                                         <div style={{ padding: '1.5rem', flex: '1 1 45%', display: 'flex', gap: '1.5rem', borderRight: '1px solid #e2e8f0', alignItems: 'center' }}>
                                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '100px' }}>
-                                                <div style={{ 
-                                                    width: '100px', 
-                                                    height: '100px', 
-                                                    borderRadius: '50%', 
-                                                    backgroundColor: '#e0e7ff', 
-                                                    display: 'flex', 
-                                                    justifyContent: 'center', 
-                                                    alignItems: 'center', 
-                                                    marginBottom: '0.5rem', 
+                                                <div style={{
+                                                    width: '100px',
+                                                    height: '100px',
+                                                    borderRadius: '50%',
+                                                    backgroundColor: '#e0e7ff',
+                                                    display: 'flex',
+                                                    justifyContent: 'center',
+                                                    alignItems: 'center',
+                                                    marginBottom: '0.5rem',
                                                     border: '3px solid #c7d2fe',
                                                     color: '#4f46e5'
                                                 }}>
@@ -145,7 +145,7 @@ const SearchPage = () => {
                                                 </div>
                                                 <span style={{ color: '#0ea5e9', fontSize: '0.875rem', fontWeight: '500' }}>Xem thêm</span>
                                             </div>
-                                            
+
                                             <div style={{ flex: 1 }}>
                                                 <h3 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#0ea5e9', margin: 0 }}>
                                                     {spec.name}
@@ -155,7 +155,7 @@ const SearchPage = () => {
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                         {/* RIGHT COLUMN: Description & Action */}
                                         <div style={{ padding: '1.5rem', flex: '1 1 55%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                                             <p style={{ color: '#64748b', fontSize: '1rem', lineHeight: '1.6', marginBottom: '1.5rem' }}>

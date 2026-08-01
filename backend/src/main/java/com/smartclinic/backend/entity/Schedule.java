@@ -36,10 +36,12 @@ public class Schedule {
     private Integer maxPatient;
 
     @Column(name = "current_patient")
+    @Builder.Default
     private Integer currentPatient = 0;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Builder.Default
     private ScheduleStatus status = ScheduleStatus.AVAILABLE;
 
     @Column(name = "note", columnDefinition = "NVARCHAR(255)")

@@ -35,7 +35,7 @@ const Dashboard = () => {
             <div className="page-header">
                 <h2>Overview</h2>
             </div>
-            
+
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
                 {stats.map((stat, index) => (
                     <div key={index} style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
