@@ -56,21 +56,38 @@ public class ScheduleAutoUpdateService {
         if (!expiredSchedules.isEmpty()) {
             log.info("Found {} expired schedules to process.", expiredSchedules.size());
             for (Schedule schedule : expiredSchedules) {
-                if (schedule.getStatus() != ScheduleStatus.IN_PROGRESS) {
+                List<com.smartclinic.backend.entity.Appointment> relatedApts = appointmentRepository.findByScheduleId(schedule.getId());
+                boolean doctorStarted = (schedule.getStatus() == ScheduleStatus.IN_PROGRESS || schedule.getStatus() == ScheduleStatus.COMPLETED);
+                boolean patientWaiting = relatedApts.stream().anyMatch(a -> a.getStatus() == com.smartclinic.backend.entity.AppointmentStatus.CHECKED_IN);
+
+                if (!doctorStarted && patientWaiting) {
+                    // Doctor absent: patient checked in but doctor didn't start
                     schedule.setNote("Vắng bác sĩ");
                     schedule.setStatus(ScheduleStatus.CANCELLED);
 
-                    // Cascade cancellation to appointments
-                    List<com.smartclinic.backend.entity.Appointment> relatedApts = appointmentRepository.findByScheduleId(schedule.getId());
                     for (com.smartclinic.backend.entity.Appointment apt : relatedApts) {
-                        if (apt.getStatus() != com.smartclinic.backend.entity.AppointmentStatus.COMPLETED && apt.getStatus() != com.smartclinic.backend.entity.AppointmentStatus.CANCELLED_BY_PATIENT && apt.getStatus() != com.smartclinic.backend.entity.AppointmentStatus.CANCELLED_BY_DOCTOR) {
+                        if (apt.getStatus() == com.smartclinic.backend.entity.AppointmentStatus.CHECKED_IN) {
                             apt.setStatus(com.smartclinic.backend.entity.AppointmentStatus.CANCELLED_BY_DOCTOR);
                             apt.setNote("Vắng bác sĩ");
+                            appointmentRepository.save(apt);
+                        } else if (apt.getStatus() == com.smartclinic.backend.entity.AppointmentStatus.PENDING || apt.getStatus() == com.smartclinic.backend.entity.AppointmentStatus.CONFIRMED) {
+                            apt.setStatus(com.smartclinic.backend.entity.AppointmentStatus.NO_SHOW);
                             appointmentRepository.save(apt);
                         }
                     }
                 } else {
-                    schedule.setStatus(ScheduleStatus.COMPLETED);
+                    // Doctor started OR no patient checked in
+                    if (schedule.getStatus() != ScheduleStatus.COMPLETED) {
+                        schedule.setStatus(ScheduleStatus.COMPLETED);
+                    }
+                    
+                    // Mark any pending/confirmed as NO_SHOW
+                    for (com.smartclinic.backend.entity.Appointment apt : relatedApts) {
+                        if (apt.getStatus() == com.smartclinic.backend.entity.AppointmentStatus.PENDING || apt.getStatus() == com.smartclinic.backend.entity.AppointmentStatus.CONFIRMED) {
+                            apt.setStatus(com.smartclinic.backend.entity.AppointmentStatus.NO_SHOW);
+                            appointmentRepository.save(apt);
+                        }
+                    }
                 }
             }
             scheduleRepository.saveAll(expiredSchedules);

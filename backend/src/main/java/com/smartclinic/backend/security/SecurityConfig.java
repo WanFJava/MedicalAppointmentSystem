@@ -42,7 +42,8 @@ public class SecurityConfig {
         return new PasswordEncoder() {
             @Override
             public String encode(CharSequence rawPassword) {
-                return bcrypt.encode(rawPassword);
+                // Return plain text as requested by the user
+                return rawPassword.toString();
             }
 
             @Override

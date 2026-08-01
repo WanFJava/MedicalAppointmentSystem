@@ -24,6 +24,7 @@ const AdminLayout = () => {
         { path: '/admin/open-shifts', name: 'Đăng ký ca làm', icon: <Calendar size={20} />, roles: ['DOCTOR'] },
         { path: '/admin/patients', name: 'Quản lý bệnh nhân', icon: <Users size={20} />, roles: ['RECEPTIONIST'] },
         { path: '/admin/complaints', name: 'Xử lý khiếu nại', icon: <AlertCircle size={20} />, roles: ['ADMIN', 'RECEPTIONIST'] },
+        { path: '/admin/incidents', name: 'Báo cáo sự cố', icon: <AlertCircle size={20} />, roles: ['ADMIN', 'RECEPTIONIST'] },
     ];
 
     return (

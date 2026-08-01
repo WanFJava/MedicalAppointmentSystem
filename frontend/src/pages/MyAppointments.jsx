@@ -231,7 +231,7 @@ const MyAppointments = () => {
                                             </button>
                                         )}
 
-                                        {['CANCELLED_BY_DOCTOR', 'CANCELLED_BY_PATIENT', 'COMPLETED', 'PAID'].includes(apt.status) && (
+                                        {['CANCELLED_BY_DOCTOR', 'CANCELLED_BY_PATIENT', 'COMPLETED', 'PAID', 'CONFIRMED'].includes(apt.status) && (
                                             !apt.hasComplaint ? (
                                                 <button
                                                     onClick={() => handleComplaint(apt)}

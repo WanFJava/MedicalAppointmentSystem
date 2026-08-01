@@ -29,6 +29,7 @@ import LiveChatDashboard from './pages/admin/LiveChatDashboard';
 import ComplaintManager from './pages/admin/ComplaintManager';
 import PatientManager from './pages/admin/PatientManager';
 import ReceptionistStats from './pages/admin/ReceptionistStats';
+import IncidentManager from './pages/admin/IncidentManager';
 
 const RoleRoute = ({ user, roles, children }) => {
   if (!user) {
@@ -81,6 +82,7 @@ function App() {
         <Route path="queue" element={<RoleRoute user={user} roles={['RECEPTIONIST']}><QueueManager /></RoleRoute>} />
         <Route path="complaints" element={<RoleRoute user={user} roles={['ADMIN', 'RECEPTIONIST']}><ComplaintManager /></RoleRoute>} />
         <Route path="patients" element={<RoleRoute user={user} roles={['ADMIN', 'RECEPTIONIST']}><PatientManager /></RoleRoute>} />
+        <Route path="incidents" element={<RoleRoute user={user} roles={['ADMIN', 'RECEPTIONIST']}><IncidentManager /></RoleRoute>} />
       </Route>
     </Routes>
   );
