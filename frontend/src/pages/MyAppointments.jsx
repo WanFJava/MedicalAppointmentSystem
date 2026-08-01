@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import Swal from 'sweetalert2';
 import { AuthContext } from '../context/AuthContext';
 import { getPatientAppointments, updateAppointmentStatus } from '../api/appointmentApi';
 import { createComplaint } from '../api/complaintApi';
@@ -6,6 +7,7 @@ import { Calendar, Clock, Stethoscope, FileText, Info, MessageSquare, Star } fro
 import PatientRecordModal from './PatientRecordModal';
 import ViewBookingModal from './ViewBookingModal';
 import FeedbackModal from './FeedbackModal';
+import ComplaintViewModal from './ComplaintViewModal';
 
 const MyAppointments = () => {
     const { user } = useContext(AuthContext);
@@ -14,6 +16,7 @@ const MyAppointments = () => {
     const [viewingRecordApt, setViewingRecordApt] = useState(null);
     const [viewingBookingApt, setViewingBookingApt] = useState(null);
     const [feedbackApt, setFeedbackApt] = useState(null);
+    const [viewingComplaintApt, setViewingComplaintApt] = useState(null);
     const [showAll, setShowAll] = useState(false);
 
     useEffect(() => {
@@ -50,19 +53,34 @@ const MyAppointments = () => {
     };
 
     const handleComplaint = async (apt) => {
-        try {
-            await createComplaint(user.id, {
-                appointmentId: apt.id,
-                reason: "Bác sĩ vắng mặt"
-            });
-            alert("Gửi khiếu nại thành công đến bộ phận Lễ tân. Chúng tôi sẽ xử lý và liên hệ lại với bạn sớm nhất!");
-            fetchAppointments(); // Refresh to update hasComplaint status
-        } catch (error) {
-            console.error("Failed to submit complaint", error);
-            const errMsg = typeof error.response?.data === 'string'
-                ? error.response.data
-                : (error.response?.data?.message || error.message);
-            alert("Gửi khiếu nại thất bại: " + errMsg);
+        const { value: reason } = await Swal.fire({
+            title: 'Gửi phản hồi / khiếu nại',
+            input: 'textarea',
+            inputLabel: 'Nội dung',
+            inputPlaceholder: 'Nhập nội dung phản hồi / khiếu nại của bạn...',
+            inputAttributes: {
+                'aria-label': 'Nội dung phản hồi'
+            },
+            showCancelButton: true,
+            confirmButtonText: 'Gửi',
+            cancelButtonText: 'Hủy'
+        });
+
+        if (reason) {
+            try {
+                await createComplaint(user.id, {
+                    appointmentId: apt.id,
+                    reason: reason
+                });
+                Swal.fire('Thành công!', 'Gửi phản hồi/khiếu nại thành công. Chúng tôi sẽ tiếp nhận và xử lý.', 'success');
+                fetchAppointments(); // Refresh to update hasComplaint status
+            } catch (error) {
+                console.error("Failed to submit complaint", error);
+                const errMsg = typeof error.response?.data === 'string'
+                    ? error.response.data
+                    : (error.response?.data?.message || error.message);
+                Swal.fire('Lỗi', "Gửi thất bại: " + errMsg, 'error');
+            }
         }
     };
 
@@ -81,7 +99,7 @@ const MyAppointments = () => {
 
     if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading your appointments...</div>;
 
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
     const displayedAppointments = showAll
         ? appointments
         : appointments.filter(apt => apt.scheduleDate >= today);
@@ -213,7 +231,7 @@ const MyAppointments = () => {
                                             </button>
                                         )}
 
-                                        {apt.status === 'CANCELLED_BY_DOCTOR' && (apt.note === 'Vắng bác sĩ' || apt.note === 'V\\u1EAFng b\\u00E1c s\\u0129' || apt.note === 'V?ng bác s?') && (
+                                        {['CANCELLED_BY_DOCTOR', 'CANCELLED_BY_PATIENT', 'COMPLETED', 'PAID'].includes(apt.status) && (
                                             !apt.hasComplaint ? (
                                                 <button
                                                     onClick={() => handleComplaint(apt)}
@@ -223,18 +241,23 @@ const MyAppointments = () => {
                                                     }}
                                                     onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#fee2e2'}
                                                     onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#fef2f2'}
-                                                    title="Gửi khiếu nại về việc bác sĩ vắng mặt"
+                                                    title="Gửi phản hồi / khiếu nại"
                                                 >
-                                                    Khiếu nại
+                                                    Phản hồi / Khiếu nại
                                                 </button>
                                             ) : (
-                                                <span style={{
-                                                    padding: '0.5rem 1rem', backgroundColor: '#f3f4f6', color: '#6b7280',
-                                                    border: '1px solid #d1d5db', borderRadius: '0.5rem', fontWeight: 600,
-                                                    display: 'inline-flex', alignItems: 'center', cursor: 'not-allowed'
-                                                }}>
-                                                    Đã gửi khiếu nại
-                                                </span>
+                                                <button
+                                                    onClick={() => setViewingComplaintApt(apt)}
+                                                    style={{
+                                                        padding: '0.5rem 1rem', backgroundColor: '#eff6ff', color: '#2563eb',
+                                                        border: '1px solid #bfdbfe', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer',
+                                                        transition: 'all 0.2s'
+                                                    }}
+                                                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#dbeafe'}
+                                                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#eff6ff'}
+                                                >
+                                                    Xem phản hồi / khiếu nại
+                                                </button>
                                             )
                                         )}
 
@@ -295,6 +318,13 @@ const MyAppointments = () => {
                     onFeedbackSubmitted={() => {
                         fetchAppointments(); // refresh to show "View Feedback"
                     }}
+                />
+            )}
+
+            {viewingComplaintApt && (
+                <ComplaintViewModal
+                    appointment={viewingComplaintApt}
+                    onClose={() => setViewingComplaintApt(null)}
                 />
             )}
         </div>

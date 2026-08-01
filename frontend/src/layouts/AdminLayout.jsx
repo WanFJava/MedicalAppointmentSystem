@@ -11,7 +11,7 @@ const AdminLayout = () => {
     const menuItems = [
         { path: '/admin', name: 'Dashboard', icon: <LayoutDashboard size={20} />, roles: ['ADMIN', 'RECEPTIONIST'] },
         { path: '/admin/specialties', name: 'Specialties', icon: <Stethoscope size={20} />, roles: ['ADMIN'] },
-        { path: '/admin/doctors', name: 'Doctors', icon: <Users size={20} />, roles: ['ADMIN'] },
+        { path: '/admin/doctors', name: 'Quản lý bác sĩ', icon: <Users size={20} />, roles: ['ADMIN', 'RECEPTIONIST'] },
         { path: '/admin/users', name: 'Users', icon: <UserCog size={20} />, roles: ['ADMIN'] },
         { path: '/admin/schedules', name: 'Schedules', icon: <Calendar size={20} />, roles: ['ADMIN'] },
         { path: '/admin/medicines', name: 'Medicines', icon: <Pill size={20} />, roles: ['ADMIN'] },

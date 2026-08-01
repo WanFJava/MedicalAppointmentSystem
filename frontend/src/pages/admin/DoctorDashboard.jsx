@@ -18,7 +18,7 @@ const DoctorDashboard = ({ tab = 'appointments' }) => {
     const [viewingPatient, setViewingPatient] = useState(null);
     const [feedbackApt, setFeedbackApt] = useState(null);
     const [viewingRecordApt, setViewingRecordApt] = useState(null);
-    const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
+    const [filterDate, setFilterDate] = useState(new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]);
 
     useEffect(() => {
         if (user && user.role === 'DOCTOR') {

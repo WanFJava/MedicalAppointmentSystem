@@ -114,9 +114,13 @@ public class BillServiceImpl implements BillService {
                 "Hóa đơn thanh toán cho lịch khám ngày " + bill.getAppointment().getSchedule().getDate() + " đã được thanh toán thành công.");
         }
         // Notify receptionists
+        String patientName = bill.getAppointment().getPatient() != null && bill.getAppointment().getPatient().getUser() != null 
+            ? bill.getAppointment().getPatient().getUser().getFullName() 
+            : "một bệnh nhân";
+            
         userRepository.findByRole(Role.RECEPTIONIST).forEach(receptionist -> {
             notificationService.sendNotification(receptionist.getId(), 
-                "Bệnh nhân " + bill.getAppointment().getPatient().getUser().getFullName() + " đã thanh toán thành công hóa đơn " + billId);
+                "Bệnh nhân " + patientName + " đã thanh toán thành công hóa đơn " + billId);
         });
 
         return mapToDto(savedBill);

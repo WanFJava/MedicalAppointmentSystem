@@ -3,7 +3,7 @@ import { getDoctorSchedules, getOpenSchedules, registerDoctorSchedule, updateSch
 import { Calendar, UserCheck, Clock, CheckCircle } from 'lucide-react';
 
 const ScheduleManager = ({ doctorId, viewTab }) => {
-    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    const [date, setDate] = useState(new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]);
 
     const [mySchedules, setMySchedules] = useState([]);
     const [openSchedules, setOpenSchedules] = useState([]);

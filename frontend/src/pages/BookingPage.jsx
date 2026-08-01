@@ -82,7 +82,7 @@ const BookingPage = () => {
                 }
             } else if (location.state?.selectedSpec) {
                 // Restore filtered doctors if user navigated back
-                const docsFiltered = docs.filter(d => d.specialtyId === parseInt(location.state.selectedSpec));
+                const docsFiltered = docs.filter(d => d.specialtyId === parseInt(location.state.selectedSpec) && d.status === 'ACTIVE');
                 setFilteredDoctors(docsFiltered);
             }
         } catch (error) {
@@ -92,7 +92,7 @@ const BookingPage = () => {
 
     const handleSpecSelect = (specId) => {
         setSelectedSpec(specId);
-        const docs = doctors.filter(d => d.specialtyId === parseInt(specId));
+        const docs = doctors.filter(d => d.specialtyId === parseInt(specId) && d.status === 'ACTIVE');
         setFilteredDoctors(docs);
         setSelectedDoctor(null);
         setStep(2);

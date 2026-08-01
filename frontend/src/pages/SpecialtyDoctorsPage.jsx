@@ -28,7 +28,7 @@ const SpecialtyDoctorsPage = () => {
                 setSpecialty(currentSpecialty);
 
                 // Filter doctors for this specialty
-                const specialtyDoctors = allDocs.filter(d => d.specialtyId?.toString() === id);
+                const specialtyDoctors = allDocs.filter(d => d.specialtyId?.toString() === id && d.status === 'ACTIVE');
                 setDoctors(specialtyDoctors);
             } catch (error) {
                 console.error("Error fetching data:", error);

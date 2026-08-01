@@ -20,7 +20,7 @@ const Home = () => {
 
                 // Filter doctors with fairly high to high rating (>= 4.0) and sort descending
                 const highRatedDocs = docs
-                    .filter(d => d.averageRating >= 4.0)
+                    .filter(d => d.averageRating >= 4.0 && d.status === 'ACTIVE')
                     .sort((a, b) => b.averageRating - a.averageRating);
 
                 setDoctors(highRatedDocs);

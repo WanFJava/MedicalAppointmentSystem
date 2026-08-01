@@ -83,15 +83,20 @@ const PatientManager = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            const submitData = { ...formData };
+            if (!submitData.birthday) {
+                submitData.birthday = null; // Important: Spring Boot fails to parse empty string to LocalDate
+            }
+
             if (isEditing) {
-                await updatePatientProfile(formData.userId, formData);
+                await updatePatientProfile(formData.userId, submitData);
                 Swal.fire('Thành công', 'Cập nhật thông tin bệnh nhân thành công', 'success');
             } else {
                 if (!formData.password) {
                     Swal.fire('Lỗi', 'Vui lòng nhập mật khẩu cho tài khoản mới', 'error');
                     return;
                 }
-                await createPatient(formData);
+                await createPatient(submitData);
                 Swal.fire('Thành công', 'Tạo tài khoản bệnh nhân thành công', 'success');
             }
             setShowModal(false);

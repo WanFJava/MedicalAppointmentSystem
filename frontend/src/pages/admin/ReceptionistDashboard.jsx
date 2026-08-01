@@ -16,7 +16,7 @@ const ReceptionistDashboard = () => {
     const [feedbackApt, setFeedbackApt] = useState(null);
     const [changeDoctorApt, setChangeDoctorApt] = useState(null);
     const [showBookingModal, setShowBookingModal] = useState(false);
-    const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
+    const [filterDate, setFilterDate] = useState(new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]);
 
     useEffect(() => {
         fetchAppointments();

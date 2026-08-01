@@ -58,6 +58,11 @@ export const updateScheduleStatus = async (id, status) => {
     return response.data;
 };
 
+export const updateScheduleInfo = async (id, data) => {
+    const response = await api.put(`/schedules/${id}`, data);
+    return response.data;
+};
+
 export const deleteSchedule = async (id) => {
     const response = await api.delete(`/schedules/${id}`);
     return response.data;

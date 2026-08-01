@@ -7,6 +7,7 @@ import AdminLayout from './layouts/AdminLayout';
 import Dashboard from './pages/admin/Dashboard';
 import SpecialtyManager from './pages/admin/SpecialtyManager';
 import DoctorManager from './pages/admin/DoctorManager';
+import ReceptionistDoctorManager from './pages/admin/ReceptionistDoctorManager';
 import AdminSchedulePage from './pages/admin/AdminSchedulePage';
 import ReceptionistDashboard from './pages/admin/ReceptionistDashboard';
 import DoctorDashboard from './pages/admin/DoctorDashboard';
@@ -67,7 +68,7 @@ function App() {
           <Dashboard />
         } />
         <Route path="specialties" element={<RoleRoute user={user} roles={['ADMIN']}><SpecialtyManager /></RoleRoute>} />
-        <Route path="doctors" element={<RoleRoute user={user} roles={['ADMIN']}><DoctorManager /></RoleRoute>} />
+        <Route path="doctors" element={<RoleRoute user={user} roles={['ADMIN', 'RECEPTIONIST']}>{user?.role === 'ADMIN' ? <DoctorManager /> : <ReceptionistDoctorManager />}</RoleRoute>} />
         <Route path="schedules" element={<RoleRoute user={user} roles={['ADMIN']}><AdminSchedulePage /></RoleRoute>} />
         <Route path="appointments" element={<RoleRoute user={user} roles={['ADMIN', 'RECEPTIONIST']}><ReceptionistDashboard /></RoleRoute>} />
         <Route path="live-chat" element={<RoleRoute user={user} roles={['ADMIN', 'RECEPTIONIST']}><LiveChatDashboard /></RoleRoute>} />

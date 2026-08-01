@@ -24,6 +24,18 @@ public class AuthController {
     private final UserRepository userRepository;
     private final com.smartclinic.backend.repository.ScheduleRepository scheduleRepository;
     private final com.smartclinic.backend.repository.AppointmentRepository appointmentRepository;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
+    @org.springframework.web.bind.annotation.GetMapping("/fix-db")
+    public ResponseEntity<String> fixDb() {
+        try {
+            jdbcTemplate.execute("ALTER TABLE medical_records ALTER COLUMN diagnosis NVARCHAR(MAX)");
+            jdbcTemplate.execute("ALTER TABLE medical_records ALTER COLUMN doctor_note NVARCHAR(MAX)");
+            return ResponseEntity.ok("Database schema fixed");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+        }
+    }
 
     @org.springframework.web.bind.annotation.GetMapping("/fix-notes")
     public ResponseEntity<String> fixNotes() {

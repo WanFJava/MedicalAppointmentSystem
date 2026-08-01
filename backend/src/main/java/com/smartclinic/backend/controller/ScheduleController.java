@@ -103,6 +103,14 @@ public class ScheduleController {
         return ResponseEntity.ok(scheduleService.updateScheduleStatus(scheduleId, status));
     }
 
+    @PutMapping("/{scheduleId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ScheduleDto> updateScheduleInfo(
+            @PathVariable Long scheduleId,
+            @RequestBody ScheduleRequestDto requestDto) {
+        return ResponseEntity.ok(scheduleService.updateScheduleInfo(scheduleId, requestDto));
+    }
+
     @DeleteMapping("/{scheduleId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteSchedule(@PathVariable Long scheduleId) {

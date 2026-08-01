@@ -126,7 +126,7 @@ const AdminBookingModal = ({ onClose, onSuccess }) => {
                             <label>Bác sĩ *</label>
                             <select className="form-control" value={selectedDoctor} onChange={handleDoctorSelect}>
                                 <option value="">-- Chọn bác sĩ --</option>
-                                {doctors.filter(d => d.specialtyId == selectedSpec).map(d => (
+                                {doctors.filter(d => d.specialtyId == selectedSpec && d.status === 'ACTIVE').map(d => (
                                     <option key={d.id} value={d.id}>{d.fullName}</option>
                                 ))}
                             </select>

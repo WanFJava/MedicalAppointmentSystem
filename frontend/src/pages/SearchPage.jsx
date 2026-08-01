@@ -49,8 +49,9 @@ const SearchPage = () => {
     const normalizedQuery = normalizeString(currentQuery);
 
     const filteredDoctors = doctors.filter(d =>
-        normalizeString(d.fullName).includes(normalizedQuery) ||
-        normalizeString(d.specialtyName).includes(normalizedQuery)
+        d.status === 'ACTIVE' &&
+        (normalizeString(d.fullName).includes(normalizedQuery) ||
+        normalizeString(d.specialtyName).includes(normalizedQuery))
     );
 
     const filteredSpecialties = specialties.filter(s =>

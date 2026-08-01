@@ -66,7 +66,11 @@ public class PatientServiceImpl implements PatientService {
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
         ensurePatientIsSelf(user);
 
-        Patient patient = patientRepository.findByUserId(userId).orElse(null);
+        Patient patient = patientRepository.findByUserId(userId).orElseGet(() -> {
+            Patient p = new Patient();
+            p.setUser(user);
+            return patientRepository.save(p);
+        });
 
         return mapToDto(user, patient);
     }
@@ -135,7 +139,12 @@ public class PatientServiceImpl implements PatientService {
     @Transactional
     public void addFavoriteDoctor(Long userId, Long doctorId) {
         Patient patient = patientRepository.findByUserId(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Patient", "userId", userId));
+                .orElseGet(() -> {
+                    User user = userRepository.findById(userId).orElseThrow();
+                    Patient p = new Patient();
+                    p.setUser(user);
+                    return patientRepository.save(p);
+                });
         ensurePatientIsSelf(patient.getUser());
         Doctor doctor = doctorRepository.findById(doctorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor", "id", doctorId));
@@ -148,7 +157,12 @@ public class PatientServiceImpl implements PatientService {
     @Transactional
     public void removeFavoriteDoctor(Long userId, Long doctorId) {
         Patient patient = patientRepository.findByUserId(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Patient", "userId", userId));
+                .orElseGet(() -> {
+                    User user = userRepository.findById(userId).orElseThrow();
+                    Patient p = new Patient();
+                    p.setUser(user);
+                    return patientRepository.save(p);
+                });
         ensurePatientIsSelf(patient.getUser());
         Doctor doctor = doctorRepository.findById(doctorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor", "id", doctorId));
@@ -161,7 +175,12 @@ public class PatientServiceImpl implements PatientService {
     @Transactional(readOnly = true)
     public List<DoctorDto> getFavoriteDoctors(Long userId) {
         Patient patient = patientRepository.findByUserId(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Patient", "userId", userId));
+                .orElse(null);
+        
+        if (patient == null) {
+            return java.util.Collections.emptyList();
+        }
+        
         ensurePatientIsSelf(patient.getUser());
 
         return patient.getFavoriteDoctors().stream().map(doctor -> {

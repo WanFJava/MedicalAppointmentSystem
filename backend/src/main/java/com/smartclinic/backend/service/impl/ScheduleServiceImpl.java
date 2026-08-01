@@ -357,6 +357,36 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     @Override
+    public ScheduleDto updateScheduleInfo(Long scheduleId, ScheduleRequestDto requestDto) {
+        Schedule schedule = scheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new RuntimeException("Schedule not found"));
+        
+        if (schedule.getStatus() != ScheduleStatus.OPEN) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Chỉ có thể thay đổi thông tin khi ca làm ở trạng thái OPEN (chưa có bác sĩ xác nhận).");
+        }
+        
+        validateScheduleTime(requestDto.getDate(), requestDto.getStartTime(), requestDto.getEndTime());
+        
+        if (schedule.getDoctor() != null) {
+            checkDoctorScheduleOverlap(schedule.getDoctor().getId(), requestDto.getDate(), requestDto.getStartTime(), requestDto.getEndTime(), scheduleId);
+        }
+        
+        schedule.setDate(requestDto.getDate());
+        schedule.setStartTime(requestDto.getStartTime());
+        schedule.setEndTime(requestDto.getEndTime());
+        schedule.setMaxPatient(requestDto.getMaxPatient());
+        
+        Schedule savedSchedule = scheduleRepository.save(schedule);
+        
+        // Notify doctor if one is assigned
+        if (schedule.getDoctor() != null) {
+            notificationService.sendNotification(schedule.getDoctor().getUser().getId(), "Thông tin ca làm việc ngày " + schedule.getDate() + " đã được Admin cập nhật. Vui lòng kiểm tra lại.");
+        }
+        
+        return mapToDto(savedSchedule);
+    }
+
+    @Override
     public void deleteSchedule(Long scheduleId) {
         if (!scheduleRepository.existsById(scheduleId)) {
             throw new RuntimeException("Schedule not found with id: " + scheduleId);

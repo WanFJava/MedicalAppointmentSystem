@@ -5,7 +5,7 @@ import { getAllSchedules, changeAppointmentSchedule } from '../../api/appointmen
 const ChangeDoctorModal = ({ appointment, onClose, onSuccess }) => {
     const [doctors, setDoctors] = useState([]);
     const [selectedDoctorId, setSelectedDoctorId] = useState('');
-    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+    const [selectedDate, setSelectedDate] = useState(new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]);
     const [schedules, setSchedules] = useState([]);
     const [selectedScheduleId, setSelectedScheduleId] = useState('');
     const [loading, setLoading] = useState(false);
