@@ -1,0 +1,74 @@
+Đối với bệnh nhân thì logic sẽ khác bác sĩ vì bệnh nhân không có schedule, chỉ có appointment.
+
+ACTIVE
+Được đăng nhập.
+Được đặt lịch.
+Được hủy lịch.
+Được xem lịch sử khám.
+INACTIVE
+
+Ý nghĩa:
+
+Bệnh nhân không còn sử dụng dịch vụ hoặc yêu cầu ngừng tài khoản.
+
+Điều kiện
+
+Không được còn appointment đang hoạt động:
+
+PENDING
+CONFIRMED
+CHECKED_IN
+
+Chỉ được còn:
+
+COMPLETED
+CANCELLED_BY_PATIENT
+CANCELLED_BY_DOCTOR
+NO_SHOW
+
+Nếu còn lịch khám sắp tới hoặc đang khám thì:
+
+❌ Không cho Inactive.
+
+Thông báo:
+
+Không thể ngừng hoạt động tài khoản vì bệnh nhân vẫn còn lịch khám chưa hoàn tất.
+
+LOCKED
+
+Ý nghĩa:
+
+Khóa quyền đăng nhập.
+
+Ví dụ:
+
+Spam đặt lịch.
+Vi phạm nội quy.
+Nghi ngờ tài khoản bị hack.
+Đăng nhập sai nhiều lần.
+Điều kiện
+
+Theo mình:
+
+❌ Không cho LOCK nếu
+
+Có appointment
+
+CHECKED_IN
+
+Vì bệnh nhân đang ở phòng khám.
+
+✅ Cho LOCK nếu
+
+Có:
+
+PENDING
+CONFIRMED
+
+thì vẫn khóa được.
+
+Sau khi khóa:
+
+Không đăng nhập được.
+Không đặt lịch mới.
+Admin có thể gọi điện hoặc xử lý các lịch hẹn còn lại.
