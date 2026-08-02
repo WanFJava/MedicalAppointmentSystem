@@ -55,7 +55,7 @@ export const AuthProvider = ({ children }) => {
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
         localStorage.setItem('accessToken', userData.accessToken);
-        
+
         if (userData.role === 'PATIENT') {
             fetchFavorites(userData.id);
         }

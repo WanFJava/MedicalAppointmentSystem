@@ -124,10 +124,10 @@ const QueueManager = () => {
                         {queue.map((apt, index) => (
                             <tr key={apt.id} style={{ backgroundColor: index === 0 ? '#f0fdf4' : 'transparent' }}>
                                 <td style={{ textAlign: 'center' }}>
-                                    <span style={{ 
-                                        display: 'inline-block', width: '30px', height: '30px', lineHeight: '30px', 
-                                        borderRadius: '50%', backgroundColor: index === 0 ? '#22c55e' : '#e5e7eb', 
-                                        color: index === 0 ? 'white' : '#374151', fontWeight: 'bold' 
+                                    <span style={{
+                                        display: 'inline-block', width: '30px', height: '30px', lineHeight: '30px',
+                                        borderRadius: '50%', backgroundColor: index === 0 ? '#22c55e' : '#e5e7eb',
+                                        color: index === 0 ? 'white' : '#374151', fontWeight: 'bold'
                                     }}>
                                         {apt.queueNumber}
                                     </span>
@@ -153,23 +153,23 @@ const QueueManager = () => {
                                 <td>
                                     <div className="action-buttons" style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
                                         {index === 0 && (
-                                            <button 
+                                            <button
                                                 title="Gọi vào khám"
                                                 onClick={() => handleCallNext(apt.id, apt.patientName)}
                                                 style={{ padding: '0.5rem 1rem', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', fontWeight: 'bold' }}>
                                                 <Volume2 size={16} /> Gọi số
                                             </button>
                                         )}
-                                        
+
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
-                                            <button 
+                                            <button
                                                 title="Đẩy lên"
                                                 disabled={index === 0}
                                                 onClick={() => handleSwap(index, 'up')}
                                                 style={{ padding: '0.2rem 0.5rem', backgroundColor: index === 0 ? '#f3f4f6' : '#e5e7eb', color: index === 0 ? '#9ca3af' : '#374151', border: 'none', borderRadius: '0.25rem', cursor: index === 0 ? 'not-allowed' : 'pointer' }}>
                                                 <ArrowUp size={14} />
                                             </button>
-                                            <button 
+                                            <button
                                                 title="Đẩy xuống"
                                                 disabled={index === queue.length - 1}
                                                 onClick={() => handleSwap(index, 'down')}
@@ -178,7 +178,7 @@ const QueueManager = () => {
                                             </button>
                                         </div>
 
-                                        <button 
+                                        <button
                                             title="Bỏ lượt"
                                             onClick={() => handleSkip(apt.id, apt.patientName)}
                                             style={{ padding: '0.5rem', backgroundColor: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>

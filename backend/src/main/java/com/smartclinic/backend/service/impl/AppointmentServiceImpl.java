@@ -21,7 +21,9 @@ import com.smartclinic.backend.repository.BillRepository;
 import com.smartclinic.backend.repository.MedicalRecordRepository;
 import com.smartclinic.backend.repository.PrescriptionRepository;
 import com.smartclinic.backend.repository.PrescriptionDetailRepository;
+import com.smartclinic.backend.repository.ComplaintRepository;
 import com.smartclinic.backend.service.AppointmentService;
+import com.smartclinic.backend.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -49,6 +51,8 @@ public class AppointmentServiceImpl implements AppointmentService {
     private final MedicalRecordRepository medicalRecordRepository;
     private final PrescriptionRepository prescriptionRepository;
     private final PrescriptionDetailRepository prescriptionDetailRepository;
+    private final ComplaintRepository complaintRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -123,6 +127,20 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         Appointment savedAppointment = appointmentRepository.save(appointment);
 
+        // Notify receptionists
+        userRepository.findByRole(Role.RECEPTIONIST).forEach(receptionist -> {
+            notificationService.sendNotification(receptionist.getId(), 
+                "Bệnh nhân " + user.getFullName() + " vừa đặt lịch khám mới.");
+        });
+        
+        // Notify doctor
+        if (doctor.getUser() != null) {
+            notificationService.sendNotification(doctor.getUser().getId(), "Có lịch khám mới từ bệnh nhân " + user.getFullName() + " vào ngày " + schedule.getDate());
+        }
+        
+        // Notify patient
+        notificationService.sendNotification(user.getId(), "Đặt lịch thành công ngày " + schedule.getDate() + " với bác sĩ " + doctor.getUser().getFullName());
+
         return mapToDto(savedAppointment);
     }
 
@@ -155,7 +173,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     public AppointmentDto updateAppointmentStatus(Long appointmentId, AppointmentStatus status) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch hẹn với ID: " + appointmentId));
-        
+
         AppointmentStatus oldStatus = appointment.getStatus();
 
         // Enforce patient rules
@@ -174,6 +192,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         // Enforce Doctor rules
         if (auth != null && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_DOCTOR") || a.getAuthority().equals("DOCTOR"))) {
+            ensureDoctorIsSelf(appointment.getDoctor());
             if (status == AppointmentStatus.CONFIRMED) {
                 throw new IllegalArgumentException("Bác sĩ không có quyền xác nhận (CONFIRM) lịch hẹn. Việc này do Lễ tân thực hiện.");
             }
@@ -194,7 +213,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         // If cancelled, free up and reset the schedule spot to AVAILABLE.
         // NO_SHOW is treated like COMPLETED for schedule capacity, so it doesn't free the spot.
-        boolean isCancellation = status == AppointmentStatus.CANCELLED_BY_PATIENT || 
+        boolean isCancellation = status == AppointmentStatus.CANCELLED_BY_PATIENT ||
                                  status == AppointmentStatus.CANCELLED_BY_DOCTOR;
 
         if (isCancellation) {
@@ -203,7 +222,7 @@ public class AppointmentServiceImpl implements AppointmentService {
                 int currentPatientCount = schedule.getCurrentPatient() == null ? 0 : schedule.getCurrentPatient();
                 int newCurrent = Math.max(0, currentPatientCount - 1);
                 schedule.setCurrentPatient(newCurrent);
-                
+
                 // Reset schedule status to AVAILABLE so doctor schedule remains active & available
                 if (schedule.getStatus() != ScheduleStatus.CANCELLED) {
                     schedule.setStatus(ScheduleStatus.AVAILABLE);
@@ -213,7 +232,105 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         Appointment updatedAppointment = appointmentRepository.save(appointment);
+        
+        // Notify patient if status changed to CONFIRMED
+        if (status == AppointmentStatus.CONFIRMED && updatedAppointment.getPatient() != null) {
+            notificationService.sendNotification(updatedAppointment.getPatient().getUser().getId(),
+                "Lịch khám của bạn vào ngày " + updatedAppointment.getSchedule().getDate() + " đã được xác nhận.");
+        }
+        
+        // Notify patient and receptionist if cancelled by doctor
+        if (status == AppointmentStatus.CANCELLED_BY_DOCTOR) {
+            if (updatedAppointment.getPatient() != null) {
+                notificationService.sendNotification(updatedAppointment.getPatient().getUser().getId(),
+                    "Lịch khám của bạn vào ngày " + updatedAppointment.getSchedule().getDate() + " đã bị hủy bởi bác sĩ.");
+            }
+            userRepository.findByRole(Role.RECEPTIONIST).forEach(receptionist -> {
+                notificationService.sendNotification(receptionist.getId(), 
+                    "Bác sĩ vừa hủy lịch khám của bệnh nhân " + updatedAppointment.getPatient().getUser().getFullName());
+            });
+        }
+
+        // Notify receptionist if cancelled by patient
+        if (status == AppointmentStatus.CANCELLED_BY_PATIENT) {
+            userRepository.findByRole(Role.RECEPTIONIST).forEach(receptionist -> {
+                notificationService.sendNotification(receptionist.getId(), 
+                    "Bệnh nhân " + updatedAppointment.getPatient().getUser().getFullName() + " vừa hủy lịch khám.");
+            });
+            if (updatedAppointment.getDoctor() != null && updatedAppointment.getDoctor().getUser() != null) {
+                notificationService.sendNotification(updatedAppointment.getDoctor().getUser().getId(), "Bệnh nhân " + updatedAppointment.getPatient().getUser().getFullName() + " đã hủy lịch khám ngày " + updatedAppointment.getSchedule().getDate());
+            }
+        }
+        
+        // Notify doctor when checked in
+        if (status == AppointmentStatus.CHECKED_IN && updatedAppointment.getDoctor() != null && updatedAppointment.getDoctor().getUser() != null) {
+            notificationService.sendNotification(updatedAppointment.getDoctor().getUser().getId(), "Bệnh nhân " + updatedAppointment.getPatient().getUser().getFullName() + " đã đến check-in và đang chờ khám.");
+        }
+
         return mapToDto(updatedAppointment);
+    }
+
+    @Override
+    @Transactional
+    public AppointmentDto changeAppointmentSchedule(Long appointmentId, Long newScheduleId) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+        
+        if (appointment.getStatus() != AppointmentStatus.PENDING && appointment.getStatus() != AppointmentStatus.CONFIRMED) {
+            throw new IllegalArgumentException("Chỉ có thể thay đổi bác sĩ khi lịch hẹn ở trạng thái PENDING hoặc CONFIRMED.");
+        }
+        
+        Schedule newSchedule = scheduleRepository.findById(newScheduleId)
+                .orElseThrow(() -> new RuntimeException("New schedule not found"));
+                
+        if (newSchedule.getStatus() != ScheduleStatus.AVAILABLE) {
+            throw new IllegalArgumentException("Ca khám mới không ở trạng thái AVAILABLE.");
+        }
+        
+        int newCurrent = newSchedule.getCurrentPatient() == null ? 0 : newSchedule.getCurrentPatient();
+        int newMax = newSchedule.getMaxPatient() == null ? 0 : newSchedule.getMaxPatient();
+        if (newMax <= 0 || newCurrent >= newMax) {
+            throw new IllegalArgumentException("Ca khám mới đã đầy.");
+        }
+        
+        Schedule oldSchedule = appointment.getSchedule();
+        if (oldSchedule != null && !oldSchedule.getId().equals(newSchedule.getId())) {
+            // Decrement old schedule
+            int oldCurrent = oldSchedule.getCurrentPatient() == null ? 0 : oldSchedule.getCurrentPatient();
+            oldSchedule.setCurrentPatient(Math.max(0, oldCurrent - 1));
+            if (oldSchedule.getStatus() != ScheduleStatus.CANCELLED) {
+                oldSchedule.setStatus(ScheduleStatus.AVAILABLE);
+            }
+            scheduleRepository.save(oldSchedule);
+        }
+        
+        // Increment new schedule
+        newSchedule.setCurrentPatient(newCurrent + 1);
+        if (newSchedule.getCurrentPatient() >= newMax) {
+            newSchedule.setStatus(ScheduleStatus.FULL);
+        }
+        scheduleRepository.save(newSchedule);
+        
+        appointment.setSchedule(newSchedule);
+        appointment.setDoctor(newSchedule.getDoctor());
+        
+        Appointment savedAppointment = appointmentRepository.save(appointment);
+
+        // Notifications
+        if (appointment.getPatient() != null) {
+            notificationService.sendNotification(appointment.getPatient().getUser().getId(), "Lịch khám của bạn đã được đổi sang ngày " + newSchedule.getDate() + " (" + newSchedule.getStartTime() + " - " + newSchedule.getEndTime() + ") với bác sĩ " + newSchedule.getDoctor().getUser().getFullName());
+        }
+        if (newSchedule.getDoctor() != null && newSchedule.getDoctor().getUser() != null) {
+            notificationService.sendNotification(newSchedule.getDoctor().getUser().getId(), "Có bệnh nhân " + appointment.getPatient().getUser().getFullName() + " đổi sang lịch khám của bạn vào ngày " + newSchedule.getDate());
+        }
+        if (oldSchedule != null && oldSchedule.getDoctor() != null && oldSchedule.getDoctor().getUser() != null && !oldSchedule.getDoctor().getId().equals(newSchedule.getDoctor().getId())) {
+            notificationService.sendNotification(oldSchedule.getDoctor().getUser().getId(), "Bệnh nhân " + appointment.getPatient().getUser().getFullName() + " đã đổi lịch khám sang bác sĩ khác.");
+        }
+        userRepository.findByRole(Role.RECEPTIONIST).forEach(receptionist -> {
+            notificationService.sendNotification(receptionist.getId(), "Lịch hẹn của bệnh nhân " + appointment.getPatient().getUser().getFullName() + " đã được thay đổi.");
+        });
+        
+        return mapToDto(savedAppointment);
     }
 
     @Override
@@ -221,7 +338,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     public void deleteAppointment(Long appointmentId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
-        
+
         // If the appointment was occupying a schedule spot, free it up before deleting
         if (appointment.getStatus() != AppointmentStatus.PENDING && appointment.getStatus() != AppointmentStatus.CANCELLED_BY_PATIENT && appointment.getStatus() != AppointmentStatus.CANCELLED_BY_DOCTOR) {
             Schedule schedule = appointment.getSchedule();
@@ -231,10 +348,10 @@ public class AppointmentServiceImpl implements AppointmentService {
                 scheduleRepository.save(schedule);
             }
         }
-        
+
         // Cascading delete
         billRepository.findByAppointmentId(appointmentId).ifPresent(billRepository::delete);
-        
+
         medicalRecordRepository.findByAppointmentId(appointmentId).ifPresent(record -> {
             prescriptionRepository.findByMedicalRecordId(record.getId()).forEach(prescription -> {
                 List<PrescriptionDetail> details = prescriptionDetailRepository.findByPrescriptionId(prescription.getId());
@@ -243,7 +360,7 @@ public class AppointmentServiceImpl implements AppointmentService {
             });
             medicalRecordRepository.delete(record);
         });
-        
+
         appointmentRepository.delete(appointment);
     }
 
@@ -252,11 +369,11 @@ public class AppointmentServiceImpl implements AppointmentService {
     public void callNext(Long appointmentId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
-                
+
         if (appointment.getSchedule() != null && appointment.getSchedule().getStatus() != ScheduleStatus.IN_PROGRESS) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bác sĩ chưa bắt đầu ca làm việc này. Lễ tân không thể gọi bệnh nhân.");
         }
-        
+
         appointment.setStatus(AppointmentStatus.IN_PROGRESS);
         appointmentRepository.save(appointment);
     }
@@ -266,11 +383,11 @@ public class AppointmentServiceImpl implements AppointmentService {
     public void swapQueue(Long id1, Long id2) {
         Appointment apt1 = appointmentRepository.findById(id1).orElseThrow();
         Appointment apt2 = appointmentRepository.findById(id2).orElseThrow();
-        
+
         Integer temp = apt1.getQueueNumber();
         apt1.setQueueNumber(apt2.getQueueNumber());
         apt2.setQueueNumber(temp);
-        
+
         appointmentRepository.save(apt1);
         appointmentRepository.save(apt2);
     }
@@ -280,7 +397,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     public void skipQueue(Long appointmentId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
-        
+
         Integer maxQueue = appointmentRepository.findMaxQueueNumberForDoctorAndDate(
                 appointment.getDoctor().getId(),
                 appointment.getSchedule().getDate()
@@ -337,6 +454,11 @@ public class AppointmentServiceImpl implements AppointmentService {
             }
         }
 
+        boolean hasComplaint = false;
+        if (appointment.getId() != null) {
+            hasComplaint = complaintRepository.existsByAppointmentId(appointment.getId());
+        }
+
         return new AppointmentDto(
                 appointment.getId(),
                 patientUserId,
@@ -351,7 +473,8 @@ public class AppointmentServiceImpl implements AppointmentService {
                 appointment.getQueueNumber(),
                 appointment.getIsReviewed(),
                 paymentStatus,
-                appointment.getNote()
+                appointment.getNote(),
+                hasComplaint
         );
     }
 }

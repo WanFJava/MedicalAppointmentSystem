@@ -8,11 +8,17 @@ import com.smartclinic.backend.entity.Doctor;
 import com.smartclinic.backend.entity.Schedule;
 import com.smartclinic.backend.repository.DoctorRepository;
 import com.smartclinic.backend.repository.ScheduleRepository;
+import com.smartclinic.backend.repository.UserRepository;
 import com.smartclinic.backend.service.ScheduleService;
+import com.smartclinic.backend.service.NotificationService;
+import com.smartclinic.backend.entity.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -28,6 +34,8 @@ public class ScheduleServiceImpl implements ScheduleService {
     private final ScheduleRepository scheduleRepository;
     private final DoctorRepository doctorRepository;
     private final com.smartclinic.backend.repository.AppointmentRepository appointmentRepository;
+    private final NotificationService notificationService;
+    private final UserRepository userRepository;
 
     private void autoCancelExpiredOpenSchedules(List<Schedule> schedules) {
         LocalDateTime now = LocalDateTime.now();
@@ -80,10 +88,10 @@ public class ScheduleServiceImpl implements ScheduleService {
             boolean overlaps = startTime.isBefore(existing.getEndTime()) && endTime.isAfter(existing.getStartTime());
             if (overlaps) {
                 if (existing.getStatus() == ScheduleStatus.IN_PROGRESS) {
-                    throw new IllegalArgumentException("Bác sĩ đang có ca trực ĐANG DIỄN RA trùng khung giờ (" 
+                    throw new IllegalArgumentException("Bác sĩ đang có ca trực ĐANG DIỄN RA trùng khung giờ ("
                             + existing.getStartTime() + " - " + existing.getEndTime() + ") trong ngày " + date + ". Không thể đăng ký/tạo ca khác!");
                 } else {
-                    throw new IllegalArgumentException("Bác sĩ đã có ca trực trùng khung giờ (" 
+                    throw new IllegalArgumentException("Bác sĩ đã có ca trực trùng khung giờ ("
                             + existing.getStartTime() + " - " + existing.getEndTime() + ", Trạng thái: " + existing.getStatus() + ") trong ngày " + date + "!");
                 }
             }
@@ -98,7 +106,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
         Doctor doctor = doctorId != null ? doctorRepository.findById(doctorId).orElse(null) : null;
         checkDoctorIsActive(doctor);
-                
+
         Schedule schedule = new Schedule();
         schedule.setDoctor(doctor);
         schedule.setDate(requestDto.getDate());
@@ -107,7 +115,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         schedule.setMaxPatient(requestDto.getMaxPatient());
         schedule.setCurrentPatient(0);
         schedule.setStatus(ScheduleStatus.OPEN);
-        
+
         return mapToDto(scheduleRepository.save(schedule));
     }
 
@@ -122,7 +130,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         schedule.setMaxPatient(requestDto.getMaxPatient());
         schedule.setCurrentPatient(0);
         schedule.setStatus(ScheduleStatus.OPEN);
-        
+
         return mapToDto(scheduleRepository.save(schedule));
     }
 
@@ -133,8 +141,9 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
         Doctor doctor = doctorRepository.findById(doctorId)
                 .orElseThrow(() -> new RuntimeException("Doctor not found with id: " + doctorId));
+        ensureDoctorIsSelf(doctor);
         checkDoctorIsActive(doctor);
-                
+
         List<Schedule> existingSchedules = scheduleRepository.findByDoctorIdAndDate(doctorId, date);
         if (!existingSchedules.isEmpty()) {
             return existingSchedules.stream().map(this::mapToDto).collect(Collectors.toList());
@@ -294,14 +303,25 @@ public class ScheduleServiceImpl implements ScheduleService {
         schedule.setDoctor(doctor);
         schedule.setStatus(ScheduleStatus.AVAILABLE);
 
-        return mapToDto(scheduleRepository.save(schedule));
+        Schedule savedSchedule = scheduleRepository.save(schedule);
+
+        // Notify Admin
+        userRepository.findByRole(Role.ADMIN).forEach(admin -> {
+            notificationService.sendNotification(admin.getId(), "Bác sĩ " + doctor.getUser().getFullName() + " đã đăng ký ca khám ngày " + schedule.getDate() + " (" + schedule.getStartTime() + " - " + schedule.getEndTime() + ").");
+        });
+
+        // Notify Doctor
+        notificationService.sendNotification(doctor.getUser().getId(), "Đăng ký ca làm việc ngày " + schedule.getDate() + " thành công.");
+
+        return mapToDto(savedSchedule);
     }
 
     @Override
     public ScheduleDto updateScheduleStatus(Long scheduleId, ScheduleStatus status) {
         Schedule schedule = scheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> new RuntimeException("Schedule not found"));
-                
+        ensureDoctorIsSelf(schedule.getDoctor());
+
         if (status == ScheduleStatus.CANCELLED) {
             if (schedule.getStatus() == ScheduleStatus.IN_PROGRESS || schedule.getStatus() == ScheduleStatus.COMPLETED) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Không thể hủy ca khám đã bắt đầu hoặc đã hoàn thành.");
@@ -310,11 +330,11 @@ public class ScheduleServiceImpl implements ScheduleService {
 
         if (status == ScheduleStatus.COMPLETED) {
             boolean hasUnexamined = appointmentRepository.existsByScheduleIdAndStatusIn(
-                scheduleId, 
+                scheduleId,
                 java.util.Arrays.asList(
-                    com.smartclinic.backend.entity.AppointmentStatus.PENDING, 
-                    com.smartclinic.backend.entity.AppointmentStatus.CONFIRMED, 
-                    com.smartclinic.backend.entity.AppointmentStatus.CHECKED_IN, 
+                    com.smartclinic.backend.entity.AppointmentStatus.PENDING,
+                    com.smartclinic.backend.entity.AppointmentStatus.CONFIRMED,
+                    com.smartclinic.backend.entity.AppointmentStatus.CHECKED_IN,
                     com.smartclinic.backend.entity.AppointmentStatus.IN_PROGRESS
                 )
             );
@@ -322,9 +342,48 @@ public class ScheduleServiceImpl implements ScheduleService {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Không thể kết thúc ca làm việc vì vẫn còn bệnh nhân chưa được khám xong (hoặc chưa đánh dấu vắng mặt).");
             }
         }
-        
+
         schedule.setStatus(status);
-        return mapToDto(scheduleRepository.save(schedule));
+        Schedule savedSchedule = scheduleRepository.save(schedule);
+
+        if (status == ScheduleStatus.CANCELLED && schedule.getDoctor() != null) {
+            notificationService.sendNotification(schedule.getDoctor().getUser().getId(), "Ca làm việc ngày " + schedule.getDate() + " (" + schedule.getStartTime() + " - " + schedule.getEndTime() + ") đã bị hủy.");
+            userRepository.findByRole(Role.ADMIN).forEach(admin -> {
+                notificationService.sendNotification(admin.getId(), "Ca làm việc của bác sĩ " + schedule.getDoctor().getUser().getFullName() + " ngày " + schedule.getDate() + " đã bị hủy.");
+            });
+        }
+
+        return mapToDto(savedSchedule);
+    }
+
+    @Override
+    public ScheduleDto updateScheduleInfo(Long scheduleId, ScheduleRequestDto requestDto) {
+        Schedule schedule = scheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new RuntimeException("Schedule not found"));
+        
+        if (schedule.getStatus() != ScheduleStatus.OPEN) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Chỉ có thể thay đổi thông tin khi ca làm ở trạng thái OPEN (chưa có bác sĩ xác nhận).");
+        }
+        
+        validateScheduleTime(requestDto.getDate(), requestDto.getStartTime(), requestDto.getEndTime());
+        
+        if (schedule.getDoctor() != null) {
+            checkDoctorScheduleOverlap(schedule.getDoctor().getId(), requestDto.getDate(), requestDto.getStartTime(), requestDto.getEndTime(), scheduleId);
+        }
+        
+        schedule.setDate(requestDto.getDate());
+        schedule.setStartTime(requestDto.getStartTime());
+        schedule.setEndTime(requestDto.getEndTime());
+        schedule.setMaxPatient(requestDto.getMaxPatient());
+        
+        Schedule savedSchedule = scheduleRepository.save(schedule);
+        
+        // Notify doctor if one is assigned
+        if (schedule.getDoctor() != null) {
+            notificationService.sendNotification(schedule.getDoctor().getUser().getId(), "Thông tin ca làm việc ngày " + schedule.getDate() + " đã được Admin cập nhật. Vui lòng kiểm tra lại.");
+        }
+        
+        return mapToDto(savedSchedule);
     }
 
     @Override
@@ -333,6 +392,19 @@ public class ScheduleServiceImpl implements ScheduleService {
             throw new RuntimeException("Schedule not found with id: " + scheduleId);
         }
         scheduleRepository.deleteById(scheduleId);
+    }
+
+    private void ensureDoctorIsSelf(Doctor doctor) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isDoctor = authentication != null
+                && authentication.isAuthenticated()
+                && authentication.getAuthorities().stream()
+                        .anyMatch(authority -> authority.getAuthority().equals("ROLE_DOCTOR"));
+        if (isDoctor && (doctor == null
+                || doctor.getUser() == null
+                || !doctor.getUser().getEmail().equals(authentication.getName()))) {
+            throw new AccessDeniedException("You do not have access to this doctor's schedule.");
+        }
     }
 
     private ScheduleDto mapToDto(Schedule schedule) {

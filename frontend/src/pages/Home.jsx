@@ -17,12 +17,12 @@ const Home = () => {
             try {
                 const docs = await getDoctors();
                 const specs = await getSpecialties();
-                
+
                 // Filter doctors with fairly high to high rating (>= 4.0) and sort descending
                 const highRatedDocs = docs
-                    .filter(d => d.averageRating >= 4.0)
+                    .filter(d => d.averageRating >= 4.0 && d.status === 'ACTIVE')
                     .sort((a, b) => b.averageRating - a.averageRating);
-                
+
                 setDoctors(highRatedDocs);
                 setSpecialties(specs);
             } catch (error) {
@@ -37,33 +37,33 @@ const Home = () => {
     return (
         <div>
             {/* Hero Section */}
-            <div style={{ 
+            <div style={{
                 background: 'linear-gradient(135deg, #e0e7ff 0%, #f3f4f6 100%)',
                 padding: '6rem 2rem',
                 textAlign: 'center'
             }}>
                 <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-                    <h1 style={{ 
-                        fontSize: '3.5rem', 
-                        fontWeight: '800', 
+                    <h1 style={{
+                        fontSize: '3.5rem',
+                        fontWeight: '800',
                         color: '#1f2937',
                         marginBottom: '1.5rem',
                         lineHeight: 1.2
                     }}>
                         Your Health, Our <span style={{ color: '#4f46e5' }}>Top Priority</span>
                     </h1>
-                    <p style={{ 
-                        fontSize: '1.25rem', 
+                    <p style={{
+                        fontSize: '1.25rem',
                         color: '#4b5563',
                         marginBottom: '2.5rem',
                         lineHeight: 1.6
                     }}>
-                        Experience world-class medical care with our team of expert doctors. 
+                        Experience world-class medical care with our team of expert doctors.
                         Book your appointment online and skip the waiting room.
                     </p>
                     <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '3rem' }}>
-                        <button 
-                            className="btn-primary" 
+                        <button
+                            className="btn-primary"
                             style={{ padding: '1rem 2rem', fontSize: '1.125rem', width: 'auto' }}
                             onClick={() => {
                                 if (user) {
@@ -77,10 +77,10 @@ const Home = () => {
                             {user?.role === 'ADMIN' ? 'Go to Admin Dashboard' : 'Book an Appointment'}
                         </button>
                         {!user && (
-                            <button 
-                                className="btn-secondary" 
-                                style={{ 
-                                    padding: '1rem 2rem', 
+                            <button
+                                className="btn-secondary"
+                                style={{
+                                    padding: '1rem 2rem',
                                     fontSize: '1.125rem',
                                     backgroundColor: 'white',
                                     border: '1px solid #d1d5db',
@@ -96,7 +96,7 @@ const Home = () => {
                         )}
                     </div>
 
-                    <form 
+                    <form
                         onSubmit={(e) => {
                             e.preventDefault();
                             if(searchQuery.trim()) navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
@@ -104,17 +104,17 @@ const Home = () => {
                         }}
                         style={{ position: 'relative', maxWidth: '600px', margin: '0 auto', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', borderRadius: '0.5rem' }}
                     >
-                        <Search 
-                            style={{ position: 'absolute', left: '16px', top: '16px', color: '#9ca3af', cursor: 'pointer', zIndex: 10 }} 
-                            size={24} 
+                        <Search
+                            style={{ position: 'absolute', left: '16px', top: '16px', color: '#9ca3af', cursor: 'pointer', zIndex: 10 }}
+                            size={24}
                             onClick={() => {
                                 if(searchQuery.trim()) navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
                                 else navigate(`/search`);
                             }}
                         />
-                        <input 
-                            type="text" 
-                            placeholder="Search doctors, specialties..." 
+                        <input
+                            type="text"
+                            placeholder="Search doctors, specialties..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             style={{
@@ -159,29 +159,29 @@ const Home = () => {
                                 cursor: 'pointer',
                             }}
                             onClick={() => navigate(`/specialty/${spec.id}`)}
-                            onMouseOver={(e) => { 
-                                e.currentTarget.style.transform = 'translateY(-8px)'; 
-                                e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(14, 165, 233, 0.1)'; 
+                            onMouseOver={(e) => {
+                                e.currentTarget.style.transform = 'translateY(-8px)';
+                                e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(14, 165, 233, 0.1)';
                                 e.currentTarget.style.borderColor = '#bae6fd';
                                 const arrow = e.currentTarget.querySelector('.arrow-icon');
                                 if (arrow) arrow.style.transform = 'translateX(5px)';
                             }}
-                            onMouseOut={(e) => { 
-                                e.currentTarget.style.transform = 'translateY(0)'; 
-                                e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05)'; 
+                            onMouseOut={(e) => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05)';
                                 e.currentTarget.style.borderColor = '#f1f5f9';
                                 const arrow = e.currentTarget.querySelector('.arrow-icon');
                                 if (arrow) arrow.style.transform = 'translateX(0)';
                             }}
                             >
-                                <div style={{ 
-                                    backgroundColor: '#e0f2fe', 
-                                    color: '#0ea5e9', 
-                                    width: '72px', 
-                                    height: '72px', 
-                                    borderRadius: '50%', 
-                                    display: 'flex', 
-                                    alignItems: 'center', 
+                                <div style={{
+                                    backgroundColor: '#e0f2fe',
+                                    color: '#0ea5e9',
+                                    width: '72px',
+                                    height: '72px',
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    alignItems: 'center',
                                     justifyContent: 'center',
                                     marginBottom: '1.5rem',
                                     border: '4px solid #bae6fd'
@@ -192,8 +192,8 @@ const Home = () => {
                                 <p style={{ color: '#64748b', fontSize: '0.9rem', lineHeight: '1.6', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', marginBottom: '1.5rem', flex: 1 }}>
                                     {spec.description}
                                 </p>
-                                <div style={{ 
-                                    display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0ea5e9', 
+                                <div style={{
+                                    display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0ea5e9',
                                     fontWeight: '600', fontSize: '0.9rem', marginTop: 'auto',
                                     padding: '0.5rem 1rem', backgroundColor: '#f0f9ff', borderRadius: '2rem'
                                 }}>
@@ -233,20 +233,20 @@ const Home = () => {
                                 flexDirection: 'column'
                             }}
                             onClick={() => navigate(`/doctor/${doc.id}`)}
-                            onMouseOver={(e) => { 
-                                e.currentTarget.style.transform = 'translateY(-8px)'; 
-                                e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)'; 
+                            onMouseOver={(e) => {
+                                e.currentTarget.style.transform = 'translateY(-8px)';
+                                e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)';
                                 e.currentTarget.style.borderColor = '#e0e7ff';
                             }}
-                            onMouseOut={(e) => { 
-                                e.currentTarget.style.transform = 'translateY(0)'; 
+                            onMouseOut={(e) => {
+                                e.currentTarget.style.transform = 'translateY(0)';
                                 e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)';
                                 e.currentTarget.style.borderColor = '#f1f5f9';
                             }}
                             >
                                 <div style={{ height: '220px', backgroundColor: '#f8fafc', display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
                                     {user && user.role === 'PATIENT' && (
-                                        <button 
+                                        <button
                                             onClick={(e) => { e.stopPropagation(); toggleFavorite(doc.id); }}
                                             style={{
                                                 position: 'absolute', top: '1rem', right: '1rem', zIndex: 10,
@@ -272,28 +272,28 @@ const Home = () => {
                                 <div style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
                                     <h3 style={{ fontSize: '1.3rem', fontWeight: '800', color: '#0ea5e9', marginBottom: '0.25rem' }}>{doc.fullName}</h3>
                                     <div style={{ color: '#64748b', fontSize: '0.9rem', fontWeight: '500', marginBottom: '0.75rem' }}>{doc.degree}</div>
-                                    
+
                                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#f0f9ff', color: '#0369a1', padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.85rem', fontWeight: '600' }}>
                                             <Star size={14} fill="#0ea5e9" color="#0ea5e9" /> {doc.averageRating?.toFixed(1) || '0.0'}
                                         </div>
                                         <span style={{ color: '#4f46e5', fontWeight: '600', fontSize: '0.9rem' }}>{doc.specialtyName}</span>
                                     </div>
-                                    
+
                                     <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#475569', fontSize: '0.9rem', paddingBottom: '1.25rem', borderBottom: '1px dashed #e2e8f0', marginBottom: '1.25rem' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                                            <Clock size={16} color="#9ca3af" /> 
+                                            <Clock size={16} color="#9ca3af" />
                                             <span><strong>{doc.experience}</strong> yrs exp</span>
                                         </div>
                                         <div style={{ fontWeight: '700', color: '#10b981', fontSize: '1.05rem' }}>
                                             ${doc.consultationFee}
                                         </div>
                                     </div>
-                                    
-                                    <button 
-                                        style={{ 
-                                            width: '100%', padding: '0.875rem', borderRadius: '0.75rem', 
-                                            backgroundColor: '#0ea5e9', color: 'white', border: 'none', 
+
+                                    <button
+                                        style={{
+                                            width: '100%', padding: '0.875rem', borderRadius: '0.75rem',
+                                            backgroundColor: '#0ea5e9', color: 'white', border: 'none',
                                             fontWeight: '600', fontSize: '1rem', cursor: 'pointer', transition: 'background-color 0.2s'
                                         }}
                                         onMouseOver={e => e.currentTarget.style.backgroundColor = '#0284c7'}
@@ -334,22 +334,22 @@ const Home = () => {
                             { icon: <Clock size={32} />, title: '24/7 Support', desc: 'We are always here to help you when you need it most.' },
                             { icon: <Shield size={32} />, title: 'Secure Records', desc: 'Your medical history is kept strictly confidential and secure.' }
                         ].map((feature, index) => (
-                            <div key={index} style={{ 
-                                padding: '2rem', 
-                                borderRadius: '1rem', 
+                            <div key={index} style={{
+                                padding: '2rem',
+                                borderRadius: '1rem',
                                 backgroundColor: 'white',
                                 border: '1px solid #e2e8f0',
                                 textAlign: 'center',
                                 transition: 'transform 0.2s'
                             }}>
-                                <div style={{ 
-                                    backgroundColor: '#e0e7ff', 
-                                    color: '#4f46e5', 
-                                    width: '64px', 
-                                    height: '64px', 
-                                    borderRadius: '1rem', 
-                                    display: 'flex', 
-                                    alignItems: 'center', 
+                                <div style={{
+                                    backgroundColor: '#e0e7ff',
+                                    color: '#4f46e5',
+                                    width: '64px',
+                                    height: '64px',
+                                    borderRadius: '1rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
                                     justifyContent: 'center',
                                     margin: '0 auto 1.5rem'
                                 }}>

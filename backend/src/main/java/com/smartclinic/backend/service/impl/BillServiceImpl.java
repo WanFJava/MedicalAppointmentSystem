@@ -8,8 +8,9 @@ import com.smartclinic.backend.repository.BillRepository;
 import com.smartclinic.backend.repository.MedicalRecordRepository;
 import com.smartclinic.backend.repository.PrescriptionRepository;
 import com.smartclinic.backend.repository.PrescriptionDetailRepository;
-import com.smartclinic.backend.repository.MedicineRepository;
+import com.smartclinic.backend.repository.UserRepository;
 import com.smartclinic.backend.service.BillService;
+import com.smartclinic.backend.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -31,7 +32,8 @@ public class BillServiceImpl implements BillService {
     private final MedicalRecordRepository medicalRecordRepository;
     private final PrescriptionRepository prescriptionRepository;
     private final PrescriptionDetailRepository prescriptionDetailRepository;
-    private final MedicineRepository medicineRepository;
+    private final NotificationService notificationService;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
@@ -48,10 +50,10 @@ public class BillServiceImpl implements BillService {
             return mapToDto(existingBill.get());
         }
 
-        BigDecimal consultationFee = appointment.getDoctor().getConsultationFee() != null 
-                ? appointment.getDoctor().getConsultationFee() 
+        BigDecimal consultationFee = appointment.getDoctor().getConsultationFee() != null
+                ? appointment.getDoctor().getConsultationFee()
                 : BigDecimal.ZERO;
-        
+
         BigDecimal medicineFee = BigDecimal.ZERO;
 
         Optional<MedicalRecord> recordOpt = medicalRecordRepository.findByAppointmentId(appointmentId);
@@ -81,6 +83,13 @@ public class BillServiceImpl implements BillService {
         bill.setStatus(BillStatus.UNPAID);
         bill.setCreatedAt(LocalDateTime.now());
         Bill savedBill = billRepository.save(bill);
+
+        // Notify patient
+        if (appointment.getPatient() != null) {
+            notificationService.sendNotification(appointment.getPatient().getUser().getId(),
+                "Hóa đơn thanh toán cho lịch khám ngày " + appointment.getSchedule().getDate() + " đã được tạo. Vui lòng thanh toán tại quầy lễ tân.");
+        }
+
         return mapToDto(savedBill);
     }
 
@@ -98,6 +107,21 @@ public class BillServiceImpl implements BillService {
         bill.setPaidAt(java.time.LocalDateTime.now());
         bill.setPaymentMethod("CASH"); // Or whatever default
         Bill savedBill = billRepository.save(bill);
+
+        // Notify patient
+        if (bill.getAppointment().getPatient() != null) {
+            notificationService.sendNotification(bill.getAppointment().getPatient().getUser().getId(),
+                "Hóa đơn thanh toán cho lịch khám ngày " + bill.getAppointment().getSchedule().getDate() + " đã được thanh toán thành công.");
+        }
+        // Notify receptionists
+        String patientName = bill.getAppointment().getPatient() != null && bill.getAppointment().getPatient().getUser() != null 
+            ? bill.getAppointment().getPatient().getUser().getFullName() 
+            : "một bệnh nhân";
+            
+        userRepository.findByRole(Role.RECEPTIONIST).forEach(receptionist -> {
+            notificationService.sendNotification(receptionist.getId(), 
+                "Bệnh nhân " + patientName + " đã thanh toán thành công hóa đơn " + billId);
+        });
 
         return mapToDto(savedBill);
     }

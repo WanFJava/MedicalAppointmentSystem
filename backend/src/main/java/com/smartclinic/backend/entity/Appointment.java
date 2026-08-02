@@ -39,8 +39,13 @@ public class Appointment {
     private Integer queueNumber;
 
     @Column(name = "is_reviewed")
+    @Builder.Default
     private Boolean isReviewed = false;
 
     @Column(name = "note", columnDefinition = "NVARCHAR(255)")
     private String note;
+
+    @Column(name = "is_reminded")
+    @Builder.Default
+    private Boolean isReminded = false;
 }

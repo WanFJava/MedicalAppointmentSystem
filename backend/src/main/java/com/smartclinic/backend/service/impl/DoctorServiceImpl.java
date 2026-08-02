@@ -35,7 +35,7 @@ public class DoctorServiceImpl implements DoctorService {
         if (doctorDto.getUserId() != null) {
             user = userRepository.findById(doctorDto.getUserId())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản người dùng với ID: " + doctorDto.getUserId()));
-            
+
             // Ensure the user has DOCTOR role
             if (user.getRole() != Role.DOCTOR) {
                 user.setRole(Role.DOCTOR);
@@ -140,31 +140,31 @@ public class DoctorServiceImpl implements DoctorService {
         }
 
         if (newStatus == com.smartclinic.backend.entity.Status.INACTIVE) {
-            int activeSchedules = scheduleRepository.countByDoctorIdAndStatusIn(doctorId, 
+            int activeSchedules = scheduleRepository.countByDoctorIdAndStatusIn(doctorId,
                 java.util.Arrays.asList(
                     com.smartclinic.backend.entity.ScheduleStatus.FULL,
                     com.smartclinic.backend.entity.ScheduleStatus.IN_PROGRESS
                 ));
-            int activeAppointments = appointmentRepository.countByDoctorIdAndStatusIn(doctorId, 
+            int activeAppointments = appointmentRepository.countByDoctorIdAndStatusIn(doctorId,
                 java.util.Arrays.asList(
                     com.smartclinic.backend.entity.AppointmentStatus.CONFIRMED,
                     com.smartclinic.backend.entity.AppointmentStatus.CHECKED_IN,
                     com.smartclinic.backend.entity.AppointmentStatus.IN_PROGRESS
                 ));
-            
+
             if (activeSchedules > 0 || activeAppointments > 0) {
                 throw new IllegalArgumentException("Không thể ngừng hoạt động (INACTIVE) vì bác sĩ đang có lịch làm (FULL/IN_PROGRESS) hoặc lịch hẹn (CONFIRMED/CHECKED_IN/IN_PROGRESS). Vui lòng hoàn tất hoặc chuyển các lịch này trước.");
             }
         } else if (newStatus == com.smartclinic.backend.entity.Status.LOCKED) {
-            int inProgressSchedules = scheduleRepository.countByDoctorIdAndStatusIn(doctorId, 
+            int inProgressSchedules = scheduleRepository.countByDoctorIdAndStatusIn(doctorId,
                 java.util.Collections.singletonList(com.smartclinic.backend.entity.ScheduleStatus.IN_PROGRESS));
-            
-            int ongoingAppointments = appointmentRepository.countByDoctorIdAndStatusIn(doctorId, 
+
+            int ongoingAppointments = appointmentRepository.countByDoctorIdAndStatusIn(doctorId,
                 java.util.Arrays.asList(
                     com.smartclinic.backend.entity.AppointmentStatus.CHECKED_IN,
                     com.smartclinic.backend.entity.AppointmentStatus.IN_PROGRESS
                 ));
-            
+
             if (inProgressSchedules > 0 || ongoingAppointments > 0) {
                 throw new IllegalArgumentException("Không thể khóa tài khoản vì bác sĩ đang có ca trực diễn ra hoặc đang có bệnh nhân chờ khám (CHECKED_IN/IN_PROGRESS).");
             }

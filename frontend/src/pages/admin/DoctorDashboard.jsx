@@ -18,7 +18,7 @@ const DoctorDashboard = ({ tab = 'appointments' }) => {
     const [viewingPatient, setViewingPatient] = useState(null);
     const [feedbackApt, setFeedbackApt] = useState(null);
     const [viewingRecordApt, setViewingRecordApt] = useState(null);
-    const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
+    const [filterDate, setFilterDate] = useState(new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]);
 
     useEffect(() => {
         if (user && user.role === 'DOCTOR') {
@@ -124,25 +124,25 @@ const DoctorDashboard = ({ tab = 'appointments' }) => {
                                 </td>
                                 <td>{apt.symptom}</td>
                                 <td>
-                                    <span style={{ 
-                                        backgroundColor: statusStyle.bg, color: statusStyle.color, 
-                                        padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 600 
+                                    <span style={{
+                                        backgroundColor: statusStyle.bg, color: statusStyle.color,
+                                        padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 600
                                     }}>
                                         {apt.status}
                                     </span>
                                 </td>
                                 <td style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                    <button 
-                                        className="btn-primary" 
+                                    <button
+                                        className="btn-primary"
                                         style={{ padding: '0.5rem 0.75rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#3b82f6' }}
                                         onClick={() => handleViewPatient(apt.patientId)}
                                     >
                                         <Info size={16} /> Info
                                     </button>
-                                    
+
                                     {apt.status === 'PENDING' && (
-                                        <button 
-                                            className="btn-primary" 
+                                        <button
+                                            className="btn-primary"
                                             style={{ padding: '0.5rem 0.75rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#dc2626' }}
                                             onClick={() => handleUpdateStatus(apt.id, 'CANCELLED_BY_DOCTOR')}
                                         >
@@ -152,15 +152,15 @@ const DoctorDashboard = ({ tab = 'appointments' }) => {
 
                                     {apt.status === 'IN_PROGRESS' && (
                                         <>
-                                            <button 
-                                                className="btn-primary" 
+                                            <button
+                                                className="btn-primary"
                                                 style={{ padding: '0.5rem 0.75rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#059669' }}
                                                 onClick={() => handleComplete(apt)}
                                             >
                                                 <CheckCircle size={16} /> Diagnose
                                             </button>
-                                            <button 
-                                                className="btn-primary" 
+                                            <button
+                                                className="btn-primary"
                                                 style={{ padding: '0.5rem 0.75rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#6b7280' }}
                                                 onClick={() => handleUpdateStatus(apt.id, 'NO_SHOW')}
                                                 title="Đánh dấu bệnh nhân không đến khám"
@@ -170,8 +170,8 @@ const DoctorDashboard = ({ tab = 'appointments' }) => {
                                         </>
                                     )}
                                     {apt.status === 'COMPLETED' && apt.isReviewed && (
-                                        <button 
-                                            className="btn-secondary" 
+                                        <button
+                                            className="btn-secondary"
                                             style={{ padding: '0.5rem 0.75rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#fef9c3', color: '#854d0e', border: 'none' }}
                                             onClick={() => setFeedbackApt(apt)}
                                             title="View Patient Feedback"
@@ -180,8 +180,8 @@ const DoctorDashboard = ({ tab = 'appointments' }) => {
                                         </button>
                                     )}
                                     {['COMPLETED', 'PAID'].includes(apt.status) && (
-                                        <button 
-                                            className="btn-primary" 
+                                        <button
+                                            className="btn-primary"
                                             style={{ padding: '0.5rem 0.75rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#4f46e5' }}
                                             onClick={() => setViewingRecordApt(apt)}
                                             title="View Medical Record"
@@ -219,10 +219,10 @@ const DoctorDashboard = ({ tab = 'appointments' }) => {
             {tab === 'appointments' && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem', backgroundColor: 'white', padding: '1rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
                     <label style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>Xem theo ngày:</label>
-                    <input 
-                        type="date" 
-                        value={filterDate} 
-                        onChange={(e) => setFilterDate(e.target.value)} 
+                    <input
+                        type="date"
+                        value={filterDate}
+                        onChange={(e) => setFilterDate(e.target.value)}
                         style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #d1d5db' }}
                     />
                 </div>
@@ -239,7 +239,7 @@ const DoctorDashboard = ({ tab = 'appointments' }) => {
             )}
 
             {diagnosingApt && (
-                <DoctorDiagnoseModal 
+                <DoctorDiagnoseModal
                     appointment={diagnosingApt}
                     doctorId={doctor.id}
                     onClose={() => setDiagnosingApt(null)}
@@ -262,22 +262,22 @@ const DoctorDashboard = ({ tab = 'appointments' }) => {
                             <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '0.5rem' }}>
                                 <strong style={{ color: 'var(--text-secondary)' }}>Full Name:</strong>
                                 <span>{viewingPatient.fullName}</span>
-                                
+
                                 <strong style={{ color: 'var(--text-secondary)' }}>Gender:</strong>
                                 <span>{viewingPatient.gender || 'N/A'}</span>
-                                
+
                                 <strong style={{ color: 'var(--text-secondary)' }}>Birthday:</strong>
                                 <span>{viewingPatient.birthday || 'N/A'}</span>
-                                
+
                                 <strong style={{ color: 'var(--text-secondary)' }}>Phone:</strong>
                                 <span>{viewingPatient.phone || 'N/A'}</span>
-                                
+
                                 <strong style={{ color: 'var(--text-secondary)' }}>Address:</strong>
                                 <span>{viewingPatient.address || 'N/A'}</span>
-                                
+
                                 <strong style={{ color: 'var(--text-secondary)' }}>Blood Group:</strong>
                                 <span>{viewingPatient.bloodGroup || 'N/A'}</span>
-                                
+
                                 <strong style={{ color: 'var(--text-secondary)' }}>Allergies:</strong>
                                 <span style={{ color: viewingPatient.allergy ? '#dc2626' : 'inherit' }}>
                                     {viewingPatient.allergy || 'None reported'}
@@ -293,7 +293,7 @@ const DoctorDashboard = ({ tab = 'appointments' }) => {
 
             {/* Feedback Modal */}
             {feedbackApt && (
-                <FeedbackModal 
+                <FeedbackModal
                     appointment={feedbackApt}
                     isReadOnly={true}
                     onClose={() => setFeedbackApt(null)}
@@ -301,9 +301,9 @@ const DoctorDashboard = ({ tab = 'appointments' }) => {
             )}
 
             {viewingRecordApt && (
-                <PatientRecordModal 
-                    appointment={viewingRecordApt} 
-                    onClose={() => setViewingRecordApt(null)} 
+                <PatientRecordModal
+                    appointment={viewingRecordApt}
+                    onClose={() => setViewingRecordApt(null)}
                 />
             )}
         </div>

@@ -28,7 +28,7 @@ const SpecialtyDoctorsPage = () => {
                 setSpecialty(currentSpecialty);
 
                 // Filter doctors for this specialty
-                const specialtyDoctors = allDocs.filter(d => d.specialtyId?.toString() === id);
+                const specialtyDoctors = allDocs.filter(d => d.specialtyId?.toString() === id && d.status === 'ACTIVE');
                 setDoctors(specialtyDoctors);
             } catch (error) {
                 console.error("Error fetching data:", error);
@@ -55,25 +55,25 @@ const SpecialtyDoctorsPage = () => {
     return (
         <div style={{ backgroundColor: '#f8fafc', minHeight: '100vh', padding: '2rem' }}>
             <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-                <button 
+                <button
                     onClick={() => {
                         if (window.history.state && window.history.state.idx > 0) {
                             navigate(-1);
                         } else {
                             navigate('/');
                         }
-                    }} 
+                    }}
                     style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '500' }}
                 >
                     ← Back
                 </button>
 
                 {/* Specialty Header */}
-                <div style={{ 
-                    backgroundColor: 'white', 
-                    padding: '4rem 2rem', 
-                    borderRadius: '1.25rem', 
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)', 
+                <div style={{
+                    backgroundColor: 'white',
+                    padding: '4rem 2rem',
+                    borderRadius: '1.25rem',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
                     border: '1px solid #f1f5f9',
                     marginBottom: '3rem',
                     display: 'flex',
@@ -85,15 +85,15 @@ const SpecialtyDoctorsPage = () => {
                 }}>
                     <div style={{ position: 'absolute', top: 0, right: 0, width: '200px', height: '200px', background: 'radial-gradient(circle at top right, rgba(79, 70, 229, 0.05) 0%, transparent 70%)', borderRadius: '0 1.25rem 0 100%' }}></div>
                     <div style={{ position: 'absolute', bottom: 0, left: 0, width: '150px', height: '150px', background: 'radial-gradient(circle at bottom left, rgba(79, 70, 229, 0.03) 0%, transparent 70%)', borderRadius: '0 100% 0 1.25rem' }}></div>
-                    
-                    <div style={{ 
-                        background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)', 
-                        color: '#4f46e5', 
-                        width: '80px', 
-                        height: '80px', 
-                        borderRadius: '24px', 
-                        display: 'flex', 
-                        alignItems: 'center', 
+
+                    <div style={{
+                        background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)',
+                        color: '#4f46e5',
+                        width: '80px',
+                        height: '80px',
+                        borderRadius: '24px',
+                        display: 'flex',
+                        alignItems: 'center',
                         justifyContent: 'center',
                         marginBottom: '1.5rem',
                         boxShadow: '0 4px 6px -1px rgba(79, 70, 229, 0.2)',
@@ -115,7 +115,7 @@ const SpecialtyDoctorsPage = () => {
                     <h2 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#1f2937', marginBottom: '1.5rem', borderBottom: '2px solid #e5e7eb', paddingBottom: '0.5rem' }}>
                         Doctors in this Specialty ({doctors.length})
                     </h2>
-                    
+
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                         {doctors.map((doc) => (
                             <DoctorCard key={doc.id} doc={doc} />

@@ -3,6 +3,7 @@ package com.smartclinic.backend.config;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@ConditionalOnProperty(name = "app.database-fix.enabled", havingValue = "true")
 @RequiredArgsConstructor
 @Slf4j
 public class DatabaseFixRunner implements CommandLineRunner {

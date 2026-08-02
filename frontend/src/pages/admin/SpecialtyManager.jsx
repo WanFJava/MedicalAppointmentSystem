@@ -123,19 +123,19 @@ const SpecialtyManager = () => {
                         <form onSubmit={handleSubmit}>
                             <div className="form-group">
                                 <label>Specialty Name</label>
-                                <input 
-                                    type="text" 
-                                    required 
-                                    value={formData.name} 
+                                <input
+                                    type="text"
+                                    required
+                                    value={formData.name}
                                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                                 />
                             </div>
                             <div className="form-group">
                                 <label>Description</label>
-                                <textarea 
+                                <textarea
                                     className="form-control"
                                     rows="4"
-                                    value={formData.description} 
+                                    value={formData.description}
                                     onChange={(e) => setFormData({...formData, description: e.target.value})}
                                 ></textarea>
                             </div>

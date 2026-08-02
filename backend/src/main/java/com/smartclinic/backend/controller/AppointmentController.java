@@ -19,7 +19,7 @@ public class AppointmentController {
     private final AppointmentService appointmentService;
 
     @PostMapping("/book/{patientId}")
-    @PreAuthorize("hasAnyRole('PATIENT', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('PATIENT', 'ADMIN', 'RECEPTIONIST')")
     public ResponseEntity<AppointmentDto> bookAppointment(
             @PathVariable Long patientId,
             @RequestBody BookingRequestDto requestDto) {
@@ -50,6 +50,14 @@ public class AppointmentController {
             @PathVariable Long appointmentId,
             @RequestParam AppointmentStatus status) {
         return ResponseEntity.ok(appointmentService.updateAppointmentStatus(appointmentId, status));
+    }
+
+    @PutMapping("/{appointmentId}/change-schedule")
+    @PreAuthorize("hasAnyRole('RECEPTIONIST', 'ADMIN')")
+    public ResponseEntity<AppointmentDto> changeAppointmentSchedule(
+            @PathVariable Long appointmentId,
+            @RequestParam Long newScheduleId) {
+        return ResponseEntity.ok(appointmentService.changeAppointmentSchedule(appointmentId, newScheduleId));
     }
 
     @DeleteMapping("/{appointmentId}")

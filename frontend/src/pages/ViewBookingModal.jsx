@@ -70,8 +70,8 @@ const ViewBookingModal = ({ appointment, onClose }) => {
                         <div style={{ fontSize: '0.875rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
                             <FileText size={16} /> Reason for Visit / Symptoms
                         </div>
-                        <div style={{ 
-                            backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '0.5rem', 
+                        <div style={{
+                            backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '0.5rem',
                             color: '#334155', minHeight: '60px', border: '1px solid #e2e8f0'
                         }}>
                             {appointment.symptom || 'No symptoms provided.'}
@@ -80,11 +80,11 @@ const ViewBookingModal = ({ appointment, onClose }) => {
                 </div>
 
                 <div style={{ padding: '1.25rem', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', backgroundColor: '#f8fafc' }}>
-                    <button 
+                    <button
                         onClick={onClose}
-                        style={{ 
-                            padding: '0.5rem 1.25rem', backgroundColor: '#3b82f6', color: 'white', 
-                            border: 'none', borderRadius: '0.5rem', fontWeight: 500, cursor: 'pointer' 
+                        style={{
+                            padding: '0.5rem 1.25rem', backgroundColor: '#3b82f6', color: 'white',
+                            border: 'none', borderRadius: '0.5rem', fontWeight: 500, cursor: 'pointer'
                         }}
                     >
                         Close

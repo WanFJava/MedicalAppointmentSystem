@@ -3,6 +3,7 @@ import { AuthContext } from '../context/AuthContext';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { LogOut, User as UserIcon, Heart } from 'lucide-react';
 import ReceptionistChatbot from '../components/ReceptionistChatbot';
+import NotificationBell from '../components/NotificationBell';
 
 const MainLayout = () => {
     const { user, logout } = useContext(AuthContext);
@@ -40,13 +41,14 @@ const MainLayout = () => {
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     {user ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                            <NotificationBell />
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#4b5563' }}>
                                 {user?.avatar ? (
-                                    <img 
-                                        src={user.avatar} 
-                                        alt="Avatar" 
-                                        style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }} 
+                                    <img
+                                        src={user.avatar}
+                                        alt="Avatar"
+                                        style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }}
                                         onError={(e) => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'A')}&background=random`; }}
                                     />
                                 ) : (

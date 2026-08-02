@@ -25,13 +25,14 @@ public class Patient {
     private LocalDate birthday;
     private String gender;
     private String address;
-    
+
     @Column(name = "blood_group")
     private String bloodGroup;
-    
+
     private String allergy;
 
     @ManyToMany
+    @Builder.Default
     @JoinTable(
         name = "favorite_doctors",
         joinColumns = @JoinColumn(name = "patient_id"),

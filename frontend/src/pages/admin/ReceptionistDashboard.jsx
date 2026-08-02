@@ -4,6 +4,9 @@ import { getAllAppointments, updateAppointmentStatus, deleteAppointment } from '
 import { CheckCircle, XCircle, UserCheck, Trash2, Star } from 'lucide-react';
 import BillModal from './BillModal';
 import FeedbackModal from '../FeedbackModal';
+import ChangeDoctorModal from './ChangeDoctorModal';
+import AdminBookingModal from './AdminBookingModal';
+import { Plus } from 'lucide-react';
 
 const ReceptionistDashboard = () => {
     const { user } = useContext(AuthContext);
@@ -11,7 +14,9 @@ const ReceptionistDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [billingApt, setBillingApt] = useState(null);
     const [feedbackApt, setFeedbackApt] = useState(null);
-    const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
+    const [changeDoctorApt, setChangeDoctorApt] = useState(null);
+    const [showBookingModal, setShowBookingModal] = useState(false);
+    const [filterDate, setFilterDate] = useState(new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]);
 
     useEffect(() => {
         fetchAppointments();
@@ -64,7 +69,7 @@ const ReceptionistDashboard = () => {
 
     if (loading) return <div style={{ padding: '2rem' }}>Loading dashboard...</div>;
 
-    const filteredAppointments = filterDate 
+    const filteredAppointments = filterDate
         ? appointments.filter(apt => apt.scheduleDate === filterDate)
         : appointments;
 
@@ -72,18 +77,25 @@ const ReceptionistDashboard = () => {
         <div>
             <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                    <h2>Receptionist Dashboard</h2>
+                    <h2>Quản lý Lịch hẹn</h2>
                     <div style={{ color: 'var(--text-secondary)' }}>Welcome, {user?.fullName}</div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', backgroundColor: 'white', padding: '0.75rem 1rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+                    <button 
+                        className="btn-primary" 
+                        onClick={() => setShowBookingModal(true)} 
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginRight: '1rem', padding: '0.5rem 1rem' }}
+                    >
+                        <Plus size={16} /> Đặt lịch hộ
+                    </button>
                     <label style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>Xem lịch ngày:</label>
-                    <input 
-                        type="date" 
-                        value={filterDate} 
-                        onChange={(e) => setFilterDate(e.target.value)} 
+                    <input
+                        type="date"
+                        value={filterDate}
+                        onChange={(e) => setFilterDate(e.target.value)}
                         style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #d1d5db' }}
                     />
-                    <button 
+                    <button
                         onClick={() => setFilterDate('')}
                         style={{ padding: '0.5rem', backgroundColor: '#f3f4f6', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }}
                         title="Xem tất cả ngày"
@@ -121,9 +133,9 @@ const ReceptionistDashboard = () => {
                                         {apt.symptom}
                                     </td>
                                     <td>
-                                        <span style={{ 
-                                            backgroundColor: statusStyle.bg, color: statusStyle.color, 
-                                            padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 600 
+                                        <span style={{
+                                            backgroundColor: statusStyle.bg, color: statusStyle.color,
+                                            padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 600
                                         }}>
                                             {apt.status}
                                         </span>
@@ -135,10 +147,10 @@ const ReceptionistDashboard = () => {
                                     </td>
                                     <td>
                                         {['COMPLETED', 'PAID'].includes(apt.status) ? (
-                                            <span style={{ 
-                                                backgroundColor: apt.paymentStatus === 'PAID' ? '#d1fae5' : '#fee2e2', 
-                                                color: apt.paymentStatus === 'PAID' ? '#059669' : '#dc2626', 
-                                                padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 600 
+                                            <span style={{
+                                                backgroundColor: apt.paymentStatus === 'PAID' ? '#d1fae5' : '#fee2e2',
+                                                color: apt.paymentStatus === 'PAID' ? '#059669' : '#dc2626',
+                                                padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 600
                                             }}>
                                                 {apt.paymentStatus === 'PAID' ? 'Đã thanh toán' : 'Chưa thanh toán'}
                                             </span>
@@ -150,13 +162,13 @@ const ReceptionistDashboard = () => {
                                         <div className="action-buttons">
                                             {apt.status === 'PENDING' && (
                                                 <>
-                                                    <button 
+                                                    <button
                                                         title="Confirm Appointment"
                                                         onClick={() => handleUpdateStatus(apt.id, 'CONFIRMED')}
                                                         style={{ padding: '0.5rem', backgroundColor: '#dbeafe', color: '#2563eb', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>
                                                         <CheckCircle size={16} />
                                                     </button>
-                                                    <button 
+                                                    <button
                                                         title="Cancel Appointment"
                                                         onClick={() => {
                                                             if (window.confirm("Are you sure you want to cancel this appointment?")) {
@@ -169,7 +181,7 @@ const ReceptionistDashboard = () => {
                                                 </>
                                             )}
                                             {apt.status === 'CONFIRMED' && (
-                                                <button 
+                                                <button
                                                     title="Check In Patient"
                                                     onClick={() => handleUpdateStatus(apt.id, 'CHECKED_IN')}
                                                     style={{ padding: '0.5rem', backgroundColor: '#e0e7ff', color: '#4f46e5', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>
@@ -177,7 +189,7 @@ const ReceptionistDashboard = () => {
                                                 </button>
                                             )}
                                             {apt.status === 'COMPLETED' && (
-                                                <button 
+                                                <button
                                                     title="Generate Invoice / Confirm Payment"
                                                     onClick={() => setBillingApt(apt)}
                                                     style={{ padding: '0.5rem', backgroundColor: '#fce7f3', color: '#be185d', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontWeight: 'bold' }}>
@@ -185,7 +197,7 @@ const ReceptionistDashboard = () => {
                                                 </button>
                                             )}
                                             {apt.status === 'COMPLETED' && apt.isReviewed && (
-                                                <button 
+                                                <button
                                                     title="View Patient Feedback"
                                                     onClick={() => setFeedbackApt(apt)}
                                                     style={{ padding: '0.5rem', backgroundColor: '#fef9c3', color: '#854d0e', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>
@@ -193,13 +205,17 @@ const ReceptionistDashboard = () => {
                                                 </button>
                                             )}
                                             {/* Note: DOCTOR will change status to COMPLETED */}
-                                            {user?.role === 'ADMIN' && (
-                                                <button 
-                                                    title="Delete Appointment Permanently"
-                                                    onClick={() => handleDelete(apt.id)}
-                                                    style={{ padding: '0.5rem', backgroundColor: '#fca5a5', color: '#991b1b', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', marginLeft: '0.5rem' }}>
-                                                    <Trash2 size={16} />
-                                                </button>
+                                            {(user?.role === 'ADMIN' || user?.role === 'RECEPTIONIST') && (
+                                                <>
+                                                    {(apt.status === 'PENDING' || apt.status === 'CONFIRMED') && (
+                                                        <button
+                                                            title="Change Doctor / Schedule"
+                                                            onClick={() => setChangeDoctorApt(apt)}
+                                                            style={{ padding: '0.5rem', backgroundColor: '#f3e8ff', color: '#7e22ce', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', marginLeft: '0.5rem' }}>
+                                                            <UserCheck size={16} />
+                                                        </button>
+                                                    )}
+                                                </>
                                             )}
                                         </div>
                                     </td>
@@ -216,21 +232,42 @@ const ReceptionistDashboard = () => {
             </div>
 
             {billingApt && (
-                <BillModal 
-                    appointment={billingApt} 
-                    onClose={() => setBillingApt(null)} 
+                <BillModal
+                    appointment={billingApt}
+                    onClose={() => setBillingApt(null)}
                     onSuccess={() => {
                         setBillingApt(null);
                         fetchAppointments();
-                    }} 
+                    }}
                 />
             )}
 
             {feedbackApt && (
-                <FeedbackModal 
+                <FeedbackModal
                     appointment={feedbackApt}
                     isReadOnly={true}
                     onClose={() => setFeedbackApt(null)}
+                />
+            )}
+
+            {changeDoctorApt && (
+                <ChangeDoctorModal
+                    appointment={changeDoctorApt}
+                    onClose={() => setChangeDoctorApt(null)}
+                    onSuccess={() => {
+                        setChangeDoctorApt(null);
+                        fetchAppointments();
+                    }}
+                />
+            )}
+
+            {showBookingModal && (
+                <AdminBookingModal
+                    onClose={() => setShowBookingModal(false)}
+                    onSuccess={() => {
+                        setShowBookingModal(false);
+                        fetchAppointments();
+                    }}
                 />
             )}
         </div>

@@ -21,6 +21,7 @@ public class ScheduleController {
     private final com.smartclinic.backend.service.impl.ScheduleAutoUpdateService scheduleAutoUpdateService;
 
     @PostMapping("/force-auto-update")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> forceAutoUpdate() {
         scheduleAutoUpdateService.autoUpdateExpiredSchedules();
         return ResponseEntity.ok("Triggered auto update");
@@ -100,6 +101,14 @@ public class ScheduleController {
             @PathVariable Long scheduleId,
             @RequestParam com.smartclinic.backend.entity.ScheduleStatus status) {
         return ResponseEntity.ok(scheduleService.updateScheduleStatus(scheduleId, status));
+    }
+
+    @PutMapping("/{scheduleId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ScheduleDto> updateScheduleInfo(
+            @PathVariable Long scheduleId,
+            @RequestBody ScheduleRequestDto requestDto) {
+        return ResponseEntity.ok(scheduleService.updateScheduleInfo(scheduleId, requestDto));
     }
 
     @DeleteMapping("/{scheduleId}")
