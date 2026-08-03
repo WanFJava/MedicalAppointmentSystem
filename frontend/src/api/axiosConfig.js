@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { toast } from 'react-hot-toast';
 
 const api = axios.create({
     baseURL: 'http://localhost:8080/api', // Spring Boot default port
@@ -26,6 +27,20 @@ api.interceptors.response.use(
 
             if (window.location.pathname !== '/login') {
                 window.location.assign('/login');
+            }
+        }
+
+        if (error.response?.status === 403) {
+            const msg = error.response?.data?.message || '';
+            if (msg.includes('INACTIVE') || msg.includes('LOCKED')) {
+                toast.error(msg, { duration: 5000 });
+                localStorage.removeItem('user');
+                localStorage.removeItem('accessToken');
+                if (window.location.pathname !== '/login') {
+                    setTimeout(() => {
+                        window.location.assign('/login');
+                    }, 1000);
+                }
             }
         }
 
