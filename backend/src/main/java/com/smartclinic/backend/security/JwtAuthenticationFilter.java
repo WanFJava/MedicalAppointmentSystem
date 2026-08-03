@@ -5,6 +5,10 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,6 +17,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
 
@@ -23,35 +28,51 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserDetailsService userDetailsService;
 
+    @Autowired
+    @Qualifier("handlerExceptionResolver")
+    private HandlerExceptionResolver exceptionResolver;
+
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        // Get JWT from request
-        String token = getJwtFromRequest(request);
+        try {
+            // Get JWT from request
+            String token = getJwtFromRequest(request);
 
-        // Validate token
-        if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)) {
-            // Get username from token
-            String username = jwtTokenProvider.getUsername(token);
+            // Validate token
+            if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)) {
+                // Get username from token
+                String username = jwtTokenProvider.getUsername(token);
 
-            // Load user associated with token
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                // Load user associated with token
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-                    userDetails,
-                    null,
-                    userDetails.getAuthorities()
-            );
+                if (!userDetails.isEnabled()) {
+                    throw new DisabledException("Tài khoản của bạn đang ở trạng thái INACTIVE. Không được đăng nhập; dùng khi tài khoản tạm thời hoặc vĩnh viễn không còn hoạt động.");
+                }
 
-            authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                if (!userDetails.isAccountNonLocked()) {
+                    throw new LockedException("Tài khoản của bạn đang bị LOCKED. Không được đăng nhập; dùng cho các trường hợp liên quan đến bảo mật hoặc xử lý vi phạm.");
+                }
 
-            // Set spring security
-            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities()
+                );
+
+                authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                // Set spring security
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+            }
+
+            filterChain.doFilter(request, response);
+        } catch (Exception ex) {
+            exceptionResolver.resolveException(request, response, null, ex);
         }
-
-        filterChain.doFilter(request, response);
     }
 
     private String getJwtFromRequest(HttpServletRequest request) {

@@ -41,48 +41,48 @@ const Register = () => {
                 <p>Join Smart Clinic today</p>
                 {error && <div className="error-message">{error}</div>}
                 {success && <div className="success-message">{success}</div>}
-                
+
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
                         <label>Full Name</label>
-                        <input 
-                            type="text" 
+                        <input
+                            type="text"
                             name="fullName"
-                            required 
-                            value={formData.fullName} 
-                            onChange={handleChange} 
+                            required
+                            value={formData.fullName}
+                            onChange={handleChange}
                             placeholder="John Doe"
                         />
                     </div>
                     <div className="form-group">
                         <label>Email</label>
-                        <input 
-                            type="email" 
+                        <input
+                            type="email"
                             name="email"
-                            required 
-                            value={formData.email} 
-                            onChange={handleChange} 
+                            required
+                            value={formData.email}
+                            onChange={handleChange}
                             placeholder="you@example.com"
                         />
                     </div>
                     <div className="form-group">
                         <label>Password</label>
-                        <input 
-                            type="password" 
+                        <input
+                            type="password"
                             name="password"
-                            required 
-                            value={formData.password} 
-                            onChange={handleChange} 
+                            required
+                            value={formData.password}
+                            onChange={handleChange}
                             placeholder="Min 6 characters"
                         />
                     </div>
                     <div className="form-group">
                         <label>Phone Number</label>
-                        <input 
-                            type="text" 
+                        <input
+                            type="text"
                             name="phone"
-                            value={formData.phone} 
-                            onChange={handleChange} 
+                            value={formData.phone}
+                            onChange={handleChange}
                             placeholder="Your phone number"
                         />
                     </div>

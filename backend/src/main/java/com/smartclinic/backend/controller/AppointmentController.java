@@ -19,7 +19,7 @@ public class AppointmentController {
     private final AppointmentService appointmentService;
 
     @PostMapping("/book/{patientId}")
-    @PreAuthorize("hasAnyRole('PATIENT', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('PATIENT', 'ADMIN', 'RECEPTIONIST')")
     public ResponseEntity<AppointmentDto> bookAppointment(
             @PathVariable Long patientId,
             @RequestBody BookingRequestDto requestDto) {
@@ -45,10 +45,46 @@ public class AppointmentController {
     }
 
     @PutMapping("/{appointmentId}/status")
-    @PreAuthorize("hasAnyRole('RECEPTIONIST', 'ADMIN', 'DOCTOR')")
+    @PreAuthorize("hasAnyRole('RECEPTIONIST', 'ADMIN', 'DOCTOR', 'PATIENT')")
     public ResponseEntity<AppointmentDto> updateAppointmentStatus(
             @PathVariable Long appointmentId,
             @RequestParam AppointmentStatus status) {
         return ResponseEntity.ok(appointmentService.updateAppointmentStatus(appointmentId, status));
+    }
+
+    @PutMapping("/{appointmentId}/change-schedule")
+    @PreAuthorize("hasAnyRole('RECEPTIONIST', 'ADMIN')")
+    public ResponseEntity<AppointmentDto> changeAppointmentSchedule(
+            @PathVariable Long appointmentId,
+            @RequestParam Long newScheduleId) {
+        return ResponseEntity.ok(appointmentService.changeAppointmentSchedule(appointmentId, newScheduleId));
+    }
+
+    @DeleteMapping("/{appointmentId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteAppointment(@PathVariable Long appointmentId) {
+        appointmentService.deleteAppointment(appointmentId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{appointmentId}/queue/call")
+    @PreAuthorize("hasAnyRole('RECEPTIONIST', 'ADMIN')")
+    public ResponseEntity<Void> callNext(@PathVariable Long appointmentId) {
+        appointmentService.callNext(appointmentId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/queue/swap")
+    @PreAuthorize("hasAnyRole('RECEPTIONIST', 'ADMIN')")
+    public ResponseEntity<Void> swapQueue(@RequestParam Long id1, @RequestParam Long id2) {
+        appointmentService.swapQueue(id1, id2);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{appointmentId}/queue/skip")
+    @PreAuthorize("hasAnyRole('RECEPTIONIST', 'ADMIN')")
+    public ResponseEntity<Void> skipQueue(@PathVariable Long appointmentId) {
+        appointmentService.skipQueue(appointmentId);
+        return ResponseEntity.ok().build();
     }
 }

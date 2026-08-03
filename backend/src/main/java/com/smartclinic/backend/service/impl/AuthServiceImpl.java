@@ -5,6 +5,8 @@ import com.smartclinic.backend.dto.RegisterDto;
 import com.smartclinic.backend.entity.Role;
 import com.smartclinic.backend.entity.Status;
 import com.smartclinic.backend.entity.User;
+import com.smartclinic.backend.entity.Patient;
+import com.smartclinic.backend.repository.PatientRepository;
 import com.smartclinic.backend.repository.UserRepository;
 import com.smartclinic.backend.security.JwtTokenProvider;
 import com.smartclinic.backend.service.AuthService;
@@ -24,16 +26,40 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final PatientRepository patientRepository;
 
     @Override
     public String login(LoginDto loginDto) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+                    loginDto.getEmail(), loginDto.getPassword()));
 
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                loginDto.getEmail(), loginDto.getPassword()));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+            // Reset failed login attempts on successful login
+            userRepository.findByEmail(loginDto.getEmail()).ifPresent(user -> {
+                if (user.getFailedLoginAttempts() == null || user.getFailedLoginAttempts() > 0) {
+                    user.setFailedLoginAttempts(0);
+                    userRepository.save(user);
+                }
+            });
 
-        return jwtTokenProvider.generateToken(authentication);
+            return jwtTokenProvider.generateToken(authentication);
+        } catch (org.springframework.security.authentication.BadCredentialsException e) {
+            // Increment failed login attempts
+            userRepository.findByEmail(loginDto.getEmail()).ifPresent(user -> {
+                if (user.getStatus() != Status.LOCKED) {
+                    int attempts = user.getFailedLoginAttempts() == null ? 0 : user.getFailedLoginAttempts();
+                    attempts++;
+                    user.setFailedLoginAttempts(attempts);
+                    if (attempts >= 5) {
+                        user.setStatus(Status.LOCKED);
+                    }
+                    userRepository.save(user);
+                }
+            });
+            throw e;
+        }
     }
 
     @Override
@@ -51,8 +77,12 @@ public class AuthServiceImpl implements AuthService {
         user.setPhone(registerDto.getPhone());
         user.setRole(Role.PATIENT); // Default role for registration is Patient
         user.setStatus(Status.ACTIVE); // Default status is Active
+        user.setFailedLoginAttempts(0);
 
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        Patient patient = new Patient();
+        patient.setUser(savedUser);
+        patientRepository.save(patient);
 
         return "User registered successfully!.";
     }

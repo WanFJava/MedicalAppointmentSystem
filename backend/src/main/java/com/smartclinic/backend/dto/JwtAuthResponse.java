@@ -17,12 +17,14 @@ public class JwtAuthResponse {
     private String fullName;
     private String email;
     private Role role;
+    private String avatar;
 
-    public JwtAuthResponse(String accessToken, Long id, String fullName, String email, Role role) {
+    public JwtAuthResponse(String accessToken, Long id, String fullName, String email, Role role, String avatar) {
         this.accessToken = accessToken;
         this.id = id;
         this.fullName = fullName;
         this.email = email;
         this.role = role;
+        this.avatar = avatar;
     }
 }

@@ -20,7 +20,7 @@ public class Schedule {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "doctor_id", nullable = false)
+    @JoinColumn(name = "doctor_id", nullable = true)
     private Doctor doctor;
 
     @Column(name = "date", nullable = false)
@@ -36,8 +36,14 @@ public class Schedule {
     private Integer maxPatient;
 
     @Column(name = "current_patient")
+    @Builder.Default
     private Integer currentPatient = 0;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String status = "AVAILABLE"; // AVAILABLE, FULL, CANCELLED
+    @Builder.Default
+    private ScheduleStatus status = ScheduleStatus.AVAILABLE;
+
+    @Column(name = "note", columnDefinition = "NVARCHAR(255)")
+    private String note;
 }

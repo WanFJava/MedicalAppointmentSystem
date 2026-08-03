@@ -50,13 +50,15 @@ const SpecialtyManager = () => {
         }
     };
 
-    const handleDelete = async (id) => {
-        if (window.confirm("Are you sure you want to delete this specialty?")) {
+    const handleDelete = async (id, name) => {
+        if (window.confirm(`Bạn có chắc chắn muốn xóa chuyên khoa "${name}" không?`)) {
             try {
                 await deleteSpecialty(id);
                 fetchSpecialties();
             } catch (error) {
                 console.error("Failed to delete specialty", error);
+                const errMsg = typeof error.response?.data === 'string' ? error.response.data : (error.response?.data?.message || error.message);
+                alert("Xóa chuyên khoa thất bại: " + errMsg);
             }
         }
     };
@@ -93,7 +95,7 @@ const SpecialtyManager = () => {
                                         <button className="btn-icon btn-edit" onClick={() => handleOpenModal(spec)}>
                                             <Edit2 size={16} />
                                         </button>
-                                        <button className="btn-icon btn-delete" onClick={() => handleDelete(spec.id)}>
+                                        <button className="btn-icon btn-delete" onClick={() => handleDelete(spec.id, spec.name)}>
                                             <Trash2 size={16} />
                                         </button>
                                     </div>
@@ -121,19 +123,19 @@ const SpecialtyManager = () => {
                         <form onSubmit={handleSubmit}>
                             <div className="form-group">
                                 <label>Specialty Name</label>
-                                <input 
-                                    type="text" 
-                                    required 
-                                    value={formData.name} 
+                                <input
+                                    type="text"
+                                    required
+                                    value={formData.name}
                                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                                 />
                             </div>
                             <div className="form-group">
                                 <label>Description</label>
-                                <textarea 
+                                <textarea
                                     className="form-control"
                                     rows="4"
-                                    value={formData.description} 
+                                    value={formData.description}
                                     onChange={(e) => setFormData({...formData, description: e.target.value})}
                                 ></textarea>
                             </div>

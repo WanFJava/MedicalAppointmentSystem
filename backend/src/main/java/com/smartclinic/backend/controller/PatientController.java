@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
+import com.smartclinic.backend.dto.DoctorDto;
 
 @RestController
 @RequestMapping("/api/patients")
@@ -13,18 +15,51 @@ import org.springframework.web.bind.annotation.*;
 public class PatientController {
 
     private final PatientService patientService;
+    private final com.smartclinic.backend.service.UserService userService;
 
     @GetMapping("/profile/{userId}")
-    @PreAuthorize("hasRole('PATIENT') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('PATIENT') or hasRole('ADMIN') or hasRole('DOCTOR') or hasRole('RECEPTIONIST')")
     public ResponseEntity<PatientDto> getPatientProfile(@PathVariable Long userId) {
         return ResponseEntity.ok(patientService.getPatientProfileByUserId(userId));
     }
 
     @PutMapping("/profile/{userId}")
-    @PreAuthorize("hasRole('PATIENT') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('PATIENT') or hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<PatientDto> updatePatientProfile(
             @PathVariable Long userId,
             @RequestBody PatientDto patientDto) {
         return ResponseEntity.ok(patientService.updatePatientProfile(userId, patientDto));
+    }
+
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
+    public ResponseEntity<List<PatientDto>> getAllPatients() {
+        return ResponseEntity.ok(patientService.getAllPatients());
+    }
+
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
+    public ResponseEntity<PatientDto> createPatient(@RequestBody PatientDto patientDto) {
+        return new ResponseEntity<>(patientService.createPatient(patientDto), org.springframework.http.HttpStatus.CREATED);
+    }
+
+    @PostMapping("/{userId}/favorites/{doctorId}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('PATIENT')")
+    public ResponseEntity<Void> addFavoriteDoctor(@PathVariable Long userId, @PathVariable Long doctorId) {
+        patientService.addFavoriteDoctor(userId, doctorId);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{userId}/favorites/{doctorId}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('PATIENT')")
+    public ResponseEntity<Void> removeFavoriteDoctor(@PathVariable Long userId, @PathVariable Long doctorId) {
+        patientService.removeFavoriteDoctor(userId, doctorId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{userId}/favorites")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('PATIENT')")
+    public ResponseEntity<List<DoctorDto>> getFavoriteDoctors(@PathVariable Long userId) {
+        return ResponseEntity.ok(patientService.getFavoriteDoctors(userId));
     }
 }

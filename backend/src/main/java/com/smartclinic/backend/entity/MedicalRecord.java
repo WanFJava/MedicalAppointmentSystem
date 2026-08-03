@@ -22,10 +22,10 @@ public class MedicalRecord {
     @JoinColumn(name = "appointment_id", nullable = false)
     private Appointment appointment;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "NVARCHAR(MAX)")
     private String diagnosis;
 
-    @Column(name = "doctor_note", columnDefinition = "TEXT")
+    @Column(name = "doctor_note", columnDefinition = "NVARCHAR(MAX)")
     private String doctorNote;
 
     @Column(name = "created_at")

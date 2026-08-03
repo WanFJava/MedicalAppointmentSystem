@@ -1,7 +1,9 @@
 package com.smartclinic.backend.service.impl;
 
 import com.smartclinic.backend.dto.SpecialtyDto;
+import com.smartclinic.backend.entity.Doctor;
 import com.smartclinic.backend.entity.Specialty;
+import com.smartclinic.backend.repository.DoctorRepository;
 import com.smartclinic.backend.repository.SpecialtyRepository;
 import com.smartclinic.backend.service.SpecialtyService;
 import lombok.RequiredArgsConstructor;
@@ -15,13 +17,14 @@ import java.util.stream.Collectors;
 public class SpecialtyServiceImpl implements SpecialtyService {
 
     private final SpecialtyRepository specialtyRepository;
+    private final DoctorRepository doctorRepository;
 
     @Override
     public SpecialtyDto createSpecialty(SpecialtyDto specialtyDto) {
         Specialty specialty = new Specialty();
         specialty.setName(specialtyDto.getName());
         specialty.setDescription(specialtyDto.getDescription());
-        
+
         Specialty savedSpecialty = specialtyRepository.save(specialty);
         return mapToDto(savedSpecialty);
     }
@@ -43,10 +46,10 @@ public class SpecialtyServiceImpl implements SpecialtyService {
     public SpecialtyDto updateSpecialty(Long id, SpecialtyDto specialtyDto) {
         Specialty specialty = specialtyRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Specialty not found with id: " + id));
-        
+
         specialty.setName(specialtyDto.getName());
         specialty.setDescription(specialtyDto.getDescription());
-        
+
         Specialty updatedSpecialty = specialtyRepository.save(specialty);
         return mapToDto(updatedSpecialty);
     }
@@ -55,6 +58,13 @@ public class SpecialtyServiceImpl implements SpecialtyService {
     public void deleteSpecialty(Long id) {
         Specialty specialty = specialtyRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Specialty not found with id: " + id));
+
+        List<Doctor> doctorsInSpecialty = doctorRepository.findBySpecialtyId(id);
+        if (!doctorsInSpecialty.isEmpty()) {
+            throw new IllegalArgumentException("Không thể xóa chuyên khoa '" + specialty.getName()
+                    + "' vì đang có " + doctorsInSpecialty.size() + " bác sĩ đang hoạt động thuộc khoa này!");
+        }
+
         specialtyRepository.delete(specialty);
     }
 

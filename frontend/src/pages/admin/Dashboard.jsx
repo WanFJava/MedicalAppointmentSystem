@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Stethoscope, Calendar, Activity } from 'lucide-react';
+import { Users, Stethoscope, Calendar, Activity, Star } from 'lucide-react';
 import { getDashboardStats } from '../../api/adminApi';
 
 const Dashboard = () => {
@@ -25,6 +25,7 @@ const Dashboard = () => {
         { label: 'Total Patients', value: data?.totalPatients || 0, icon: <Users size={24} />, color: '#10b981', bg: '#d1fae5' },
         { label: 'Appointments Today', value: data?.appointmentsToday || 0, icon: <Calendar size={24} />, color: '#f59e0b', bg: '#fef3c7' },
         { label: 'Active Specialties', value: data?.activeSpecialties || 0, icon: <Activity size={24} />, color: '#ec4899', bg: '#fce7f3' },
+        { label: 'Patient Feedbacks', value: data?.totalFeedbacks || 0, icon: <Star size={24} />, color: '#d97706', bg: '#fef3c7' },
     ];
 
     if (loading) return <div>Loading dashboard...</div>;
@@ -34,7 +35,7 @@ const Dashboard = () => {
             <div className="page-header">
                 <h2>Overview</h2>
             </div>
-            
+
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
                 {stats.map((stat, index) => (
                     <div key={index} style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>

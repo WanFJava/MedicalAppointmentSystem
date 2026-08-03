@@ -1,7 +1,7 @@
 package com.smartclinic.backend.entity;
 
 public enum BillStatus {
-    PENDING,
+    UNPAID,
     PAID,
     CANCELLED
 }

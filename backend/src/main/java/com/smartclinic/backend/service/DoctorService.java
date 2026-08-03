@@ -9,6 +9,8 @@ public interface DoctorService {
     List<DoctorDto> getAllDoctors();
     List<DoctorDto> getDoctorsBySpecialty(Long specialtyId);
     DoctorDto updateDoctor(Long id, DoctorDto doctorDto);
+    DoctorDto updateDoctorStatus(Long id, com.smartclinic.backend.entity.Status status);
     void deleteDoctor(Long id);
     DoctorDto getDoctorByUserId(Long userId);
+    void validateDoctorStatusChange(Long doctorId, com.smartclinic.backend.entity.Status newStatus);
 }

@@ -22,12 +22,45 @@ public class AuthController {
 
     private final AuthService authService;
     private final UserRepository userRepository;
+    private final com.smartclinic.backend.repository.ScheduleRepository scheduleRepository;
+    private final com.smartclinic.backend.repository.AppointmentRepository appointmentRepository;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
+    @org.springframework.web.bind.annotation.GetMapping("/fix-db")
+    public ResponseEntity<String> fixDb() {
+        try {
+            jdbcTemplate.execute("ALTER TABLE medical_records ALTER COLUMN diagnosis NVARCHAR(MAX)");
+            jdbcTemplate.execute("ALTER TABLE medical_records ALTER COLUMN doctor_note NVARCHAR(MAX)");
+            return ResponseEntity.ok("Database schema fixed");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+        }
+    }
+
+    @org.springframework.web.bind.annotation.GetMapping("/fix-notes")
+    public ResponseEntity<String> fixNotes() {
+        java.util.List<com.smartclinic.backend.entity.Schedule> schedules = scheduleRepository.findAll();
+        for (com.smartclinic.backend.entity.Schedule s : schedules) {
+            if ("V\\u1EAFng b\\u00E1c s\\u0129".equals(s.getNote())) {
+                s.setNote("Vắng bác sĩ");
+                scheduleRepository.save(s);
+            }
+        }
+        java.util.List<com.smartclinic.backend.entity.Appointment> appointments = appointmentRepository.findAll();
+        for (com.smartclinic.backend.entity.Appointment a : appointments) {
+            if ("V\\u1EAFng b\\u00E1c s\\u0129".equals(a.getNote())) {
+                a.setNote("Vắng bác sĩ");
+                appointmentRepository.save(a);
+            }
+        }
+        return ResponseEntity.ok("Fixed");
+    }
 
     // Build Login REST API
     @PostMapping("/login")
     public ResponseEntity<JwtAuthResponse> login(@RequestBody LoginDto loginDto) {
         String token = authService.login(loginDto);
-        
+
         User user = userRepository.findByEmail(loginDto.getEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + loginDto.getEmail()));
 
@@ -37,6 +70,7 @@ public class AuthController {
         jwtAuthResponse.setFullName(user.getFullName());
         jwtAuthResponse.setEmail(user.getEmail());
         jwtAuthResponse.setRole(user.getRole());
+        jwtAuthResponse.setAvatar(user.getAvatar());
 
         return ResponseEntity.ok(jwtAuthResponse);
     }
