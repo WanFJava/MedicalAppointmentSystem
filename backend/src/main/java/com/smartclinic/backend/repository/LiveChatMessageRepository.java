@@ -8,5 +8,7 @@ import java.util.List;
 
 @Repository
 public interface LiveChatMessageRepository extends JpaRepository<LiveChatMessage, Long> {
+    boolean existsBySessionId(Long sessionId);
+
     List<LiveChatMessage> findBySessionIdOrderByCreatedAtAscIdAsc(Long sessionId);
 }

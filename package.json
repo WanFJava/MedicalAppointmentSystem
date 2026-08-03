@@ -6,7 +6,8 @@
     "frontend"
   ],
   "scripts": {
-    "dev": "concurrently --kill-others-on-fail --names api,web --prefix-colors yellow,cyan \"npm run dev --workspace=backend\" \"npm run dev --workspace=frontend\"",
+    "dev": "concurrently --kill-others-on-fail --names api,web --prefix-colors yellow,cyan \"npm run dev:sqlserver --workspace=backend\" \"npm run dev --workspace=frontend\"",
+    "dev:h2": "concurrently --kill-others-on-fail --names api,web --prefix-colors yellow,cyan \"npm run dev --workspace=backend\" \"npm run dev --workspace=frontend\"",
     "dev:sqlserver": "concurrently --kill-others-on-fail --names api,web --prefix-colors yellow,cyan \"npm run dev:sqlserver --workspace=backend\" \"npm run dev --workspace=frontend\"",
     "build": "npm run build --workspace=frontend",
     "lint": "npm run lint --workspace=frontend",

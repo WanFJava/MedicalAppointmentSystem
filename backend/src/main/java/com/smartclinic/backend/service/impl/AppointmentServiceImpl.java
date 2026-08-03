@@ -23,6 +23,7 @@ import com.smartclinic.backend.repository.PrescriptionRepository;
 import com.smartclinic.backend.repository.PrescriptionDetailRepository;
 import com.smartclinic.backend.repository.ComplaintRepository;
 import com.smartclinic.backend.service.AppointmentService;
+import com.smartclinic.backend.service.BookingPolicy;
 import com.smartclinic.backend.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -37,6 +38,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Sort;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -95,6 +97,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         if (schedule.getDate().isBefore(LocalDate.now())) {
             throw new IllegalArgumentException("Cannot book an appointment in the past.");
         }
+        BookingPolicy.requireBookable(schedule, LocalDateTime.now());
         if (appointmentRepository.existsByPatientIdAndScheduleIdAndStatusNotIn(
                 patient.getId(),
                 schedule.getId(),
@@ -286,6 +289,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         if (newSchedule.getStatus() != ScheduleStatus.AVAILABLE) {
             throw new IllegalArgumentException("Ca khám mới không ở trạng thái AVAILABLE.");
         }
+        BookingPolicy.requireBookable(newSchedule, LocalDateTime.now());
         
         int newCurrent = newSchedule.getCurrentPatient() == null ? 0 : newSchedule.getCurrentPatient();
         int newMax = newSchedule.getMaxPatient() == null ? 0 : newSchedule.getMaxPatient();

@@ -1,33 +1,54 @@
 package com.smartclinic.backend.service.impl;
 
 import com.smartclinic.backend.dto.ChatbotActionDto;
+import com.smartclinic.backend.dto.ChatbotRequestDto;
 import com.smartclinic.backend.dto.ChatbotResponseDto;
 import com.smartclinic.backend.entity.Doctor;
+import com.smartclinic.backend.entity.LiveChatMessage;
+import com.smartclinic.backend.entity.LiveChatSenderType;
+import com.smartclinic.backend.entity.LiveChatSession;
+import com.smartclinic.backend.entity.LiveChatStatus;
+import com.smartclinic.backend.entity.Role;
 import com.smartclinic.backend.entity.Schedule;
 import com.smartclinic.backend.entity.ScheduleStatus;
 import com.smartclinic.backend.entity.Specialty;
+import com.smartclinic.backend.entity.User;
 import com.smartclinic.backend.repository.DoctorRepository;
+import com.smartclinic.backend.repository.LiveChatMessageRepository;
+import com.smartclinic.backend.repository.LiveChatSessionRepository;
 import com.smartclinic.backend.repository.ScheduleRepository;
 import com.smartclinic.backend.repository.SpecialtyRepository;
+import com.smartclinic.backend.repository.UserRepository;
+import com.smartclinic.backend.service.BookingPolicy;
 import com.smartclinic.backend.service.ChatbotService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.text.Normalizer;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 public class ChatbotServiceImpl implements ChatbotService {
+
+    private static final String WELCOME_MESSAGE =
+            "Xin chào! Tôi là trợ lý lễ tân của Smart Clinic. Tôi có thể giúp bạn tìm bác sĩ, "
+                    + "xem chuyên khoa, kiểm tra lịch trống và hướng dẫn đặt lịch.";
 
     private static final List<String> DEFAULT_REPLIES = List.of(
             "Tìm bác sĩ",
@@ -39,9 +60,64 @@ public class ChatbotServiceImpl implements ChatbotService {
     private final DoctorRepository doctorRepository;
     private final SpecialtyRepository specialtyRepository;
     private final ScheduleRepository scheduleRepository;
+    private final LiveChatSessionRepository liveChatSessionRepository;
+    private final LiveChatMessageRepository liveChatMessageRepository;
+    private final UserRepository userRepository;
 
     @Override
-    public ChatbotResponseDto reply(String message) {
+    public ChatbotResponseDto reply(
+            ChatbotRequestDto request,
+            String authenticatedEmail) {
+        LiveChatSession session = getOrCreateSession(request, authenticatedEmail);
+        LocalDateTime now = LocalDateTime.now();
+
+        if (!liveChatMessageRepository.existsBySessionId(session.getId())) {
+            saveChatMessage(
+                    session,
+                    LiveChatSenderType.CHATBOT,
+                    null,
+                    WELCOME_MESSAGE,
+                    now
+            );
+        }
+
+        User customer = session.getCustomer();
+        saveChatMessage(
+                session,
+                LiveChatSenderType.CUSTOMER,
+                customer,
+                request.getMessage().trim(),
+                now.plusNanos(1)
+        );
+
+        ChatbotResponseDto response = buildReply(request.getMessage());
+        saveChatMessage(
+                session,
+                LiveChatSenderType.CHATBOT,
+                null,
+                response.getMessage(),
+                now.plusNanos(2)
+        );
+
+        if (response.isHandoffRequested()) {
+            session.setStatus(LiveChatStatus.WAITING);
+            saveChatMessage(
+                    session,
+                    LiveChatSenderType.SYSTEM,
+                    null,
+                    "Yêu cầu đã được gửi. Vui lòng chờ lễ tân tiếp nhận.",
+                    now.plusNanos(3)
+            );
+        }
+
+        session.setLastMessageAt(now.plusNanos(response.isHandoffRequested() ? 3 : 2));
+        liveChatSessionRepository.save(session);
+        response.setSessionId(session.getId());
+        response.setAccessToken(session.getAccessToken());
+        return response;
+    }
+
+    private ChatbotResponseDto buildReply(String message) {
         String normalizedMessage = normalize(message);
         List<Specialty> specialties = specialtyRepository.findAll();
         List<Doctor> doctors = doctorRepository.findAll();
@@ -296,11 +372,13 @@ public class ChatbotServiceImpl implements ChatbotService {
     }
 
     private ChatbotResponseDto availableDoctorsResponse(List<Doctor> doctors) {
+        LocalDateTime now = LocalDateTime.now();
         List<Doctor> availableDoctors = doctors.stream()
-                .filter(doctor -> !scheduleRepository
+                .filter(doctor -> scheduleRepository
                         .findByDoctorIdAndDateGreaterThanEqualAndStatusOrderByDateAscStartTimeAsc(
                                 doctor.getId(), LocalDate.now(), ScheduleStatus.AVAILABLE)
-                        .isEmpty())
+                        .stream()
+                        .anyMatch(schedule -> BookingPolicy.canBook(schedule, now)))
                 .sorted(doctorComparator())
                 .limit(5)
                 .toList();
@@ -330,9 +408,13 @@ public class ChatbotServiceImpl implements ChatbotService {
     }
 
     private ChatbotResponseDto doctorResponse(Doctor doctor) {
+        LocalDateTime now = LocalDateTime.now();
         List<Schedule> schedules =
                 scheduleRepository.findByDoctorIdAndDateGreaterThanEqualAndStatusOrderByDateAscStartTimeAsc(
-                        doctor.getId(), LocalDate.now(), ScheduleStatus.AVAILABLE);
+                                doctor.getId(), LocalDate.now(), ScheduleStatus.AVAILABLE)
+                        .stream()
+                        .filter(schedule -> BookingPolicy.canBook(schedule, now))
+                        .toList();
         String specialtyName = doctor.getSpecialty() == null
                 ? "chưa cập nhật chuyên khoa"
                 : doctor.getSpecialty().getName();
@@ -435,6 +517,87 @@ public class ChatbotServiceImpl implements ChatbotService {
                 List.of(),
                 true
         );
+    }
+
+    private LiveChatSession getOrCreateSession(
+            ChatbotRequestDto request,
+            String authenticatedEmail) {
+        boolean hasSessionId = request.getSessionId() != null;
+        boolean hasAccessToken = StringUtils.hasText(request.getAccessToken());
+        if (hasSessionId || hasAccessToken) {
+            if (!hasSessionId || !hasAccessToken) {
+                throw new IllegalArgumentException("Thiếu thông tin phiên chat.");
+            }
+
+            LiveChatSession session = liveChatSessionRepository
+                    .findByIdForUpdate(request.getSessionId())
+                    .orElseThrow(() -> new IllegalArgumentException("Phiên chat không tồn tại."));
+            verifyAccessToken(session, request.getAccessToken());
+            if (session.getStatus() != LiveChatStatus.BOT) {
+                throw new IllegalArgumentException(
+                        "Phiên chat này đã được chuyển cho lễ tân hoặc đã kết thúc."
+                );
+            }
+            return session;
+        }
+
+        User customer = findPatient(authenticatedEmail);
+        String customerName = customer != null
+                ? customer.getFullName()
+                : normalizeCustomerName(request.getCustomerName());
+        LocalDateTime now = LocalDateTime.now();
+        return liveChatSessionRepository.save(
+                LiveChatSession.builder()
+                        .accessToken(UUID.randomUUID().toString())
+                        .customer(customer)
+                        .customerName(customerName)
+                        .status(LiveChatStatus.BOT)
+                        .createdAt(now)
+                        .lastMessageAt(now)
+                        .build()
+        );
+    }
+
+    private LiveChatMessage saveChatMessage(
+            LiveChatSession session,
+            LiveChatSenderType senderType,
+            User sender,
+            String content,
+            LocalDateTime createdAt) {
+        return liveChatMessageRepository.save(
+                LiveChatMessage.builder()
+                        .session(session)
+                        .senderType(senderType)
+                        .sender(sender)
+                        .content(content)
+                        .createdAt(createdAt)
+                        .build()
+        );
+    }
+
+    private User findPatient(String email) {
+        if (!StringUtils.hasText(email) || "anonymousUser".equals(email)) {
+            return null;
+        }
+        return userRepository.findByEmail(email)
+                .filter(user -> user.getRole() == Role.PATIENT)
+                .orElse(null);
+    }
+
+    private String normalizeCustomerName(String customerName) {
+        return StringUtils.hasText(customerName)
+                ? customerName.trim()
+                : "Khách hàng";
+    }
+
+    private void verifyAccessToken(LiveChatSession session, String accessToken) {
+        boolean matches = MessageDigest.isEqual(
+                session.getAccessToken().getBytes(StandardCharsets.UTF_8),
+                accessToken.getBytes(StandardCharsets.UTF_8)
+        );
+        if (!matches) {
+            throw new AccessDeniedException("Mã truy cập phiên chat không hợp lệ.");
+        }
     }
 
     private boolean containsAny(String value, String... candidates) {

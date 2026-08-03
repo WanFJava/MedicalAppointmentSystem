@@ -16,4 +16,17 @@ public class ChatbotResponseDto {
     private List<String> quickReplies;
     private List<ChatbotActionDto> actions;
     private boolean handoffRequested;
+    private Long sessionId;
+    private String accessToken;
+
+    public ChatbotResponseDto(
+            String message,
+            List<String> quickReplies,
+            List<ChatbotActionDto> actions,
+            boolean handoffRequested) {
+        this.message = message;
+        this.quickReplies = quickReplies;
+        this.actions = actions;
+        this.handoffRequested = handoffRequested;
+    }
 }

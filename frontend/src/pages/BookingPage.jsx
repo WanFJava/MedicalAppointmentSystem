@@ -163,7 +163,7 @@ const BookingPage = () => {
             });
             setSuccess(true);
         } catch (error) {
-            alert("Booking failed. Please try again.");
+            alert(error.response?.data?.message || "Booking failed. Please try again.");
             console.error(error);
         } finally {
             setLoading(false);
@@ -339,7 +339,10 @@ const BookingPage = () => {
                         }} style={{ marginBottom: '1.5rem', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 600, padding: 0 }} onMouseOver={e => e.currentTarget.style.color = 'var(--primary-color)'} onMouseOut={e => e.currentTarget.style.color = '#6b7280'}>
                             ← {preselectDoctorId ? 'Back' : 'Back to Doctors'}
                         </button>
-                        <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '2rem', color: '#111827' }}>Select Date & Time</h2>
+                        <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '0.5rem', color: '#111827' }}>Select Date & Time</h2>
+                        <p style={{ marginBottom: '2rem', color: '#64748b' }}>
+                            Lịch khám cần được đặt trước ít nhất 24 giờ.
+                        </p>
 
                         <div style={{ marginBottom: '2.5rem', backgroundColor: '#f8fafc', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #e2e8f0' }}>
                             <label style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 700, color: '#374151', fontSize: '1.125rem' }}>Select Date</label>

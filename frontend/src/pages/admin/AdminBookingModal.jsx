@@ -100,7 +100,10 @@ const AdminBookingModal = ({ onClose, onSuccess }) => {
                     <button className="close-btn" onClick={onClose}>&times;</button>
                 </div>
                 <div className="modal-body" style={{ padding: '1.5rem 0' }}>
-                    
+                    <p style={{ margin: '0 0 1rem', color: '#64748b', fontSize: '0.875rem' }}>
+                        Lịch khám cần được đặt trước ít nhất 24 giờ.
+                    </p>
+
                     <div className="form-group">
                         <label>Bệnh nhân *</label>
                         <select className="form-control" value={selectedPatient} onChange={e => setSelectedPatient(e.target.value)}>
