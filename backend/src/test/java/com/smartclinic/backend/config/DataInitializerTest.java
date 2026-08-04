@@ -1,7 +1,5 @@
 package com.smartclinic.backend.config;
 
-import com.smartclinic.backend.entity.Doctor;
-import com.smartclinic.backend.entity.Schedule;
 import com.smartclinic.backend.repository.DoctorRepository;
 import com.smartclinic.backend.repository.PatientRepository;
 import com.smartclinic.backend.repository.ScheduleRepository;
@@ -14,11 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDate;
-import java.util.List;
-
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -41,25 +35,11 @@ class DataInitializerTest {
     private DataInitializer dataInitializer;
 
     @Test
-    void replenishesMissingDaysWhenTheScheduleTableAlreadyHasRows() {
-        LocalDate today = LocalDate.now();
-
+    void doesNotGenerateSchedulesAutomatically() {
         when(specialtyRepository.count()).thenReturn(1L);
-
-        Doctor doctor = new Doctor();
-        doctor.setId(10L);
-        when(doctorRepository.findAll()).thenReturn(List.of(doctor));
-        when(scheduleRepository.findByDoctorIdAndDate(doctor.getId(), today))
-                .thenReturn(List.of(new Schedule()));
-        when(scheduleRepository.findByDoctorIdAndDate(doctor.getId(), today.plusDays(1)))
-                .thenReturn(List.of());
-        when(scheduleRepository.findByDoctorIdAndDate(doctor.getId(), today.plusDays(2)))
-                .thenReturn(List.of());
 
         dataInitializer.run();
 
-        verify(scheduleService, never()).generateSchedules(doctor.getId(), today);
-        verify(scheduleService).generateSchedules(doctor.getId(), today.plusDays(1));
-        verify(scheduleService).generateSchedules(doctor.getId(), today.plusDays(2));
+        verifyNoInteractions(scheduleService);
     }
 }
