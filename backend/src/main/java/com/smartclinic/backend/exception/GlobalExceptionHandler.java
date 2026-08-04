@@ -68,6 +68,6 @@ public class GlobalExceptionHandler {
             log.error("Failed to send error notification to admin", ex);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("message", "Unexpected server error."));
+                .body(Map.of("message", "Unexpected server error: " + e.getMessage()));
     }
 }

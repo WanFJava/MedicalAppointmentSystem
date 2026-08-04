@@ -3,8 +3,10 @@ import Swal from 'sweetalert2';
 import { AuthContext } from '../context/AuthContext';
 import { getPatientAppointments, updateAppointmentStatus } from '../api/appointmentApi';
 import { createComplaint } from '../api/complaintApi';
-import { Calendar, Clock, Stethoscope, FileText, Info, MessageSquare, Star } from 'lucide-react';
+import { Calendar, Clock, Stethoscope, FileText, Info, MessageSquare, Star, Home, Building, CreditCard } from 'lucide-react';
+import { getBillByAppointment, payBill } from '../api/billApi';
 import PatientRecordModal from './PatientRecordModal';
+import PatientBillModal from './PatientBillModal';
 import ViewBookingModal from './ViewBookingModal';
 import FeedbackModal from './FeedbackModal';
 import ComplaintViewModal from './ComplaintViewModal';
@@ -14,6 +16,7 @@ const MyAppointments = () => {
     const [appointments, setAppointments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [viewingRecordApt, setViewingRecordApt] = useState(null);
+    const [viewingBillApt, setViewingBillApt] = useState(null);
     const [viewingBookingApt, setViewingBookingApt] = useState(null);
     const [feedbackApt, setFeedbackApt] = useState(null);
     const [viewingComplaintApt, setViewingComplaintApt] = useState(null);
@@ -34,6 +37,10 @@ const MyAppointments = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleQuickPay = (apt) => {
+        setViewingBillApt(apt);
     };
 
     const handleCancel = async (id) => {
@@ -92,6 +99,7 @@ const MyAppointments = () => {
             case 'COMPLETED': return { bg: '#d1fae5', color: '#059669' };
             case 'CANCELLED_BY_PATIENT': return { bg: '#fee2e2', color: '#dc2626' };
             case 'CANCELLED_BY_DOCTOR': return { bg: '#fee2e2', color: '#dc2626' };
+            case 'NO_SHOW_BY_DOCTOR': return { bg: '#fee2e2', color: '#dc2626' };
             case 'NO_SHOW': return { bg: '#f3f4f6', color: '#6b7280' };
             default: return { bg: '#f3f4f6', color: '#4b5563' };
         }
@@ -168,6 +176,15 @@ const MyAppointments = () => {
                                             }}>
                                                 {apt.status}
                                             </span>
+                                            {apt.visitType === 'HOME_VISIT' ? (
+                                                <span style={{ backgroundColor: '#e0e7ff', color: '#4338ca', padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.8rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                                                    <Home size={14}/> Khám tại nhà
+                                                </span>
+                                            ) : (
+                                                <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.8rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                                                    <Building size={14}/> Tại phòng khám
+                                                </span>
+                                            )}
                                             {['COMPLETED', 'PAID'].includes(apt.status) && (
                                                 <span style={{
                                                     backgroundColor: apt.paymentStatus === 'PAID' ? '#d1fae5' : '#fee2e2',
@@ -231,7 +248,22 @@ const MyAppointments = () => {
                                             </button>
                                         )}
 
-                                        {['CANCELLED_BY_DOCTOR', 'CANCELLED_BY_PATIENT', 'COMPLETED', 'PAID', 'CONFIRMED'].includes(apt.status) && (
+                                        {apt.status === 'COMPLETED' && apt.paymentStatus === 'UNPAID' && (
+                                            <button
+                                                onClick={() => handleQuickPay(apt)}
+                                                style={{
+                                                    padding: '0.5rem 1rem', backgroundColor: '#0ea5e9', color: 'white',
+                                                    border: 'none', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s',
+                                                    display: 'flex', alignItems: 'center', gap: '0.5rem'
+                                                }}
+                                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#0284c7'}
+                                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#0ea5e9'}
+                                            >
+                                                <CreditCard size={16} /> Thanh toán
+                                            </button>
+                                        )}
+
+                                        {['CANCELLED_BY_DOCTOR', 'NO_SHOW_BY_DOCTOR', 'CANCELLED_BY_PATIENT', 'COMPLETED', 'PAID', 'CONFIRMED'].includes(apt.status) && (
                                             !apt.hasComplaint ? (
                                                 <button
                                                     onClick={() => handleComplaint(apt)}
@@ -294,6 +326,16 @@ const MyAppointments = () => {
                         );
                     })}
                 </div>
+            )}
+
+            {viewingBillApt && (
+                <PatientBillModal 
+                    appointment={viewingBillApt} 
+                    onClose={() => {
+                        setViewingBillApt(null);
+                        fetchAppointments(); // Refresh in case they paid
+                    }} 
+                />
             )}
 
             {viewingRecordApt && (

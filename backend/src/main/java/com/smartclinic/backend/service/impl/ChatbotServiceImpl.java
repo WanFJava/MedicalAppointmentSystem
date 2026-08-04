@@ -71,6 +71,15 @@ public class ChatbotServiceImpl implements ChatbotService {
             );
         }
 
+        if (containsAny(normalizedMessage,
+                "kham tai nha", "dat lich kham tai nha", "den nha kham", "kham tai gia", "tai nha")) {
+            return response(
+                    "Đối với dịch vụ khám tại nhà, vui lòng liên hệ trực tiếp với lễ tân để được hỗ trợ xếp lịch.",
+                    List.of("Gặp lễ tân", "Liên hệ hỗ trợ"),
+                    List.of()
+            );
+        }
+
         Specialty matchingSpecialty = findMatchingSpecialty(normalizedMessage, specialties);
         if (matchingSpecialty != null) {
             return specialtyResponse(matchingSpecialty, doctors);

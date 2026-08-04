@@ -21,7 +21,7 @@ public class BillController {
     }
 
     @PutMapping("/{billId}/pay")
-    @PreAuthorize("hasAnyRole('RECEPTIONIST', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('PATIENT', 'RECEPTIONIST', 'ADMIN')")
     public ResponseEntity<BillDto> payBill(@PathVariable Long billId) {
         return ResponseEntity.ok(billService.payBill(billId));
     }

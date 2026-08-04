@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
 import { getAllAppointments, updateAppointmentStatus, deleteAppointment } from '../../api/appointmentApi';
-import { CheckCircle, XCircle, UserCheck, Trash2, Star } from 'lucide-react';
+import { CheckCircle, XCircle, UserCheck, Trash2, Star, Home, Building, AlertTriangle } from 'lucide-react';
 import BillModal from './BillModal';
 import FeedbackModal from '../FeedbackModal';
 import ChangeDoctorModal from './ChangeDoctorModal';
@@ -62,6 +62,7 @@ const ReceptionistDashboard = () => {
             case 'COMPLETED': return { bg: '#d1fae5', color: '#059669' };
             case 'CANCELLED_BY_PATIENT': return { bg: '#fee2e2', color: '#dc2626' };
             case 'CANCELLED_BY_DOCTOR': return { bg: '#fee2e2', color: '#dc2626' };
+            case 'NO_SHOW_BY_DOCTOR': return { bg: '#fee2e2', color: '#dc2626' };
             case 'NO_SHOW': return { bg: '#f3f4f6', color: '#6b7280' };
             default: return { bg: '#f3f4f6', color: '#4b5563' };
         }
@@ -110,6 +111,7 @@ const ReceptionistDashboard = () => {
                     <thead>
                         <tr>
                             <th>Patient</th>
+                            <th>Type</th>
                             <th>Doctor</th>
                             <th>Date & Time</th>
                             <th>Symptoms</th>
@@ -124,6 +126,13 @@ const ReceptionistDashboard = () => {
                             return (
                                 <tr key={apt.id}>
                                     <td style={{ fontWeight: 500 }}>{apt.patientName}</td>
+                                    <td>
+                                        {apt.visitType === 'HOME_VISIT' ? (
+                                            <span style={{ backgroundColor: '#e0e7ff', color: '#4338ca', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem', whiteSpace: 'nowrap' }}><Home size={14}/> Tại nhà</span>
+                                        ) : (
+                                            <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem', whiteSpace: 'nowrap' }}><Building size={14}/> Tại TT</span>
+                                        )}
+                                    </td>
                                     <td>{apt.doctorName}</td>
                                     <td>
                                         <div>{apt.scheduleDate}</div>
@@ -180,12 +189,24 @@ const ReceptionistDashboard = () => {
                                                     </button>
                                                 </>
                                             )}
-                                            {apt.status === 'CONFIRMED' && (
+                                            {apt.status === 'CONFIRMED' && apt.visitType !== 'HOME_VISIT' && (
                                                 <button
                                                     title="Check In Patient"
                                                     onClick={() => handleUpdateStatus(apt.id, 'CHECKED_IN')}
                                                     style={{ padding: '0.5rem', backgroundColor: '#e0e7ff', color: '#4f46e5', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>
                                                     <UserCheck size={16} /> Check In
+                                                </button>
+                                            )}
+                                            {['CONFIRMED', 'CHECKED_IN'].includes(apt.status) && apt.visitType !== 'HOME_VISIT' && (
+                                                <button
+                                                    title="Đánh vắng bác sĩ"
+                                                    onClick={() => {
+                                                        if (window.confirm("Bác sĩ không khám bệnh nhân này? Lịch hẹn sẽ bị hủy với lý do Bác sĩ vắng.")) {
+                                                            handleUpdateStatus(apt.id, 'NO_SHOW_BY_DOCTOR');
+                                                        }
+                                                    }}
+                                                    style={{ padding: '0.5rem', backgroundColor: '#f59e0b', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                                    <AlertTriangle size={16} /> BS vắng
                                                 </button>
                                             )}
                                             {apt.status === 'COMPLETED' && (
@@ -207,7 +228,7 @@ const ReceptionistDashboard = () => {
                                             {/* Note: DOCTOR will change status to COMPLETED */}
                                             {(user?.role === 'ADMIN' || user?.role === 'RECEPTIONIST') && (
                                                 <>
-                                                    {(apt.status === 'PENDING' || apt.status === 'CONFIRMED') && (
+                                                    {(apt.status === 'PENDING' || apt.status === 'CONFIRMED') && apt.visitType !== 'HOME_VISIT' && (
                                                         <button
                                                             title="Change Doctor / Schedule"
                                                             onClick={() => setChangeDoctorApt(apt)}

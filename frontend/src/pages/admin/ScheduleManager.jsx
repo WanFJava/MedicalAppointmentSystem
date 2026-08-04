@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getDoctorSchedules, getOpenSchedules, registerDoctorSchedule, updateScheduleStatus } from '../../api/appointmentApi';
 import { Calendar, UserCheck, Clock, CheckCircle } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 const ScheduleManager = ({ doctorId, viewTab }) => {
     const [date, setDate] = useState(new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]);
@@ -124,7 +125,13 @@ const ScheduleManager = ({ doctorId, viewTab }) => {
 
                                             <div style={{ display: 'flex', gap: '0.5rem' }}>
                                                 {['AVAILABLE', 'FULL'].includes(sch.status) && (
-                                                    <button onClick={() => handleStatusUpdate(sch.id, 'IN_PROGRESS')} style={{ padding: '0.4rem 0.85rem', backgroundColor: '#fef3c7', color: '#b45309', border: '1px solid #fde68a', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.85rem' }}>
+                                                    <button onClick={() => {
+                                                        if (!sch.currentPatient || sch.currentPatient === 0) {
+                                                            toast.error("Ca khám phải có ít nhất 1 bệnh nhân mới có thể bắt đầu!");
+                                                            return;
+                                                        }
+                                                        handleStatusUpdate(sch.id, 'IN_PROGRESS');
+                                                    }} style={{ padding: '0.4rem 0.85rem', backgroundColor: '#fef3c7', color: '#b45309', border: '1px solid #fde68a', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.85rem' }}>
                                                         Bắt đầu ca khám (IN_PROGRESS)
                                                     </button>
                                                 )}

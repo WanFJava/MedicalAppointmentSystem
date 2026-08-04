@@ -67,9 +67,14 @@ public class ScheduleAutoUpdateService {
 
                     for (com.smartclinic.backend.entity.Appointment apt : relatedApts) {
                         if (apt.getStatus() == com.smartclinic.backend.entity.AppointmentStatus.CHECKED_IN) {
-                            apt.setStatus(com.smartclinic.backend.entity.AppointmentStatus.CANCELLED_BY_DOCTOR);
+                            apt.setStatus(com.smartclinic.backend.entity.AppointmentStatus.NO_SHOW_BY_DOCTOR);
                             apt.setNote("Vắng bác sĩ");
                             appointmentRepository.save(apt);
+                            // Notify patient
+                            if (apt.getPatient() != null && apt.getPatient().getUser() != null) {
+                                notificationService.sendNotification(apt.getPatient().getUser().getId(),
+                                    "Lịch khám của bạn đã bị hủy do bác sĩ không đến (No Show by Doctor).");
+                            }
                         } else if (apt.getStatus() == com.smartclinic.backend.entity.AppointmentStatus.PENDING || apt.getStatus() == com.smartclinic.backend.entity.AppointmentStatus.CONFIRMED) {
                             apt.setStatus(com.smartclinic.backend.entity.AppointmentStatus.NO_SHOW);
                             appointmentRepository.save(apt);
@@ -110,8 +115,10 @@ public class ScheduleAutoUpdateService {
                 for (com.smartclinic.backend.entity.Appointment apt : appointments) {
                     if (apt.getStatus() == com.smartclinic.backend.entity.AppointmentStatus.CONFIRMED && (apt.getIsReminded() == null || !apt.getIsReminded())) {
                         if (apt.getPatient() != null && apt.getPatient().getUser() != null) {
-                            notificationService.sendNotification(apt.getPatient().getUser().getId(), 
-                                "Nhắc nhở: Bạn có lịch khám vào lúc " + schedule.getStartTime() + " hôm nay. Vui lòng đến đúng giờ để làm thủ tục check-in.");
+                            String message = apt.getVisitType() == com.smartclinic.backend.entity.VisitType.HOME_VISIT ?
+                                "Nhắc nhở: Bác sĩ sẽ đến khám tại nhà cho bạn vào khoảng " + schedule.getStartTime() + " hôm nay. Vui lòng chú ý điện thoại." :
+                                "Nhắc nhở: Bạn có lịch khám vào lúc " + schedule.getStartTime() + " hôm nay. Vui lòng đến đúng giờ để làm thủ tục check-in.";
+                            notificationService.sendNotification(apt.getPatient().getUser().getId(), message);
                             apt.setIsReminded(true);
                             appointmentRepository.save(apt);
                         }

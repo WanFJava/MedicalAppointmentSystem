@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { Users, LayoutDashboard, Stethoscope, LogOut, Pill, Calendar, UserCog, ListOrdered, Star, MessagesSquare, AlertCircle } from 'lucide-react';
+import { Users, LayoutDashboard, Stethoscope, LogOut, Pill, Calendar, UserCog, ListOrdered, Star, MessagesSquare, AlertCircle, Home } from 'lucide-react';
 import NotificationBell from '../components/NotificationBell';
 
 const AdminLayout = () => {
@@ -23,6 +23,7 @@ const AdminLayout = () => {
         { path: '/admin/my-shifts', name: 'Ca trực của tôi', icon: <UserCog size={20} />, roles: ['DOCTOR'] },
         { path: '/admin/open-shifts', name: 'Đăng ký ca làm', icon: <Calendar size={20} />, roles: ['DOCTOR'] },
         { path: '/admin/patients', name: 'Quản lý bệnh nhân', icon: <Users size={20} />, roles: ['RECEPTIONIST'] },
+        { path: '/admin/home-visit', name: 'Khám tại nhà', icon: <Home size={20} />, roles: ['RECEPTIONIST'] },
         { path: '/admin/complaints', name: 'Xử lý khiếu nại', icon: <AlertCircle size={20} />, roles: ['ADMIN', 'RECEPTIONIST'] },
         { path: '/admin/incidents', name: 'Báo cáo sự cố', icon: <AlertCircle size={20} />, roles: ['ADMIN', 'RECEPTIONIST'] },
     ];

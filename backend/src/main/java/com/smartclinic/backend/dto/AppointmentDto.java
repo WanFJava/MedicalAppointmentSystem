@@ -1,6 +1,7 @@
 package com.smartclinic.backend.dto;
 
 import com.smartclinic.backend.entity.AppointmentStatus;
+import com.smartclinic.backend.entity.VisitType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,4 +28,7 @@ public class AppointmentDto {
     private String paymentStatus;
     private String note;
     private Boolean hasComplaint;
+    private VisitType visitType;
+    private String homeAddress;
+    private java.math.BigDecimal travelFee;
 }

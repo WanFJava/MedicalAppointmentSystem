@@ -95,6 +95,13 @@ const BillModal = ({ appointment, onClose, onSuccess }) => {
                         <span style={{ fontWeight: '500' }}>{bill.consultationFee?.toLocaleString('vi-VN')}đ</span>
                     </div>
 
+                    {bill.travelFee > 0 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#4b5563', fontSize: '1rem' }}>
+                            <span>Phí di chuyển (Khám tại nhà):</span>
+                            <span style={{ fontWeight: '500' }}>{bill.travelFee?.toLocaleString('vi-VN')}đ</span>
+                        </div>
+                    )}
+
                     {(bill.medicineFee > 0 || bill.medicineFee === 0) && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', color: '#4b5563', fontSize: '1rem' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

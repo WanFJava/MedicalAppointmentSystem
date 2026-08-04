@@ -18,6 +18,7 @@ public class BillDto {
     private Long appointmentId;
     private BigDecimal consultationFee;
     private BigDecimal medicineFee;
+    private BigDecimal travelFee;
     private BigDecimal discount;
     private BigDecimal totalAmount;
     private BillStatus status;

@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useContext } from 'react';
 import { AuthContext } from './context/AuthContext';
+import { Toaster } from 'react-hot-toast';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import AdminLayout from './layouts/AdminLayout';
@@ -30,6 +31,7 @@ import ComplaintManager from './pages/admin/ComplaintManager';
 import PatientManager from './pages/admin/PatientManager';
 import ReceptionistStats from './pages/admin/ReceptionistStats';
 import IncidentManager from './pages/admin/IncidentManager';
+import HomeVisitManager from './pages/admin/HomeVisitManager';
 
 const RoleRoute = ({ user, roles, children }) => {
   if (!user) {
@@ -45,8 +47,10 @@ function App() {
   const { user } = useContext(AuthContext);
 
   return (
-    <Routes>
-      {/* Public / Patient Routes with Header & Footer */}
+    <>
+      <Toaster position="top-right" />
+      <Routes>
+        {/* Public / Patient Routes with Header & Footer */}
       <Route element={<MainLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/search" element={<SearchPage />} />
@@ -82,9 +86,11 @@ function App() {
         <Route path="queue" element={<RoleRoute user={user} roles={['RECEPTIONIST']}><QueueManager /></RoleRoute>} />
         <Route path="complaints" element={<RoleRoute user={user} roles={['ADMIN', 'RECEPTIONIST']}><ComplaintManager /></RoleRoute>} />
         <Route path="patients" element={<RoleRoute user={user} roles={['ADMIN', 'RECEPTIONIST']}><PatientManager /></RoleRoute>} />
+        <Route path="home-visit" element={<RoleRoute user={user} roles={['RECEPTIONIST']}><HomeVisitManager /></RoleRoute>} />
         <Route path="incidents" element={<RoleRoute user={user} roles={['ADMIN', 'RECEPTIONIST']}><IncidentManager /></RoleRoute>} />
       </Route>
     </Routes>
+    </>
   );
 }
 

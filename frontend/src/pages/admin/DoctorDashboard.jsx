@@ -3,7 +3,7 @@ import { AuthContext } from '../../context/AuthContext';
 import { getDoctorByUserId } from '../../api/adminApi';
 import { getDoctorAppointments, updateAppointmentStatus } from '../../api/appointmentApi';
 import { getPatientProfile } from '../../api/patientApi';
-import { CheckCircle, ClipboardList, Calendar, Info, X, Star, FileText, Check, XCircle, UserX, UserCheck, Clock } from 'lucide-react';
+import { CheckCircle, ClipboardList, Calendar, Info, X, Star, FileText, Check, XCircle, UserX, UserCheck, Clock, Home, Building, MapPin } from 'lucide-react';
 import ScheduleManager from './ScheduleManager';
 import DoctorDiagnoseModal from './DoctorDiagnoseModal';
 import FeedbackModal from '../FeedbackModal';
@@ -69,11 +69,16 @@ const DoctorDashboard = ({ tab = 'appointments' }) => {
     const getStatusStyle = (status) => {
         switch (status) {
             case 'PENDING': return { bg: '#fef3c7', color: '#d97706' };
+            case 'PENDING_CONFIRMATION': return { bg: '#fef3c7', color: '#d97706' };
             case 'CONFIRMED': return { bg: '#dbeafe', color: '#2563eb' };
+            case 'ON_THE_WAY': return { bg: '#ede9fe', color: '#8b5cf6' };
+            case 'ARRIVED': return { bg: '#e0e7ff', color: '#4338ca' };
             case 'CHECKED_IN': return { bg: '#e0e7ff', color: '#4f46e5' };
             case 'COMPLETED': return { bg: '#d1fae5', color: '#059669' };
             case 'CANCELLED_BY_PATIENT': return { bg: '#fee2e2', color: '#dc2626' };
             case 'CANCELLED_BY_DOCTOR': return { bg: '#fee2e2', color: '#dc2626' };
+            case 'NO_SHOW_BY_DOCTOR': return { bg: '#fee2e2', color: '#dc2626' };
+            case 'DECLINED': return { bg: '#fee2e2', color: '#dc2626' };
             case 'NO_SHOW': return { bg: '#f3f4f6', color: '#6b7280' };
             default: return { bg: '#f3f4f6', color: '#4b5563' };
         }
@@ -92,10 +97,11 @@ const DoctorDashboard = ({ tab = 'appointments' }) => {
     // Filter appointments by selected date first
     const filteredAppointments = appointments.filter(a => a.scheduleDate === filterDate);
 
-    // Then filter by status
-    const waitingAppointments = filteredAppointments.filter(a => ['PENDING', 'CONFIRMED', 'CHECKED_IN'].includes(a.status));
-    const inProgressAppointments = filteredAppointments.filter(a => a.status === 'IN_PROGRESS');
-    const otherAppointments = filteredAppointments.filter(a => !['PENDING', 'CONFIRMED', 'CHECKED_IN', 'IN_PROGRESS'].includes(a.status));
+    // Then filter by status and visitType
+    const homeVisitAppointments = filteredAppointments.filter(a => a.visitType === 'HOME_VISIT' && !['COMPLETED', 'CANCELLED_BY_PATIENT', 'CANCELLED_BY_DOCTOR', 'NO_SHOW', 'NO_SHOW_BY_DOCTOR'].includes(a.status));
+    const clinicWaitingAppointments = filteredAppointments.filter(a => a.visitType !== 'HOME_VISIT' && ['PENDING', 'PENDING_CONFIRMATION', 'CONFIRMED', 'ON_THE_WAY', 'ARRIVED', 'CHECKED_IN'].includes(a.status));
+    const inProgressAppointments = filteredAppointments.filter(a => a.visitType !== 'HOME_VISIT' && a.status === 'IN_PROGRESS');
+    const otherAppointments = filteredAppointments.filter(a => ['COMPLETED', 'CANCELLED_BY_PATIENT', 'CANCELLED_BY_DOCTOR', 'NO_SHOW', 'NO_SHOW_BY_DOCTOR'].includes(a.status));
 
     const renderTable = (apts, title) => (
         <div className="table-container" style={{ marginBottom: '2rem' }}>
@@ -106,6 +112,7 @@ const DoctorDashboard = ({ tab = 'appointments' }) => {
                 <thead>
                     <tr>
                         <th>Patient</th>
+                        <th>Type</th>
                         <th>Date & Time</th>
                         <th>Symptoms</th>
                         <th>Status</th>
@@ -117,7 +124,21 @@ const DoctorDashboard = ({ tab = 'appointments' }) => {
                         const statusStyle = getStatusStyle(apt.status);
                         return (
                             <tr key={apt.id}>
-                                <td style={{ fontWeight: 500 }}>{apt.patientName}</td>
+                                <td>
+                                    <div style={{ fontWeight: 500 }}>{apt.patientName}</div>
+                                    {apt.visitType === 'HOME_VISIT' && apt.homeAddress && (
+                                        <div style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                            <MapPin size={12}/> {apt.homeAddress}
+                                        </div>
+                                    )}
+                                </td>
+                                <td>
+                                    {apt.visitType === 'HOME_VISIT' ? (
+                                        <span style={{ backgroundColor: '#e0e7ff', color: '#4338ca', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem', whiteSpace: 'nowrap' }}><Home size={14}/> Tại nhà</span>
+                                    ) : (
+                                        <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem', whiteSpace: 'nowrap' }}><Building size={14}/> Tại TT</span>
+                                    )}
+                                </td>
                                 <td>
                                     <div>{apt.scheduleDate}</div>
                                     <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>{apt.timeSlot}</div>
@@ -149,7 +170,31 @@ const DoctorDashboard = ({ tab = 'appointments' }) => {
                                             <XCircle size={16} /> Cancel
                                         </button>
                                     )}
-
+                                    {apt.status === 'PENDING_CONFIRMATION' && apt.visitType === 'HOME_VISIT' && (
+                                        <>
+                                            <button className="btn-primary" style={{ padding: '0.5rem 0.75rem', backgroundColor: '#10b981', display: 'flex', gap: '0.25rem', alignItems: 'center' }} onClick={() => handleUpdateStatus(apt.id, 'CONFIRMED')}>
+                                                <CheckCircle size={16}/> Đồng ý
+                                            </button>
+                                            <button className="btn-primary" style={{ padding: '0.5rem 0.75rem', backgroundColor: '#ef4444', display: 'flex', gap: '0.25rem', alignItems: 'center' }} onClick={() => handleUpdateStatus(apt.id, 'DECLINED')}>
+                                                <XCircle size={16}/> Từ chối
+                                            </button>
+                                        </>
+                                    )}
+                                    {apt.status === 'CONFIRMED' && apt.visitType === 'HOME_VISIT' && (
+                                        <button className="btn-primary" style={{ padding: '0.5rem 0.75rem', backgroundColor: '#3b82f6', display: 'flex', gap: '0.25rem', alignItems: 'center' }} onClick={() => handleUpdateStatus(apt.id, 'ON_THE_WAY')}>
+                                            Đang di chuyển
+                                        </button>
+                                    )}
+                                    {apt.status === 'ON_THE_WAY' && apt.visitType === 'HOME_VISIT' && (
+                                        <button className="btn-primary" style={{ padding: '0.5rem 0.75rem', backgroundColor: '#6366f1', display: 'flex', gap: '0.25rem', alignItems: 'center' }} onClick={() => handleUpdateStatus(apt.id, 'ARRIVED')}>
+                                            Đã đến nơi
+                                        </button>
+                                    )}
+                                    {apt.status === 'ARRIVED' && apt.visitType === 'HOME_VISIT' && (
+                                        <button className="btn-primary" style={{ padding: '0.5rem 0.75rem', backgroundColor: '#8b5cf6', display: 'flex', gap: '0.25rem', alignItems: 'center' }} onClick={() => handleUpdateStatus(apt.id, 'IN_PROGRESS')}>
+                                            Bắt đầu khám
+                                        </button>
+                                    )}
                                     {apt.status === 'IN_PROGRESS' && (
                                         <>
                                             <button
@@ -157,7 +202,7 @@ const DoctorDashboard = ({ tab = 'appointments' }) => {
                                                 style={{ padding: '0.5rem 0.75rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#059669' }}
                                                 onClick={() => handleComplete(apt)}
                                             >
-                                                <CheckCircle size={16} /> Diagnose
+                                                <CheckCircle size={16} /> Hoàn thành khám
                                             </button>
                                             <button
                                                 className="btn-primary"
@@ -230,8 +275,9 @@ const DoctorDashboard = ({ tab = 'appointments' }) => {
 
             {tab === 'appointments' ? (
                 <>
-                    {renderTable(inProgressAppointments, "In-Progress Patients (IN_PROGRESS)")}
-                    {renderTable(waitingAppointments, "Waiting Patients (PENDING / CHECKED_IN / CONFIRMED)")}
+                    {renderTable(inProgressAppointments, "In-Progress Clinic Patients (IN_PROGRESS)")}
+                    {renderTable(homeVisitAppointments, "Home Visits (Khám Tại Nhà)")}
+                    {renderTable(clinicWaitingAppointments, "Waiting Clinic Patients (PENDING / CHECKED_IN)")}
                     {renderTable(otherAppointments, "Other Appointments (COMPLETED / CANCELLED)")}
                 </>
             ) : (

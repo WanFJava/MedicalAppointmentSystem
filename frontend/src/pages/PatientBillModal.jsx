@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { getMedicalRecordByAppointment } from '../api/medicalRecordApi';
-import { getBillByAppointment, payBill } from '../api/billApi';
-import { X, FileText, Pill, DollarSign, CreditCard } from 'lucide-react';
 
-const PatientRecordModal = ({ appointment, onClose }) => {
-    const [record, setRecord] = useState(null);
+import { getBillByAppointment, payBill } from '../api/billApi';
+import { X, FileText, DollarSign, CreditCard } from 'lucide-react';
+
+const PatientBillModal = ({ appointment, onClose }) => {
+    
     const [bill, setBill] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -15,11 +15,8 @@ const PatientRecordModal = ({ appointment, onClose }) => {
     const fetchDetails = async () => {
         try {
             setLoading(true);
-            const [recordData, billData] = await Promise.all([
-                getMedicalRecordByAppointment(appointment.id).catch(() => null),
-                getBillByAppointment(appointment.id).catch(() => null)
-            ]);
-            setRecord(recordData);
+            const billData = await getBillByAppointment(appointment.id).catch(() => null);
+            
             setBill(billData);
         } catch (error) {
             console.error("Error fetching record/bill", error);
@@ -85,55 +82,7 @@ const PatientRecordModal = ({ appointment, onClose }) => {
                     </div>
                 </div>
 
-                {record ? (
-                    <div style={{ marginBottom: '2rem' }}>
-                        <h3 style={{ borderBottom: '2px solid var(--primary-color)', paddingBottom: '0.5rem', display: 'inline-block', marginBottom: '1rem' }}>Medical Record</h3>
-
-                        <div style={{ marginBottom: '1rem' }}>
-                            <strong style={{ color: '#4b5563' }}>Diagnosis:</strong>
-                            <p style={{ marginTop: '0.5rem', backgroundColor: '#f3f4f6', padding: '1rem', borderRadius: '8px' }}>{record.diagnosis}</p>
-                        </div>
-
-                        {record.advice && (
-                            <div style={{ marginBottom: '1.5rem' }}>
-                                <strong style={{ color: '#4b5563' }}>Advice:</strong>
-                                <p style={{ marginTop: '0.5rem', backgroundColor: '#f3f4f6', padding: '1rem', borderRadius: '8px' }}>{record.advice}</p>
-                            </div>
-                        )}
-
-                        {record.prescriptions && record.prescriptions.length > 0 && (
-                            <div>
-                                <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '1.5rem 0 0.5rem 0' }}>
-                                    <Pill size={18} /> Prescription
-                                </h4>
-                                <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden' }}>
-                                    <thead>
-                                        <tr style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                                            <th style={{ padding: '0.75rem', textAlign: 'left' }}>Medicine</th>
-                                            <th style={{ padding: '0.75rem', textAlign: 'left' }}>Dosage</th>
-                                            <th style={{ padding: '0.75rem', textAlign: 'left' }}>Instruction</th>
-                                            <th style={{ padding: '0.75rem', textAlign: 'center' }}>Quantity</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {record.prescriptions.map((p, index) => (
-                                            <tr key={index} style={{ borderBottom: index !== record.prescriptions.length - 1 ? '1px solid #e5e7eb' : 'none' }}>
-                                                <td style={{ padding: '0.75rem' }}>{p.medicineName}</td>
-                                                <td style={{ padding: '0.75rem' }}>{p.dosage}</td>
-                                                <td style={{ padding: '0.75rem' }}>{p.instruction}</td>
-                                                <td style={{ padding: '0.75rem', textAlign: 'center' }}>{p.quantity}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-                    </div>
-                ) : (
-                    <div style={{ padding: '1rem', backgroundColor: '#fef3c7', color: '#d97706', borderRadius: '8px', marginBottom: '2rem' }}>
-                        Medical record not available yet.
-                    </div>
-                )}
+                
 
                 {bill && (
                     <div style={{ marginTop: '2rem' }}>
@@ -169,16 +118,6 @@ const PatientRecordModal = ({ appointment, onClose }) => {
                                         <span>Phí thuốc:</span>
                                         <span style={{ fontWeight: '500' }}>{bill.medicineFee?.toLocaleString('vi-VN')}đ</span>
                                     </div>
-                                    {record && record.prescriptions && record.prescriptions.length > 0 && (
-                                        <div style={{ paddingLeft: '1rem', display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.9rem', color: '#64748b' }}>
-                                            {record.prescriptions.map((p, idx) => (
-                                                <div key={idx} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                                    <span>- {p.medicineName} ({p.unitPrice?.toLocaleString('vi-VN')}đ x{p.quantity})</span>
-                                                    <span>{p.totalPrice?.toLocaleString('vi-VN')}đ</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
                                 </div>
                             )}
 
@@ -231,4 +170,4 @@ const PatientRecordModal = ({ appointment, onClose }) => {
     );
 };
 
-export default PatientRecordModal;
+export default PatientBillModal;

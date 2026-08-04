@@ -26,8 +26,8 @@ const IncidentManager = () => {
         }
     };
 
-    // Filter appointments
-    const doctorAbsences = appointments.filter(apt => apt.status === 'CANCELLED_BY_DOCTOR');
+    // Lấy danh sách bác sĩ vắng mặt
+    const doctorAbsences = appointments.filter(apt => apt.status === 'CANCELLED_BY_DOCTOR' || apt.status === 'NO_SHOW_BY_DOCTOR');
     const patientNoShows = appointments.filter(apt => apt.status === 'NO_SHOW');
 
     // Grouping Doctor Absences

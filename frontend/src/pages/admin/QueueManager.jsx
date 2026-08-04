@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
-import { getAllAppointments, callNextQueue, swapQueue, skipQueue } from '../../api/appointmentApi';
-import { Volume2, ArrowUp, ArrowDown, UserX, Clock } from 'lucide-react';
+import { getAllAppointments, callNextQueue, swapQueue, skipQueue, updateAppointmentStatus } from '../../api/appointmentApi';
+import { Volume2, ArrowUp, ArrowDown, UserX, Clock, Home, Building, MapPin, AlertTriangle } from 'lucide-react';
 import Swal from 'sweetalert2';
 
 const QueueManager = () => {
@@ -75,23 +75,49 @@ const QueueManager = () => {
         }
     };
 
-    const handleSkip = async (id, patientName) => {
-        const result = await Swal.fire({
-            title: `Bỏ lượt ${patientName}?`,
-            text: 'Bệnh nhân sẽ bị đẩy xuống cuối hàng chờ.',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Đồng ý',
-            cancelButtonText: 'Hủy'
-        });
+    const handleSkip = async (appointmentId, patientName) => {
+        try {
+            const result = await Swal.fire({
+                title: `Bỏ lượt ${patientName}?`,
+                text: "Bệnh nhân " + patientName + " sẽ bị đẩy xuống cuối hàng chờ.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#f59e0b',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Đồng ý bỏ lượt',
+                cancelButtonText: 'Hủy'
+            });
 
-        if (result.isConfirmed) {
-            try {
-                await skipQueue(id);
+            if (result.isConfirmed) {
+                await skipQueue(appointmentId);
                 fetchQueue();
-            } catch (error) {
-                Swal.fire('Lỗi', 'Không thể bỏ lượt bệnh nhân', 'error');
+                Swal.fire('Thành công', 'Đã chuyển bệnh nhân xuống cuối hàng chờ', 'success');
             }
+        } catch (error) {
+            Swal.fire('Lỗi', 'Không thể bỏ lượt bệnh nhân', 'error');
+        }
+    };
+
+    const handleDoctorAbsent = async (id, patientName) => {
+        try {
+            const result = await Swal.fire({
+                title: 'Đánh vắng bác sĩ?',
+                text: `Bác sĩ không khám bệnh nhân ${patientName}? Lịch hẹn sẽ bị hủy.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Bác sĩ vắng',
+                cancelButtonText: 'Hủy'
+            });
+
+            if (result.isConfirmed) {
+                await updateAppointmentStatus(id, 'NO_SHOW_BY_DOCTOR');
+                fetchQueue();
+                Swal.fire('Thành công', 'Đã đánh vắng bác sĩ', 'success');
+            }
+        } catch (error) {
+            Swal.fire('Lỗi', 'Không thể đánh vắng bác sĩ', 'error');
         }
     };
 
@@ -115,6 +141,7 @@ const QueueManager = () => {
                         <tr>
                             <th style={{ width: '80px', textAlign: 'center' }}>STT</th>
                             <th>Bệnh nhân</th>
+                            <th>Loại khám</th>
                             <th>Bác sĩ khám</th>
                             <th>Lịch hẹn</th>
                             <th style={{ textAlign: 'center' }}>Hành động</th>
@@ -139,10 +166,22 @@ const QueueManager = () => {
                                     <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                                         Triệu chứng: {apt.symptom || 'Không có'}
                                     </div>
+                                    {apt.visitType === 'HOME_VISIT' && apt.homeAddress && (
+                                        <div style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                            <MapPin size={12}/> {apt.homeAddress}
+                                        </div>
+                                    )}
                                     {apt.note && (
                                         <div style={{ fontSize: '0.85rem', color: '#dc2626', marginTop: '0.25rem', fontWeight: 600 }}>
                                             Ghi chú: {(apt.note === 'V\\u1EAFng b\\u00E1c s\\u0129' || apt.note === 'V?ng bác s?') ? 'Vắng bác sĩ' : apt.note}
                                         </div>
+                                    )}
+                                </td>
+                                <td>
+                                    {apt.visitType === 'HOME_VISIT' ? (
+                                        <span style={{ backgroundColor: '#e0e7ff', color: '#4338ca', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem', whiteSpace: 'nowrap' }}><Home size={14}/> Tại nhà</span>
+                                    ) : (
+                                        <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem', whiteSpace: 'nowrap' }}><Building size={14}/> Tại TT</span>
                                     )}
                                 </td>
                                 <td>{apt.doctorName}</td>
@@ -183,6 +222,13 @@ const QueueManager = () => {
                                             onClick={() => handleSkip(apt.id, apt.patientName)}
                                             style={{ padding: '0.5rem', backgroundColor: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>
                                             <UserX size={16} />
+                                        </button>
+
+                                        <button
+                                            title="Bác sĩ vắng"
+                                            onClick={() => handleDoctorAbsent(apt.id, apt.patientName)}
+                                            style={{ padding: '0.5rem', backgroundColor: '#fef3c7', color: '#d97706', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>
+                                            <AlertTriangle size={16} />
                                         </button>
                                     </div>
                                 </td>

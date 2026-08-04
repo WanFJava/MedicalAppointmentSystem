@@ -140,12 +140,21 @@ const Home = () => {
                         <h2 style={{ fontSize: '2rem', fontWeight: '700', color: '#1f2937' }}>Our Specialties</h2>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1.5rem' }}>
+                    <div style={{ 
+                        display: 'grid', 
+                        gridTemplateRows: '1fr 1fr',
+                        gridAutoFlow: 'column',
+                        gridAutoColumns: 'minmax(280px, calc((100% - 4.5rem) / 4))',
+                        overflowX: 'auto', 
+                        gap: '1.5rem', 
+                        paddingBottom: '1.5rem',
+                        scrollSnapType: 'x mandatory',
+                        scrollbarWidth: 'thin',
+                        scrollbarColor: '#cbd5e1 transparent'
+                    }}>
                         {specialties.map((spec) => (
                             <div key={spec.id} style={{
-                                minWidth: '280px',
-                                maxWidth: '300px',
-                                flexShrink: 0,
+                                scrollSnapAlign: 'start',
                                 backgroundColor: 'white',
                                 padding: '2rem 1.5rem',
                                 borderRadius: '1.25rem',
@@ -157,6 +166,7 @@ const Home = () => {
                                 textAlign: 'center',
                                 transition: 'all 0.3s ease',
                                 cursor: 'pointer',
+                                height: '100%',
                             }}
                             onClick={() => navigate(`/specialty/${spec.id}`)}
                             onMouseOver={(e) => {
@@ -217,11 +227,21 @@ const Home = () => {
                         <p style={{ color: '#6b7280' }}>Our most highly rated professionals.</p>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '2rem' }}>
+                    <div style={{ 
+                        display: 'grid', 
+                        gridTemplateRows: '1fr 1fr',
+                        gridAutoFlow: 'column',
+                        gridAutoColumns: 'minmax(300px, calc((100% - 3 * 2rem) / 4))',
+                        overflowX: 'auto', 
+                        gap: '2rem', 
+                        paddingBottom: '1.5rem',
+                        scrollSnapType: 'x mandatory',
+                        scrollbarWidth: 'thin',
+                        scrollbarColor: '#cbd5e1 transparent'
+                    }}>
                         {doctors.map((doc) => (
                             <div key={doc.id} style={{
-                                minWidth: '300px',
-                                maxWidth: '320px',
+                                scrollSnapAlign: 'start',
                                 backgroundColor: 'white',
                                 borderRadius: '1.25rem',
                                 overflow: 'hidden',
@@ -230,7 +250,8 @@ const Home = () => {
                                 transition: 'all 0.3s ease',
                                 cursor: 'pointer',
                                 display: 'flex',
-                                flexDirection: 'column'
+                                flexDirection: 'column',
+                                height: '100%'
                             }}
                             onClick={() => navigate(`/doctor/${doc.id}`)}
                             onMouseOver={(e) => {

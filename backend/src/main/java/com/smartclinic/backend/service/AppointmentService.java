@@ -21,4 +21,6 @@ public interface AppointmentService {
     void callNext(Long appointmentId);
     void swapQueue(Long id1, Long id2);
     void skipQueue(Long appointmentId);
+
+    AppointmentDto createHomeVisit(com.smartclinic.backend.dto.HomeVisitRequestDto requestDto);
 }

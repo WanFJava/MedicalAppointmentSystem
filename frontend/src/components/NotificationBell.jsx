@@ -91,14 +91,18 @@ const NotificationBell = () => {
         const msg = notif.message.toLowerCase();
         
         if (user?.role === 'PATIENT') {
-            if (msg.includes('khiếu nại') || msg.includes('lịch khám')) {
+            if (msg.includes('khiếu nại') || msg.includes('lịch khám') || msg.includes('ca khám') || msg.includes('hoàn thành')) {
                 navigate('/my-appointments');
             }
         } else if (user?.role === 'RECEPTIONIST' || user?.role === 'ADMIN') {
             if (msg.includes('khiếu nại')) {
                 navigate('/admin/complaints');
-            } else if (msg.includes('lịch khám') || msg.includes('đặt lịch')) {
+            } else if (msg.includes('lịch khám') || msg.includes('đặt lịch') || msg.includes('ca khám')) {
                 navigate('/admin/appointments');
+            }
+        } else if (user?.role === 'DOCTOR') {
+            if (msg.includes('phân công') || msg.includes('ca làm việc') || msg.includes('ca khám')) {
+                navigate('/admin/my-shifts');
             }
         }
     };

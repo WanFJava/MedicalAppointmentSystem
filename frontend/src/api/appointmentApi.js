@@ -74,6 +74,11 @@ export const bookAppointment = async (patientId, data) => {
     return response.data;
 };
 
+export const bookHomeVisit = async (data) => {
+    const response = await api.post(`/appointments/home-visit`, data);
+    return response.data;
+};
+
 export const getPatientAppointments = async (patientId) => {
     const response = await api.get(`/appointments/patient/${patientId}`);
     return response.data;

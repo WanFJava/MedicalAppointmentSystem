@@ -26,6 +26,13 @@ public class AppointmentController {
         return ResponseEntity.ok(appointmentService.bookAppointment(patientId, requestDto));
     }
 
+    @PostMapping("/home-visit")
+    @PreAuthorize("hasAnyRole('RECEPTIONIST', 'ADMIN')")
+    public ResponseEntity<AppointmentDto> createHomeVisit(
+            @RequestBody com.smartclinic.backend.dto.HomeVisitRequestDto requestDto) {
+        return ResponseEntity.ok(appointmentService.createHomeVisit(requestDto));
+    }
+
     @GetMapping("/patient/{patientId}")
     @PreAuthorize("hasAnyRole('PATIENT', 'ADMIN')")
     public ResponseEntity<List<AppointmentDto>> getPatientAppointments(@PathVariable Long patientId) {

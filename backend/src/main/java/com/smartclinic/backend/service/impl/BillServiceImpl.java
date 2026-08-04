@@ -72,7 +72,8 @@ public class BillServiceImpl implements BillService {
             }
         }
 
-        BigDecimal totalAmount = consultationFee.add(medicineFee);
+        BigDecimal travelFee = appointment.getTravelFee() != null ? appointment.getTravelFee() : BigDecimal.ZERO;
+        BigDecimal totalAmount = consultationFee.add(medicineFee).add(travelFee);
 
         Bill bill = new Bill();
         bill.setAppointment(appointment);
@@ -86,8 +87,10 @@ public class BillServiceImpl implements BillService {
 
         // Notify patient
         if (appointment.getPatient() != null) {
-            notificationService.sendNotification(appointment.getPatient().getUser().getId(),
-                "Hóa đơn thanh toán cho lịch khám ngày " + appointment.getSchedule().getDate() + " đã được tạo. Vui lòng thanh toán tại quầy lễ tân.");
+            String message = appointment.getVisitType() == com.smartclinic.backend.entity.VisitType.HOME_VISIT ?
+                "Hóa đơn thanh toán cho lịch khám ngày " + appointment.getSchedule().getDate() + " đã được tạo. Vui lòng thanh toán trực tuyến." :
+                "Hóa đơn thanh toán cho lịch khám ngày " + appointment.getSchedule().getDate() + " đã được tạo. Vui lòng thanh toán tại quầy lễ tân.";
+            notificationService.sendNotification(appointment.getPatient().getUser().getId(), message);
         }
 
         return mapToDto(savedBill);
@@ -128,8 +131,18 @@ public class BillServiceImpl implements BillService {
 
     @Override
     public BillDto getBillByAppointmentId(Long appointmentId) {
-        Bill bill = billRepository.findByAppointmentId(appointmentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Bill", "appointmentId", appointmentId));
+        java.util.Optional<Bill> billOpt = billRepository.findByAppointmentId(appointmentId);
+        if (billOpt.isEmpty()) {
+            Appointment appointment = appointmentRepository.findById(appointmentId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Appointment", "id", appointmentId));
+            if (appointment.getStatus() == AppointmentStatus.COMPLETED) {
+                // Auto generate bill if it doesn't exist and appointment is completed
+                return generateBill(appointmentId);
+            } else {
+                throw new ResourceNotFoundException("Bill", "appointmentId", appointmentId);
+            }
+        }
+        Bill bill = billOpt.get();
         ensureCanView(bill.getAppointment());
         return mapToDto(bill);
     }
@@ -159,6 +172,7 @@ public class BillServiceImpl implements BillService {
                 bill.getAppointment().getId(),
                 bill.getConsultationFee(),
                 bill.getMedicineFee(),
+                bill.getAppointment().getTravelFee() != null ? bill.getAppointment().getTravelFee() : BigDecimal.ZERO,
                 bill.getDiscount(),
                 bill.getTotalAmount(),
                 bill.getStatus(),

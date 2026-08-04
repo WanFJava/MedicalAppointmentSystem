@@ -48,4 +48,15 @@ public class Appointment {
     @Column(name = "is_reminded")
     @Builder.Default
     private Boolean isReminded = false;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "visit_type")
+    @Builder.Default
+    private VisitType visitType = VisitType.CLINIC;
+
+    @Column(name = "home_address", columnDefinition = "NVARCHAR(255)")
+    private String homeAddress;
+
+    @Column(name = "travel_fee")
+    private java.math.BigDecimal travelFee;
 }

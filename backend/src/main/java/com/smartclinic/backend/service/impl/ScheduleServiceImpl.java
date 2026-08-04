@@ -116,7 +116,14 @@ public class ScheduleServiceImpl implements ScheduleService {
         schedule.setCurrentPatient(0);
         schedule.setStatus(ScheduleStatus.OPEN);
 
-        return mapToDto(scheduleRepository.save(schedule));
+        Schedule savedSchedule = scheduleRepository.save(schedule);
+
+        if (doctor != null && doctor.getUser() != null) {
+            notificationService.sendNotification(doctor.getUser().getId(),
+                "Admin vừa phân công cho bạn một ca làm việc vào ngày " + savedSchedule.getDate() + " (" + savedSchedule.getStartTime() + " - " + savedSchedule.getEndTime() + ").");
+        }
+
+        return mapToDto(savedSchedule);
     }
 
     @Override

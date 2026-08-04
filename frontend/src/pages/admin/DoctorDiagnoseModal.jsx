@@ -14,6 +14,7 @@ const DoctorDiagnoseModal = ({ appointment, doctorId, onClose, onSuccess }) => {
     const [prescriptions, setPrescriptions] = useState([]);
     const [selectedMedicineId, setSelectedMedicineId] = useState('');
     const [medicineSearch, setMedicineSearch] = useState('');
+    const [showMedicineDropdown, setShowMedicineDropdown] = useState(false);
     const [dosage, setDosage] = useState('');
     const [instruction, setInstruction] = useState('');
     const [quantity, setQuantity] = useState(1);
@@ -58,6 +59,10 @@ const DoctorDiagnoseModal = ({ appointment, doctorId, onClose, onSuccess }) => {
         
         setPrescriptions([...prescriptions, newPrescription]);
         setSelectedMedicineId('');
+        setMedicineSearch('');
+        setDosage('');
+        setInstruction('');
+        setQuantity(1);
         setMedicineSearch('');
         setDosage('');
         setInstruction('');
@@ -171,30 +176,47 @@ const DoctorDiagnoseModal = ({ appointment, doctorId, onClose, onSuccess }) => {
                             <div style={{ animation: 'fadeIn 0.3s' }}>
                                 <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 80px auto', gap: '1rem', alignItems: 'flex-end', marginBottom: '1.5rem', backgroundColor: 'white', padding: '1rem', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
                                     
-                                    <div>
+                                    <div style={{ position: 'relative' }}>
                                         <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#475569', marginBottom: '0.5rem' }}>Thuốc</label>
-                                        <div style={{ position: 'relative', marginBottom: '0.5rem' }}>
+                                        <div style={{ position: 'relative' }}>
                                             <div style={{ position: 'absolute', top: '50%', left: '0.5rem', transform: 'translateY(-50%)', color: '#9ca3af' }}>
                                                 <Search size={16} />
                                             </div>
                                             <input 
                                                 type="text" 
-                                                placeholder="Tìm kiếm thuốc..." 
+                                                placeholder="Tìm kiếm và chọn thuốc..." 
                                                 value={medicineSearch}
-                                                onChange={(e) => setMedicineSearch(e.target.value)}
+                                                onChange={(e) => {
+                                                    setMedicineSearch(e.target.value);
+                                                    setShowMedicineDropdown(true);
+                                                }}
+                                                onFocus={() => setShowMedicineDropdown(true)}
                                                 style={{ width: '100%', padding: '0.5rem 0.5rem 0.5rem 2rem', borderRadius: '0.375rem', border: '1px solid #d1d5db', fontSize: '0.875rem' }}
                                             />
+                                            {showMedicineDropdown && (
+                                                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10, backgroundColor: 'white', border: '1px solid #d1d5db', borderRadius: '0.375rem', marginTop: '0.25rem', maxHeight: '200px', overflowY: 'auto', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+                                                    {filteredMedicines.length === 0 ? (
+                                                        <div style={{ padding: '0.75rem', color: '#6b7280', fontSize: '0.875rem', textAlign: 'center' }}>Không tìm thấy thuốc</div>
+                                                    ) : (
+                                                        filteredMedicines.map(m => (
+                                                            <div key={m.id} 
+                                                                style={{ padding: '0.5rem 0.75rem', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', backgroundColor: selectedMedicineId == m.id ? '#eff6ff' : 'white' }}
+                                                                onMouseDown={() => {
+                                                                    setSelectedMedicineId(m.id.toString());
+                                                                    setMedicineSearch(m.name);
+                                                                    setShowMedicineDropdown(false);
+                                                                }}
+                                                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#eff6ff'}
+                                                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = selectedMedicineId == m.id ? '#eff6ff' : 'white'}
+                                                            >
+                                                                <div style={{ fontWeight: 600, color: '#1f2937', fontSize: '0.875rem' }}>{m.name}</div>
+                                                                <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>Giá: {m.price.toLocaleString('vi-VN')}đ | Tồn kho: {m.quantity}</div>
+                                                            </div>
+                                                        ))
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
-                                        <select 
-                                            value={selectedMedicineId} 
-                                            onChange={(e) => setSelectedMedicineId(e.target.value)}
-                                            style={{ width: '100%', padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid #d1d5db', backgroundColor: 'white', fontSize: '0.9rem' }}
-                                        >
-                                            <option value="">-- Chọn thuốc --</option>
-                                            {filteredMedicines.map(m => (
-                                                <option key={m.id} value={m.id}>{m.name} - {m.price.toLocaleString('vi-VN')}đ (Kho: {m.quantity})</option>
-                                            ))}
-                                        </select>
                                     </div>
 
                                     <div>
