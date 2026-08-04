@@ -1,5 +1,6 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import {
+    Bot,
     Check,
     Clock3,
     Headphones,
@@ -30,6 +31,7 @@ const formatTime = (value) => {
 };
 
 const statusLabel = {
+    BOT: 'Chatbot',
     WAITING: 'Đang chờ',
     ACTIVE: 'Đang xử lý',
     CLOSED: 'Đã kết thúc'
@@ -44,7 +46,7 @@ const LiveChatDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [working, setWorking] = useState(false);
     const [error, setError] = useState('');
-    const messagesEndRef = useRef(null);
+    const messagesContainerRef = useRef(null);
 
     const loadSessions = useCallback(async (showLoading = false) => {
         if (showLoading) setLoading(true);
@@ -92,9 +94,25 @@ const LiveChatDashboard = () => {
         return () => window.clearInterval(intervalId);
     }, [loadSelectedSession, selectedSession?.id]);
 
+    const selectedMessages = selectedSession?.messages || [];
+    const selectedLastMessageId = selectedMessages.length > 0
+        ? selectedMessages[selectedMessages.length - 1].id
+        : null;
+
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [selectedSession?.messages]);
+        if (!selectedSession?.id) return undefined;
+
+        const animationFrame = window.requestAnimationFrame(() => {
+            const messagesContainer = messagesContainerRef.current;
+            if (!messagesContainer) return;
+            messagesContainer.scrollTo({
+                top: messagesContainer.scrollHeight,
+                behavior: 'smooth'
+            });
+        });
+
+        return () => window.cancelAnimationFrame(animationFrame);
+    }, [selectedLastMessageId, selectedSession?.id]);
 
     const selectSession = async (sessionId) => {
         setWorking(true);
@@ -227,7 +245,7 @@ const LiveChatDashboard = () => {
                                 checked={includeClosed}
                                 onChange={(event) => setIncludeClosed(event.target.checked)}
                             />
-                            Đã đóng
+                            Lịch sử
                         </label>
                     </div>
 
@@ -329,7 +347,10 @@ const LiveChatDashboard = () => {
                                 </div>
                             )}
 
-                            <div className="live-chat-conversation__messages">
+                            <div
+                                ref={messagesContainerRef}
+                                className="live-chat-conversation__messages"
+                            >
                                 {selectedSession.messages?.map((chatMessage) => {
                                     if (chatMessage.senderType === 'SYSTEM') {
                                         return (
@@ -344,6 +365,8 @@ const LiveChatDashboard = () => {
 
                                     const fromReceptionist =
                                         chatMessage.senderType === 'RECEPTIONIST';
+                                    const fromChatbot =
+                                        chatMessage.senderType === 'CHATBOT';
                                     return (
                                         <div
                                             key={chatMessage.id}
@@ -352,6 +375,8 @@ const LiveChatDashboard = () => {
                                             <div className="live-chat-conversation__message-avatar">
                                                 {fromReceptionist
                                                     ? <Headphones size={16} />
+                                                    : fromChatbot
+                                                        ? <Bot size={16} />
                                                     : <UserRound size={16} />}
                                             </div>
                                             <div className="live-chat-conversation__message">
@@ -362,11 +387,14 @@ const LiveChatDashboard = () => {
                                         </div>
                                     );
                                 })}
-                                <div ref={messagesEndRef} />
                             </div>
 
                             <footer className="live-chat-conversation__composer">
-                                {selectedSession.status === 'CLOSED' ? (
+                                {selectedSession.status === 'BOT' ? (
+                                    <div className="live-chat-conversation__closed">
+                                        Khách đang trò chuyện với chatbot. Toàn bộ nội dung được lưu trong lịch sử này.
+                                    </div>
+                                ) : selectedSession.status === 'CLOSED' ? (
                                     <div className="live-chat-conversation__closed">
                                         Hội thoại này đã kết thúc.
                                     </div>

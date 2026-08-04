@@ -10,6 +10,7 @@ import com.smartclinic.backend.repository.DoctorRepository;
 import com.smartclinic.backend.repository.ScheduleRepository;
 import com.smartclinic.backend.repository.UserRepository;
 import com.smartclinic.backend.service.ScheduleService;
+import com.smartclinic.backend.service.BookingPolicy;
 import com.smartclinic.backend.service.NotificationService;
 import com.smartclinic.backend.entity.Role;
 import lombok.RequiredArgsConstructor;
@@ -249,14 +250,22 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public List<ScheduleDto> getAvailableSchedules(Long doctorId, LocalDate date) {
+        LocalDateTime now = LocalDateTime.now();
         return scheduleRepository.findByDoctorIdAndDateAndStatus(doctorId, date, ScheduleStatus.AVAILABLE)
-                .stream().map(this::mapToDto).collect(Collectors.toList());
+                .stream()
+                .filter(schedule -> BookingPolicy.canBook(schedule, now))
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<ScheduleDto> getAllUpcomingAvailableSchedules(Long doctorId) {
+        LocalDateTime now = LocalDateTime.now();
         return scheduleRepository.findByDoctorIdAndDateGreaterThanEqualAndStatusOrderByDateAscStartTimeAsc(doctorId, LocalDate.now(), ScheduleStatus.AVAILABLE)
-                .stream().map(this::mapToDto).collect(Collectors.toList());
+                .stream()
+                .filter(schedule -> BookingPolicy.canBook(schedule, now))
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
     }
 
     @Override

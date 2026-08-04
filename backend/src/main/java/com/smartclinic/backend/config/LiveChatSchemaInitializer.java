@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
+import java.util.List;
 import java.util.Locale;
 
 @Component
@@ -21,16 +22,13 @@ public class LiveChatSchemaInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        if (tableExists("live_chat_sessions") && tableExists("live_chat_messages")) {
-            return;
-        }
-
         try (Connection connection = dataSource.getConnection()) {
             String database = connection.getMetaData()
                     .getDatabaseProductName()
                     .toLowerCase(Locale.ROOT);
             if (database.contains("microsoft sql server")) {
                 createSqlServerSchema();
+                updateSqlServerEnumConstraints();
             } else if (database.contains("h2")) {
                 createH2Schema();
             } else {
@@ -38,6 +36,69 @@ public class LiveChatSchemaInitializer implements CommandLineRunner {
                         "Live chat schema is not configured for database: " + database);
             }
         }
+    }
+
+    private void updateSqlServerEnumConstraints() {
+        recreateSqlServerCheckConstraint(
+                "live_chat_sessions",
+                "status",
+                "ck_live_chat_sessions_status",
+                "[status] IN ('BOT', 'WAITING', 'ACTIVE', 'CLOSED')"
+        );
+        recreateSqlServerCheckConstraint(
+                "live_chat_messages",
+                "sender_type",
+                "ck_live_chat_messages_sender_type",
+                "[sender_type] IN ('CUSTOMER', 'CHATBOT', 'RECEPTIONIST', 'SYSTEM')"
+        );
+    }
+
+    private void recreateSqlServerCheckConstraint(
+            String tableName,
+            String columnName,
+            String constraintName,
+            String definition) {
+        if (!tableExists(tableName)) {
+            return;
+        }
+
+        List<String> existingConstraints = jdbcTemplate.queryForList(
+                """
+                SELECT check_constraint.name
+                FROM sys.check_constraints check_constraint
+                INNER JOIN sys.tables parent_table
+                    ON parent_table.object_id = check_constraint.parent_object_id
+                WHERE parent_table.name = ?
+                  AND (
+                      COL_NAME(
+                          check_constraint.parent_object_id,
+                          check_constraint.parent_column_id
+                      ) = ?
+                      OR check_constraint.definition LIKE ?
+                  )
+                """,
+                String.class,
+                tableName,
+                columnName,
+                "%" + columnName + "%"
+        );
+
+        if (existingConstraints.size() == 1
+                && constraintName.equalsIgnoreCase(existingConstraints.get(0))) {
+            return;
+        }
+
+        for (String existingConstraint : existingConstraints) {
+            jdbcTemplate.execute(
+                    "ALTER TABLE [" + tableName + "] DROP CONSTRAINT ["
+                            + existingConstraint + "]"
+            );
+        }
+
+        jdbcTemplate.execute(
+                "ALTER TABLE [" + tableName + "] WITH CHECK ADD CONSTRAINT ["
+                        + constraintName + "] CHECK (" + definition + ")"
+        );
     }
 
     private boolean tableExists(String tableName) {

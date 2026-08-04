@@ -14,7 +14,6 @@ import { AuthContext } from '../context/AuthContext';
 import { sendChatbotMessage } from '../api/chatbotApi';
 import {
     closeCustomerLiveChat,
-    createCustomerLiveChat,
     getCustomerLiveChat,
     sendCustomerLiveChatMessage
 } from '../api/liveChatApi';
@@ -52,7 +51,8 @@ const ReceptionistChatbot = () => {
     const [isSending, setIsSending] = useState(false);
     const [liveError, setLiveError] = useState('');
     const nextId = useRef(2);
-    const messagesEndRef = useRef(null);
+    const shouldRestoreStoredSession = useRef(Boolean(liveCredentials));
+    const messagesContainerRef = useRef(null);
     const inputRef = useRef(null);
 
     const applyLiveSession = (session) => {
@@ -61,20 +61,44 @@ const ReceptionistChatbot = () => {
         setLiveError('');
     };
 
-    const saveLiveCredentials = (session) => {
-        const credentials = {
-            sessionId: session.id,
-            accessToken: session.accessToken
+    const applyStoredSession = (session) => {
+        if (session.status !== 'BOT') {
+            applyLiveSession(session);
+            return;
+        }
+
+        const restoredMessages = (session.messages || [])
+            .filter((message) => ['CUSTOMER', 'CHATBOT'].includes(message.senderType))
+            .map((message) => ({
+                id: `stored-${message.id}`,
+                role: message.senderType === 'CUSTOMER' ? 'user' : 'assistant',
+                text: message.content,
+                quickReplies: [],
+                actions: []
+            }));
+        setBotMessages(restoredMessages.length > 0
+            ? restoredMessages
+            : [INITIAL_MESSAGE]);
+        setLiveSession(null);
+        setMode('bot');
+        setLiveError('');
+    };
+
+    const saveChatCredentials = (credentials) => {
+        const credentialsToStore = {
+            sessionId: credentials.sessionId,
+            accessToken: credentials.accessToken
         };
         sessionStorage.setItem(
             LIVE_CHAT_STORAGE_KEY,
-            JSON.stringify(credentials)
+            JSON.stringify(credentialsToStore)
         );
-        setLiveCredentials(credentials);
+        setLiveCredentials(credentialsToStore);
     };
 
     useEffect(() => {
-        if (!liveCredentials) return;
+        if (!liveCredentials || !shouldRestoreStoredSession.current) return;
+        shouldRestoreStoredSession.current = false;
 
         let cancelled = false;
         getCustomerLiveChat(
@@ -83,7 +107,7 @@ const ReceptionistChatbot = () => {
         )
             .then((session) => {
                 if (!cancelled) {
-                    applyLiveSession(session);
+                    applyStoredSession(session);
                 }
             })
             .catch(() => {
@@ -132,11 +156,35 @@ const ReceptionistChatbot = () => {
         mode
     ]);
 
+    const botLastMessageId = botMessages.length > 0
+        ? botMessages[botMessages.length - 1].id
+        : null;
+    const liveMessages = liveSession?.messages || [];
+    const liveLastMessageId = liveMessages.length > 0
+        ? liveMessages[liveMessages.length - 1].id
+        : null;
+
     useEffect(() => {
-        if (isOpen) {
-            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-        }
-    }, [botMessages, liveSession, isOpen, isSending]);
+        if (!isOpen) return undefined;
+
+        const animationFrame = window.requestAnimationFrame(() => {
+            const messagesContainer = messagesContainerRef.current;
+            if (!messagesContainer) return;
+            messagesContainer.scrollTo({
+                top: messagesContainer.scrollHeight,
+                behavior: 'smooth'
+            });
+        });
+
+        return () => window.cancelAnimationFrame(animationFrame);
+    }, [
+        botLastMessageId,
+        isOpen,
+        isSending,
+        liveError,
+        liveLastMessageId,
+        mode
+    ]);
 
     useEffect(() => {
         if (isOpen && liveSession?.status !== 'CLOSED') {
@@ -151,12 +199,11 @@ const ReceptionistChatbot = () => {
         ]);
     };
 
-    const startLiveHandoff = async (initialMessage) => {
-        const session = await createCustomerLiveChat({
-            customerName: user?.fullName || 'Khách hàng',
-            initialMessage
-        });
-        saveLiveCredentials(session);
+    const startLiveHandoff = async (credentials) => {
+        const session = await getCustomerLiveChat(
+            credentials.sessionId,
+            credentials.accessToken
+        );
         applyLiveSession(session);
     };
 
@@ -168,9 +215,18 @@ const ReceptionistChatbot = () => {
             actions: []
         });
 
-        const response = await sendChatbotMessage(text);
+        const response = await sendChatbotMessage(
+            text,
+            liveCredentials,
+            user?.fullName
+        );
+        const credentials = {
+            sessionId: response.sessionId,
+            accessToken: response.accessToken
+        };
+        saveChatCredentials(credentials);
         if (response.handoffRequested) {
-            await startLiveHandoff(text);
+            await startLiveHandoff(credentials);
             return;
         }
 
@@ -330,7 +386,10 @@ const ReceptionistChatbot = () => {
                         </div>
                     </header>
 
-                    <div className="reception-chat__messages">
+                    <div
+                        ref={messagesContainerRef}
+                        className="reception-chat__messages"
+                    >
                         {mode === 'live' && liveSession?.status === 'WAITING' && (
                             <div className="reception-chat__notice">
                                 Yêu cầu của bạn đã vào hàng chờ. Bạn vẫn có thể gửi
@@ -355,6 +414,8 @@ const ReceptionistChatbot = () => {
                             const isCustomer = mode === 'live'
                                 ? message.senderType === 'CUSTOMER'
                                 : message.role === 'user';
+                            const isChatbot = mode === 'live'
+                                && message.senderType === 'CHATBOT';
                             const text = mode === 'live'
                                 ? message.content
                                 : message.text;
@@ -366,9 +427,9 @@ const ReceptionistChatbot = () => {
                                     className={`reception-chat__row ${isCustomer ? 'reception-chat__row--customer' : ''}`}
                                 >
                                     <div className={`reception-chat__message-avatar ${isCustomer ? 'reception-chat__message-avatar--customer' : ''}`}>
-                                        {isCustomer
-                                            ? <User size={16} />
-                                            : mode === 'bot'
+                                            {isCustomer
+                                                ? <User size={16} />
+                                            : mode === 'bot' || isChatbot
                                                 ? <Bot size={16} />
                                                 : <Headphones size={16} />}
                                     </div>
@@ -435,7 +496,6 @@ const ReceptionistChatbot = () => {
                         {liveError && (
                             <div className="reception-chat__error">{liveError}</div>
                         )}
-                        <div ref={messagesEndRef} />
                     </div>
 
                     <div className="reception-chat__footer">
@@ -490,7 +550,7 @@ const ReceptionistChatbot = () => {
                             </div>
                         ) : (
                             <div className="reception-chat__live-note">
-                                Hội thoại trực tiếp được lưu để lễ tân hỗ trợ liên tục.
+                                Lịch sử chatbot và lễ tân được lưu để hỗ trợ liên tục.
                             </div>
                         )}
                         <div className="reception-chat__emergency-note">

@@ -160,6 +160,7 @@ public class LiveChatServiceImpl implements LiveChatService {
     public LiveChatSessionDto closeReceptionistSession(Long sessionId, String receptionistEmail) {
         User receptionist = getStaffUser(receptionistEmail);
         LiveChatSession session = getSessionForUpdate(sessionId);
+        ensureHandoffRequested(session);
         ensureStaffCanManage(session, receptionist);
         closeSession(
                 session,
@@ -170,6 +171,7 @@ public class LiveChatServiceImpl implements LiveChatService {
 
     private void claimForStaff(LiveChatSession session, User staff) {
         ensureOpen(session);
+        ensureHandoffRequested(session);
         if (session.getAssignedReceptionist() == null) {
             LocalDateTime now = LocalDateTime.now();
             session.setAssignedReceptionist(staff);
@@ -282,6 +284,14 @@ public class LiveChatServiceImpl implements LiveChatService {
         }
     }
 
+    private void ensureHandoffRequested(LiveChatSession session) {
+        if (session.getStatus() == LiveChatStatus.BOT) {
+            throw new IllegalArgumentException(
+                    "Khách hàng chưa yêu cầu chuyển cuộc trò chuyện cho lễ tân."
+            );
+        }
+    }
+
     private LiveChatSessionDto toDto(
             LiveChatSession session,
             boolean includeAccessToken,
@@ -317,6 +327,7 @@ public class LiveChatServiceImpl implements LiveChatService {
         User sender = message.getSender();
         String senderName = switch (message.getSenderType()) {
             case CUSTOMER -> session.getCustomerName();
+            case CHATBOT -> "Chatbot Smart Clinic";
             case RECEPTIONIST -> sender == null ? "Lễ tân" : sender.getFullName();
             case SYSTEM -> "Hệ thống";
         };

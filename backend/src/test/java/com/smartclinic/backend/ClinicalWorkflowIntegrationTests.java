@@ -41,6 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
@@ -204,6 +205,31 @@ class ClinicalWorkflowIntegrationTests {
     }
 
     @Test
+    void bookingRequiresAtLeastTwentyFourHoursNotice() {
+        Fixture fixture = createFixture(2);
+        LocalDateTime tooSoon = LocalDateTime.now()
+                .plusHours(23)
+                .withSecond(0)
+                .withNano(0);
+        fixture.schedule().setDate(tooSoon.toLocalDate());
+        fixture.schedule().setStartTime(tooSoon.toLocalTime());
+        fixture.schedule().setEndTime(tooSoon.plusMinutes(30).toLocalTime());
+        scheduleRepository.save(fixture.schedule());
+
+        authenticate(fixture.patientUser().getEmail(), Role.PATIENT);
+        BookingRequestDto request = new BookingRequestDto(
+                fixture.doctor().getId(),
+                fixture.schedule().getId(),
+                "Follow-up"
+        );
+
+        assertThatThrownBy(() -> appointmentService.bookAppointment(
+                fixture.patientUser().getId(), request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("24 giờ");
+    }
+
+    @Test
     void patientCannotAccessAnotherPatientsAppointmentsOrSubmitInvalidRating() {
         Fixture fixture = createFixture(2);
         Fixture anotherFixture = createFixture(2);
@@ -249,7 +275,7 @@ class ClinicalWorkflowIntegrationTests {
 
         Schedule schedule = new Schedule();
         schedule.setDoctor(doctor);
-        schedule.setDate(LocalDate.now().plusDays(1));
+        schedule.setDate(LocalDate.now().plusDays(2));
         schedule.setStartTime(LocalTime.of(9, 0));
         schedule.setEndTime(LocalTime.of(10, 0));
         schedule.setMaxPatient(maxPatients);
