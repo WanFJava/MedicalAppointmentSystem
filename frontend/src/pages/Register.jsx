@@ -25,10 +25,10 @@ const Register = () => {
         setIsLoading(true);
         try {
             await registerApi(formData);
-            setSuccess('Registration successful! Please login.');
+            setSuccess('Đăng ký thành công! Vui lòng đăng nhập.');
             setTimeout(() => navigate('/login'), 2000);
         } catch (err) {
-            setError(err.response?.data?.message || 'Registration failed');
+            setError(err.response?.data?.message || 'Đăng ký thất bại');
         } finally {
             setIsLoading(false);
         }
@@ -37,21 +37,21 @@ const Register = () => {
     return (
         <div className="auth-container">
             <div className="auth-card">
-                <h2>Create Account</h2>
-                <p>Join Smart Clinic today</p>
+                <h2>Tạo tài khoản</h2>
+                <p>Tham gia Smart Clinic ngay hôm nay</p>
                 {error && <div className="error-message">{error}</div>}
                 {success && <div className="success-message">{success}</div>}
 
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
-                        <label>Full Name</label>
+                        <label>Họ và tên</label>
                         <input
                             type="text"
                             name="fullName"
                             required
                             value={formData.fullName}
                             onChange={handleChange}
-                            placeholder="John Doe"
+                            placeholder="Nguyễn Văn A"
                         />
                     </div>
                     <div className="form-group">
@@ -62,36 +62,36 @@ const Register = () => {
                             required
                             value={formData.email}
                             onChange={handleChange}
-                            placeholder="you@example.com"
+                            placeholder="ban@example.com"
                         />
                     </div>
                     <div className="form-group">
-                        <label>Password</label>
+                        <label>Mật khẩu</label>
                         <input
                             type="password"
                             name="password"
                             required
                             value={formData.password}
                             onChange={handleChange}
-                            placeholder="Min 6 characters"
+                            placeholder="Tối thiểu 6 ký tự"
                         />
                     </div>
                     <div className="form-group">
-                        <label>Phone Number</label>
+                        <label>Số điện thoại</label>
                         <input
                             type="text"
                             name="phone"
                             value={formData.phone}
                             onChange={handleChange}
-                            placeholder="Your phone number"
+                            placeholder="Số điện thoại của bạn"
                         />
                     </div>
                     <button type="submit" className="btn-primary" disabled={isLoading}>
-                        {isLoading ? 'Creating Account...' : 'Sign Up'}
+                        {isLoading ? 'Đang tạo tài khoản...' : 'Đăng ký'}
                     </button>
                 </form>
                 <div className="auth-footer">
-                    Already have an account? <Link to="/login">Sign In</Link>
+                    Đã có tài khoản? <Link to="/login">Đăng nhập</Link>
                 </div>
             </div>
         </div>

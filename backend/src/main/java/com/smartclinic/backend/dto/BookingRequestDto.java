@@ -13,4 +13,5 @@ public class BookingRequestDto {
     private Long doctorId;
     private Long scheduleId;
     private String symptom;
+    private String expectedTime;
 }

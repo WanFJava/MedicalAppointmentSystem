@@ -1,20 +1,20 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import { getDoctorByUserId } from '../../api/adminApi';
 import { getDoctorAppointments, updateAppointmentStatus } from '../../api/appointmentApi';
 import { getPatientProfile } from '../../api/patientApi';
-import { CheckCircle, ClipboardList, Calendar, Info, X, Star, FileText, Check, XCircle, UserX, UserCheck, Clock, Home, Building, MapPin } from 'lucide-react';
-import ScheduleManager from './ScheduleManager';
+import { CheckCircle, ClipboardList, Info, X, Star, FileText, XCircle, UserX, Home, Building, MapPin, ArrowLeft } from 'lucide-react';
 import DoctorDiagnoseModal from './DoctorDiagnoseModal';
 import FeedbackModal from '../FeedbackModal';
 import PatientRecordModal from '../PatientRecordModal';
 import Swal from 'sweetalert2';
 
-import { useLocation } from 'react-router-dom';
-
-const DoctorDashboard = ({ tab = 'appointments' }) => {
+const ScheduleAppointmentsPage = () => {
     const { user } = useContext(AuthContext);
-    const location = useLocation();
+    const { scheduleId } = useParams();
+    const navigate = useNavigate();
+    
     const [doctor, setDoctor] = useState(null);
     const [appointments, setAppointments] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -22,13 +22,12 @@ const DoctorDashboard = ({ tab = 'appointments' }) => {
     const [viewingPatient, setViewingPatient] = useState(null);
     const [feedbackApt, setFeedbackApt] = useState(null);
     const [viewingRecordApt, setViewingRecordApt] = useState(null);
-    const [filterDate, setFilterDate] = useState(location.state?.selectedDate || new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]);
 
     useEffect(() => {
         if (user && user.role === 'DOCTOR') {
             fetchDoctorAndAppointments();
         }
-    }, [user]);
+    }, [user, scheduleId]);
 
     const fetchDoctorAndAppointments = async () => {
         try {
@@ -37,9 +36,11 @@ const DoctorDashboard = ({ tab = 'appointments' }) => {
             setDoctor(docData);
 
             const aptData = await getDoctorAppointments(docData.id);
-            setAppointments(aptData);
+            // Lọc danh sách lịch hẹn theo scheduleId
+            const filteredApt = aptData.filter(a => String(a.scheduleId) === String(scheduleId));
+            setAppointments(filteredApt);
         } catch (error) {
-            console.error("Failed to load doctor dashboard data", error);
+            console.error("Failed to load data", error);
         } finally {
             setLoading(false);
         }
@@ -107,7 +108,7 @@ const DoctorDashboard = ({ tab = 'appointments' }) => {
         }
     };
 
-    if (loading) return <div style={{ padding: '2rem' }}>Đang tải lịch khám...</div>;
+    if (loading) return <div style={{ padding: '2rem' }}>Đang tải lịch hẹn...</div>;
 
     if (!doctor) {
         return (
@@ -117,14 +118,7 @@ const DoctorDashboard = ({ tab = 'appointments' }) => {
         );
     }
 
-    // Filter appointments by selected date first
-    const filteredAppointments = appointments.filter(a => a.scheduleDate === filterDate);
 
-    // Then filter by status and visitType
-    const homeVisitAppointments = filteredAppointments.filter(a => a.visitType === 'HOME_VISIT' && !['COMPLETED', 'CANCELLED_BY_PATIENT', 'CANCELLED_BY_DOCTOR', 'NO_SHOW', 'NO_SHOW_BY_DOCTOR'].includes(a.status));
-    const clinicWaitingAppointments = filteredAppointments.filter(a => a.visitType !== 'HOME_VISIT' && ['PENDING', 'PENDING_CONFIRMATION', 'CONFIRMED', 'ON_THE_WAY', 'ARRIVED', 'CHECKED_IN'].includes(a.status));
-    const inProgressAppointments = filteredAppointments.filter(a => a.visitType !== 'HOME_VISIT' && a.status === 'IN_PROGRESS');
-    const otherAppointments = filteredAppointments.filter(a => ['COMPLETED', 'CANCELLED_BY_PATIENT', 'CANCELLED_BY_DOCTOR', 'NO_SHOW', 'NO_SHOW_BY_DOCTOR'].includes(a.status));
 
     const renderTable = (apts, title) => (
         <div className="table-container" style={{ marginBottom: '2rem' }}>
@@ -214,7 +208,6 @@ const DoctorDashboard = ({ tab = 'appointments' }) => {
                                             <CheckCircle size={16} /> Xác nhận
                                         </button>
                                     )}
-                                    {/* Receptionist confirms home visits, Doctor confirms them after Receptionist sets fee. */}
                                     {apt.status === 'CONFIRMED' && apt.visitType === 'HOME_VISIT' && (
                                         <button className="btn-primary" style={{ padding: '0.5rem 0.75rem', backgroundColor: '#3b82f6', display: 'flex', gap: '0.25rem', alignItems: 'center' }} onClick={() => handleUpdateStatus(apt.id, 'ON_THE_WAY')}>
                                             Đang di chuyển
@@ -237,7 +230,7 @@ const DoctorDashboard = ({ tab = 'appointments' }) => {
                                                 style={{ padding: '0.5rem 0.75rem', width: 'auto', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#059669' }}
                                                 onClick={() => handleComplete(apt)}
                                             >
-                                                <CheckCircle size={16} /> Hoàn thành khám
+                                                <CheckCircle size={16} /> Hoàn thành
                                             </button>
                                             <button
                                                 className="btn-primary"
@@ -275,7 +268,7 @@ const DoctorDashboard = ({ tab = 'appointments' }) => {
                     })}
                     {apts.length === 0 && (
                         <tr>
-                            <td colSpan="5" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
+                            <td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
                                 Không có lịch hẹn nào trong danh mục này.
                             </td>
                         </tr>
@@ -287,49 +280,25 @@ const DoctorDashboard = ({ tab = 'appointments' }) => {
 
     return (
         <div>
-            <div className="page-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem', marginBottom: '2rem' }}>
+            <div className="page-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <button 
+                    onClick={() => navigate('/admin/my-shifts')}
+                    style={{ background: 'white', border: '1px solid #d1d5db', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' }}
+                    onMouseOver={e => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                    onMouseOut={e => e.currentTarget.style.backgroundColor = 'white'}
+                    title="Quay lại danh sách ca làm việc"
+                >
+                    <ArrowLeft size={20} color="#4b5563" />
+                </button>
                 <div>
-                    <h2>Bảng điều khiển Bác sĩ</h2>
-                    <div style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-                        Bác sĩ: {doctor.fullName} | {doctor.specialtyName}
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        {doctor.canClinicVisit && (
-                            <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-                                <Building size={14}/> Khám tại phòng khám
-                            </span>
-                        )}
-                        {doctor.canHomeVisit && (
-                            <span style={{ backgroundColor: '#e0e7ff', color: '#4338ca', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-                                <Home size={14}/> Khám tại nhà
-                            </span>
-                        )}
+                    <h2 style={{ margin: 0 }}>Lịch hẹn của Ca làm việc #{scheduleId}</h2>
+                    <div style={{ color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+                        Bác sĩ: {doctor.fullName} | Số lượng lịch hẹn: {appointments.length}
                     </div>
                 </div>
             </div>
 
-            {tab === 'appointments' && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem', backgroundColor: 'white', padding: '1rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                    <label style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>Xem theo ngày:</label>
-                    <input
-                        type="date"
-                        value={filterDate}
-                        onChange={(e) => setFilterDate(e.target.value)}
-                        style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #d1d5db' }}
-                    />
-                </div>
-            )}
-
-            {tab === 'appointments' ? (
-                <>
-                    {doctor.canClinicVisit && renderTable(inProgressAppointments, "Bệnh nhân đang khám tại trung tâm (IN_PROGRESS)")}
-                    {doctor.canHomeVisit && renderTable(homeVisitAppointments, "Khám Tại Nhà (HOME_VISIT)")}
-                    {doctor.canClinicVisit && renderTable(clinicWaitingAppointments, "Bệnh nhân đang chờ khám tại trung tâm")}
-                    {renderTable(otherAppointments, "Các lịch hẹn khác (Đã hoàn thành / Đã hủy)")}
-                </>
-            ) : (
-                <ScheduleManager doctorId={doctor.id} viewTab={tab} appointments={appointments} />
-            )}
+            {renderTable(appointments, "Danh sách tất cả Bệnh nhân trong ca làm việc")}
 
             {diagnosingApt && (
                 <DoctorDiagnoseModal
@@ -418,4 +387,4 @@ const DoctorDashboard = ({ tab = 'appointments' }) => {
     );
 };
 
-export default DoctorDashboard;
+export default ScheduleAppointmentsPage;

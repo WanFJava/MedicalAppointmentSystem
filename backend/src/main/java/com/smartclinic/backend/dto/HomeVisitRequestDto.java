@@ -24,4 +24,5 @@ public class HomeVisitRequestDto {
     private String homeAddress;
     private BigDecimal travelFee;
     private String note;
+    private String expectedTime;
 }

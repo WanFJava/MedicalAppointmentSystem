@@ -11,6 +11,7 @@ const ComplaintManager = () => {
     const [resolvingId, setResolvingId] = useState(null);
     const [resolutionNote, setResolutionNote] = useState('');
     const [filter, setFilter] = useState('ALL');
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
         fetchComplaints();
@@ -60,8 +61,11 @@ const ComplaintManager = () => {
     };
 
     const filteredComplaints = complaints.filter(c => {
-        if (filter === 'ALL') return true;
-        return c.status === filter;
+        if (filter !== 'ALL' && c.status !== filter) return false;
+        if (!searchTerm) return true;
+        const term = searchTerm.toLowerCase();
+        return (c.patientName?.toLowerCase() || '').includes(term) ||
+               (c.content?.toLowerCase() || '').includes(term);
     });
 
     if (loading) {
@@ -84,7 +88,15 @@ const ComplaintManager = () => {
                     <p style={{ color: '#6b7280', margin: 0 }}>Xem xét và phản hồi các khiếu nại từ bệnh nhân</p>
                 </div>
                 
-                <div style={{ display: 'flex', gap: '0.5rem', backgroundColor: '#f3f4f6', padding: '0.25rem', borderRadius: '0.75rem' }}>
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                    <input 
+                        type="text" 
+                        placeholder="Tìm người khiếu nại, nội dung..." 
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '250px' }}
+                    />
+                    <div style={{ display: 'flex', gap: '0.5rem', backgroundColor: '#f3f4f6', padding: '0.25rem', borderRadius: '0.75rem' }}>
                     <button 
                         onClick={() => setFilter('ALL')}
                         style={{
@@ -115,6 +127,7 @@ const ComplaintManager = () => {
                             transition: 'all 0.2s'
                         }}
                     >Đã giải quyết</button>
+                    </div>
                 </div>
             </div>
 
@@ -186,7 +199,7 @@ const ComplaintManager = () => {
                                 
                                 <div style={{ marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>Nội dung phản hồi / khiếu nại:</div>
                                 <div style={{ color: '#1f2937', lineHeight: 1.5, fontSize: '0.95rem' }}>
-                                    "{c.reason}"
+                                    &quot;{c.reason}&quot;
                                 </div>
                             </div>
                             
@@ -243,7 +256,7 @@ const ComplaintManager = () => {
                                             </div>
                                             <div>
                                                 <div style={{ fontSize: '0.875rem', color: '#166534', fontWeight: 600, marginBottom: '0.25rem' }}>Đã phản hồi:</div>
-                                                <div style={{ fontSize: '0.875rem', color: '#14532d', fontStyle: 'italic' }}>"{c.resolutionNote}"</div>
+                                                <div style={{ fontSize: '0.875rem', color: '#14532d', fontStyle: 'italic' }}>&quot;{c.resolutionNote}&quot;</div>
                                             </div>
                                         </div>
                                         <div style={{ borderTop: '1px dashed #e5e7eb', paddingTop: '0.75rem', display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#6b7280' }}>

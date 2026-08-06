@@ -70,6 +70,9 @@ public class DoctorServiceImpl implements DoctorService {
         doctor.setExperience(doctorDto.getExperience());
         doctor.setConsultationFee(doctorDto.getConsultationFee());
         doctor.setBiography(doctorDto.getBiography());
+        doctor.setCanClinicVisit(doctorDto.getCanClinicVisit() != null ? doctorDto.getCanClinicVisit() : true);
+        doctor.setCanHomeVisit(doctorDto.getCanHomeVisit() != null ? doctorDto.getCanHomeVisit() : false);
+        doctor.setHomeVisitRadius(doctorDto.getHomeVisitRadius() != null ? doctorDto.getHomeVisitRadius() : 0.0);
 
         Doctor savedDoctor = doctorRepository.save(doctor);
         return mapToDto(savedDoctor);
@@ -106,6 +109,9 @@ public class DoctorServiceImpl implements DoctorService {
         doctor.setExperience(doctorDto.getExperience());
         doctor.setConsultationFee(doctorDto.getConsultationFee());
         doctor.setBiography(doctorDto.getBiography());
+        if (doctorDto.getCanClinicVisit() != null) doctor.setCanClinicVisit(doctorDto.getCanClinicVisit());
+        if (doctorDto.getCanHomeVisit() != null) doctor.setCanHomeVisit(doctorDto.getCanHomeVisit());
+        if (doctorDto.getHomeVisitRadius() != null) doctor.setHomeVisitRadius(doctorDto.getHomeVisitRadius());
 
         if (doctorDto.getStatus() != null && doctor.getUser() != null && doctorDto.getStatus() != doctor.getUser().getStatus()) {
             validateDoctorStatusChange(doctor.getId(), doctorDto.getStatus());
@@ -210,6 +216,9 @@ public class DoctorServiceImpl implements DoctorService {
         }
 
         dto.setBiography(doctor.getBiography());
+        dto.setCanClinicVisit(doctor.getCanClinicVisit());
+        dto.setCanHomeVisit(doctor.getCanHomeVisit());
+        dto.setHomeVisitRadius(doctor.getHomeVisitRadius());
         return dto;
     }
 }

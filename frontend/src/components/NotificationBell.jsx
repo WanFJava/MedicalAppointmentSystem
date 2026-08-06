@@ -4,16 +4,23 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import api from '../api/axiosConfig';
 
-const NotificationBell = () => {
+const NotificationBell = ({ externalNotifs, setExternalNotifs, fetchExternalNotifs }) => {
     const { user } = useContext(AuthContext);
     const [unreadCount, setUnreadCount] = useState(0);
     const [showDropdown, setShowDropdown] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [notifs, setNotifs] = useState([]);
+    const [internalNotifs, setInternalNotifs] = useState([]);
     const dropdownRef = useRef(null);
     const navigate = useNavigate();
 
+    const notifs = externalNotifs || internalNotifs;
+    const setNotifs = setExternalNotifs || setInternalNotifs;
+
     const fetchNotifications = async () => {
+        if (fetchExternalNotifs) {
+            await fetchExternalNotifs();
+            return;
+        }
         if (!user) return;
         try {
             const res = await api.get(`/notifications/user/${user.id}`);
@@ -35,12 +42,16 @@ const NotificationBell = () => {
     };
 
     useEffect(() => {
-        if (user) {
+        if (user && !externalNotifs) {
             fetchNotifications();
             const interval = setInterval(fetchNotifications, 30000); // Poll every 30s
             return () => clearInterval(interval);
         }
-    }, [user]);
+    }, [user, externalNotifs]);
+
+    useEffect(() => {
+        setUnreadCount(notifs.filter(n => !n.isRead).length);
+    }, [notifs]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {

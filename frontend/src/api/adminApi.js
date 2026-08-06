@@ -6,6 +6,11 @@ export const getDashboardStats = async () => {
     return response.data;
 };
 
+export const getRecentActivity = async () => {
+    const response = await api.get('/admin/recent-activity');
+    return response.data;
+};
+
 // Specialties API
 export const getSpecialties = async () => {
     const response = await api.get('/specialties');

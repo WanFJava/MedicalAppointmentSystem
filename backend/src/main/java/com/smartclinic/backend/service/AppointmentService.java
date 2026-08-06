@@ -23,4 +23,6 @@ public interface AppointmentService {
     void skipQueue(Long appointmentId);
 
     AppointmentDto createHomeVisit(com.smartclinic.backend.dto.HomeVisitRequestDto requestDto);
+    AppointmentDto confirmHomeVisit(Long appointmentId, String exactTime, java.math.BigDecimal travelFee);
+    AppointmentDto declineHomeVisitOutOfRange(Long appointmentId);
 }

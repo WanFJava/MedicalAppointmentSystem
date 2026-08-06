@@ -99,6 +99,18 @@ export const updateAppointmentStatus = async (id, status) => {
     return response.data;
 };
 
+export const confirmHomeVisit = async (id, exactTime, travelFee) => {
+    const params = { exactTime };
+    if (travelFee !== undefined) params.travelFee = travelFee;
+    const response = await api.put(`/appointments/${id}/confirm-home-visit`, {}, { params });
+    return response.data;
+};
+
+export const declineHomeVisitOutOfRange = async (id) => {
+    const response = await api.put(`/appointments/${id}/decline-home-visit-out-of-range`);
+    return response.data;
+};
+
 export const deleteAppointment = async (id) => {
     const response = await api.delete(`/appointments/${id}`);
     return response.data;

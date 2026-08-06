@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
-import { getAllAppointments, updateAppointmentStatus, deleteAppointment } from '../../api/appointmentApi';
+import { getAllAppointments, updateAppointmentStatus, deleteAppointment, confirmHomeVisit } from '../../api/appointmentApi';
 import { CheckCircle, XCircle, UserCheck, Trash2, Star, Home, Building, AlertTriangle } from 'lucide-react';
 import BillModal from './BillModal';
 import FeedbackModal from '../FeedbackModal';
 import ChangeDoctorModal from './ChangeDoctorModal';
 import AdminBookingModal from './AdminBookingModal';
 import { Plus } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 const ReceptionistDashboard = () => {
     const { user } = useContext(AuthContext);
@@ -17,6 +18,7 @@ const ReceptionistDashboard = () => {
     const [changeDoctorApt, setChangeDoctorApt] = useState(null);
     const [showBookingModal, setShowBookingModal] = useState(false);
     const [filterDate, setFilterDate] = useState(new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]);
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
         fetchAppointments();
@@ -38,18 +40,72 @@ const ReceptionistDashboard = () => {
         try {
             await updateAppointmentStatus(id, status);
             fetchAppointments();
+            Swal.fire('Thành công', 'Đã cập nhật trạng thái thành công', 'success');
         } catch (error) {
-            alert("Failed to update status");
+            Swal.fire('Lỗi', "Cập nhật trạng thái thất bại", 'error');
+        }
+    };
+
+    const handleConfirmHomeVisit = async (apt) => {
+        const { value: exactTime } = await Swal.fire({
+            title: 'Xác nhận Khám tại nhà',
+            text: `Bệnh nhân mong muốn: ${apt.expectedTime || 'Không rõ'}\nVui lòng nhập Giờ đến dự kiến chính xác:`,
+            input: 'time',
+            inputPlaceholder: 'VD: 14:30',
+            showCancelButton: true,
+            confirmButtonText: 'Xác nhận',
+            cancelButtonText: 'Đóng',
+            inputValidator: (value) => {
+                if (!value) {
+                    return 'Bạn cần nhập Giờ đến dự kiến!'
+                }
+            }
+        });
+
+        if (exactTime) {
+            try {
+                await confirmHomeVisit(apt.id, exactTime);
+                fetchAppointments();
+                Swal.fire('Thành công', `Đã xác nhận giờ đến lúc ${exactTime}`, 'success');
+            } catch (error) {
+                Swal.fire('Lỗi', `Xác nhận thất bại: ${error.response?.data?.message || error.message}`, 'error');
+            }
+        }
+    };
+
+    const confirmAndUpdateStatus = async (id, status, message) => {
+        const result = await Swal.fire({
+            title: 'Xác nhận',
+            text: message,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Đồng ý',
+            cancelButtonText: 'Đóng',
+            confirmButtonColor: '#dc2626'
+        });
+        if (result.isConfirmed) {
+            handleUpdateStatus(id, status);
         }
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm("Are you sure you want to completely delete this appointment? This action cannot be undone.")) {
+        const result = await Swal.fire({
+            title: 'Xác nhận xóa',
+            text: "Bạn có chắc chắn muốn xoá hoàn toàn lịch hẹn này không? Hành động này không thể hoàn tác.",
+            icon: 'error',
+            showCancelButton: true,
+            confirmButtonText: 'Xóa',
+            cancelButtonText: 'Hủy',
+            confirmButtonColor: '#dc2626'
+        });
+        
+        if (result.isConfirmed) {
             try {
                 await deleteAppointment(id);
                 fetchAppointments();
+                Swal.fire('Đã xóa!', 'Lịch hẹn đã bị xóa.', 'success');
             } catch (error) {
-                alert("Failed to delete appointment");
+                Swal.fire('Lỗi', "Xóa lịch hẹn thất bại", 'error');
             }
         }
     };
@@ -68,18 +124,23 @@ const ReceptionistDashboard = () => {
         }
     };
 
-    if (loading) return <div style={{ padding: '2rem' }}>Loading dashboard...</div>;
+    if (loading) return <div style={{ padding: '2rem' }}>Đang tải bảng điều khiển...</div>;
 
-    const filteredAppointments = filterDate
+    const dateFiltered = filterDate
         ? appointments.filter(apt => apt.scheduleDate === filterDate)
         : appointments;
+
+    const filteredAppointments = dateFiltered.filter(apt => 
+        (apt.patientName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (apt.doctorName?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+    );
 
     return (
         <div>
             <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                     <h2>Quản lý Lịch hẹn</h2>
-                    <div style={{ color: 'var(--text-secondary)' }}>Welcome, {user?.fullName}</div>
+                    <div style={{ color: 'var(--text-secondary)' }}>Xin chào, {user?.fullName}</div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', backgroundColor: 'white', padding: '0.75rem 1rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
                     <button 
@@ -89,6 +150,13 @@ const ReceptionistDashboard = () => {
                     >
                         <Plus size={16} /> Đặt lịch hộ
                     </button>
+                    <input
+                        type="text"
+                        placeholder="Tìm bệnh nhân hoặc bác sĩ..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #d1d5db', marginRight: '10px' }}
+                    />
                     <label style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>Xem lịch ngày:</label>
                     <input
                         type="date"
@@ -110,14 +178,14 @@ const ReceptionistDashboard = () => {
                 <table>
                     <thead>
                         <tr>
-                            <th>Patient</th>
-                            <th>Type</th>
-                            <th>Doctor</th>
-                            <th>Date & Time</th>
-                            <th>Symptoms</th>
-                            <th>Status</th>
-                            <th>Payment</th>
-                            <th>Actions</th>
+                            <th>Bệnh nhân</th>
+                            <th>Loại hình</th>
+                            <th>Bác sĩ</th>
+                            <th>Ngày & Giờ</th>
+                            <th>Triệu chứng</th>
+                            <th>Trạng thái</th>
+                            <th>Thanh toán</th>
+                            <th>Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -136,7 +204,14 @@ const ReceptionistDashboard = () => {
                                     <td>{apt.doctorName}</td>
                                     <td>
                                         <div>{apt.scheduleDate}</div>
-                                        <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>{apt.timeSlot}</div>
+                                        <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                            Ca: {apt.timeSlot}
+                                        </div>
+                                        {apt.visitType === 'HOME_VISIT' && (
+                                            <div style={{ fontSize: '0.85rem', color: '#4338ca', fontWeight: 600, marginTop: '0.25rem' }}>
+                                                Dự kiến: {apt.expectedTime || 'Chưa chốt'}
+                                            </div>
+                                        )}
                                     </td>
                                     <td style={{ maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                         {apt.symptom}
@@ -169,72 +244,75 @@ const ReceptionistDashboard = () => {
                                     </td>
                                     <td>
                                         <div className="action-buttons">
-                                            {apt.status === 'PENDING' && (
+                                            {apt.visitType === 'HOME_VISIT' ? (
+                                                <span style={{ fontSize: '0.8rem', color: '#6b7280', fontStyle: 'italic' }}>
+                                                    Quản lý ở tab Khám tại nhà
+                                                </span>
+                                            ) : (
                                                 <>
-                                                    <button
-                                                        title="Confirm Appointment"
-                                                        onClick={() => handleUpdateStatus(apt.id, 'CONFIRMED')}
-                                                        style={{ padding: '0.5rem', backgroundColor: '#dbeafe', color: '#2563eb', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>
-                                                        <CheckCircle size={16} />
-                                                    </button>
-                                                    <button
-                                                        title="Cancel Appointment"
-                                                        onClick={() => {
-                                                            if (window.confirm("Are you sure you want to cancel this appointment?")) {
-                                                                handleUpdateStatus(apt.id, 'CANCELLED_BY_DOCTOR');
-                                                            }
-                                                        }}
-                                                        style={{ padding: '0.5rem', backgroundColor: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>
-                                                        <XCircle size={16} />
-                                                    </button>
-                                                </>
-                                            )}
-                                            {apt.status === 'CONFIRMED' && apt.visitType !== 'HOME_VISIT' && (
-                                                <button
-                                                    title="Check In Patient"
-                                                    onClick={() => handleUpdateStatus(apt.id, 'CHECKED_IN')}
-                                                    style={{ padding: '0.5rem', backgroundColor: '#e0e7ff', color: '#4f46e5', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>
-                                                    <UserCheck size={16} /> Check In
-                                                </button>
-                                            )}
-                                            {['CONFIRMED', 'CHECKED_IN'].includes(apt.status) && apt.visitType !== 'HOME_VISIT' && (
-                                                <button
-                                                    title="Đánh vắng bác sĩ"
-                                                    onClick={() => {
-                                                        if (window.confirm("Bác sĩ không khám bệnh nhân này? Lịch hẹn sẽ bị hủy với lý do Bác sĩ vắng.")) {
-                                                            handleUpdateStatus(apt.id, 'NO_SHOW_BY_DOCTOR');
-                                                        }
-                                                    }}
-                                                    style={{ padding: '0.5rem', backgroundColor: '#f59e0b', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                                    <AlertTriangle size={16} /> BS vắng
-                                                </button>
-                                            )}
-                                            {apt.status === 'COMPLETED' && (
-                                                <button
-                                                    title="Generate Invoice / Confirm Payment"
-                                                    onClick={() => setBillingApt(apt)}
-                                                    style={{ padding: '0.5rem', backgroundColor: '#fce7f3', color: '#be185d', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontWeight: 'bold' }}>
-                                                    Bill & Pay
-                                                </button>
-                                            )}
-                                            {apt.status === 'COMPLETED' && apt.isReviewed && (
-                                                <button
-                                                    title="View Patient Feedback"
-                                                    onClick={() => setFeedbackApt(apt)}
-                                                    style={{ padding: '0.5rem', backgroundColor: '#fef9c3', color: '#854d0e', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>
-                                                    <Star size={16} />
-                                                </button>
-                                            )}
-                                            {/* Note: DOCTOR will change status to COMPLETED */}
-                                            {(user?.role === 'ADMIN' || user?.role === 'RECEPTIONIST') && (
-                                                <>
-                                                    {(apt.status === 'PENDING' || apt.status === 'CONFIRMED') && apt.visitType !== 'HOME_VISIT' && (
+                                                    {(apt.status === 'PENDING' || apt.status === 'PENDING_CONFIRMATION') && (
+                                                        <>
+                                                            <button
+                                                                title="Xác nhận lịch hẹn"
+                                                                onClick={() => handleUpdateStatus(apt.id, 'CONFIRMED')}
+                                                                style={{ padding: '0.5rem', backgroundColor: '#dbeafe', color: '#2563eb', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>
+                                                                <CheckCircle size={16} />
+                                                            </button>
+                                                            <button
+                                                                title="Hủy lịch hẹn"
+                                                                onClick={() => {
+                                                                    confirmAndUpdateStatus(apt.id, 'CANCELLED_BY_DOCTOR', "Bạn có chắc chắn muốn hủy lịch hẹn này không?");
+                                                                }}
+                                                                style={{ padding: '0.5rem', backgroundColor: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>
+                                                                <XCircle size={16} />
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                    {apt.status === 'CONFIRMED' && (
                                                         <button
-                                                            title="Change Doctor / Schedule"
-                                                            onClick={() => setChangeDoctorApt(apt)}
-                                                            style={{ padding: '0.5rem', backgroundColor: '#f3e8ff', color: '#7e22ce', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', marginLeft: '0.5rem' }}>
-                                                            <UserCheck size={16} />
+                                                            title="Xác nhận bệnh nhân đến khám"
+                                                            onClick={() => handleUpdateStatus(apt.id, 'CHECKED_IN')}
+                                                            style={{ padding: '0.5rem', backgroundColor: '#e0e7ff', color: '#4f46e5', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>
+                                                            <UserCheck size={16} /> Đến khám
                                                         </button>
+                                                    )}
+                                                    {['CONFIRMED', 'CHECKED_IN'].includes(apt.status) && (
+                                                        <button
+                                                            title="Đánh vắng bác sĩ"
+                                                            onClick={() => {
+                                                                confirmAndUpdateStatus(apt.id, 'NO_SHOW_BY_DOCTOR', "Bác sĩ không khám bệnh nhân này? Lịch hẹn sẽ bị hủy với lý do Bác sĩ vắng.");
+                                                            }}
+                                                            style={{ padding: '0.5rem', backgroundColor: '#f59e0b', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                                            <AlertTriangle size={16} /> BS vắng
+                                                        </button>
+                                                    )}
+                                                    {apt.status === 'COMPLETED' && (
+                                                        <button
+                                                            title="Xuất hóa đơn / Xác nhận thanh toán"
+                                                            onClick={() => setBillingApt(apt)}
+                                                            style={{ padding: '0.5rem', backgroundColor: '#fce7f3', color: '#be185d', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontWeight: 'bold' }}>
+                                                            Thanh toán
+                                                        </button>
+                                                    )}
+                                                    {apt.status === 'COMPLETED' && apt.isReviewed && (
+                                                        <button
+                                                            title="Xem đánh giá của bệnh nhân"
+                                                            onClick={() => setFeedbackApt(apt)}
+                                                            style={{ padding: '0.5rem', backgroundColor: '#fef9c3', color: '#854d0e', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>
+                                                            <Star size={16} />
+                                                        </button>
+                                                    )}
+                                                    {(user?.role === 'ADMIN' || user?.role === 'RECEPTIONIST') && (
+                                                        <>
+                                                            {(apt.status === 'PENDING' || apt.status === 'CONFIRMED') && (
+                                                                <button
+                                                                    title="Đổi Bác sĩ / Lịch hẹn"
+                                                                    onClick={() => setChangeDoctorApt(apt)}
+                                                                    style={{ padding: '0.5rem', backgroundColor: '#f3e8ff', color: '#7e22ce', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', marginLeft: '0.5rem' }}>
+                                                                    <UserCheck size={16} />
+                                                                </button>
+                                                            )}
+                                                        </>
                                                     )}
                                                 </>
                                             )}
@@ -245,7 +323,7 @@ const ReceptionistDashboard = () => {
                         })}
                         {filteredAppointments.length === 0 && (
                             <tr>
-                                <td colSpan="7" style={{ textAlign: 'center', padding: '2rem' }}>No appointments found.</td>
+                                <td colSpan="8" style={{ textAlign: 'center', padding: '2rem' }}>Không tìm thấy lịch hẹn nào.</td>
                             </tr>
                         )}
                     </tbody>

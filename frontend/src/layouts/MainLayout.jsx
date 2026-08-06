@@ -28,14 +28,17 @@ const MainLayout = () => {
                         Smart Clinic
                     </Link>
                     <nav style={{ display: 'flex', gap: '1.5rem' }}>
-                        <Link to="/" style={{ color: '#4b5563', textDecoration: 'none', fontWeight: 500 }}>Home</Link>
-                        <Link to="/book" style={{ color: '#4b5563', textDecoration: 'none', fontWeight: 500 }}>Book Appointment</Link>
+                        <Link to="/" style={{ color: '#4b5563', textDecoration: 'none', fontWeight: 500 }}>Trang chủ</Link>
+                        <Link to="/book" style={{ color: '#4b5563', textDecoration: 'none', fontWeight: 500 }}>Đặt lịch khám</Link>
+                        <Link to="/book-home-visit" style={{ color: '#4b5563', textDecoration: 'none', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <span style={{ fontSize: '1rem' }}>🏠</span> Khám tại nhà
+                        </Link>
                         {user && user.role === 'PATIENT' && (
                             <Link to="/favorites" style={{ color: '#4b5563', textDecoration: 'none', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                <Heart size={16} /> Favorites
+                                <Heart size={16} /> Yêu thích
                             </Link>
                         )}
-                        <Link to="/my-appointments" style={{ color: '#4b5563', textDecoration: 'none', fontWeight: 500 }}>My Appointments</Link>
+                        <Link to="/my-appointments" style={{ color: '#4b5563', textDecoration: 'none', fontWeight: 500 }}>Lịch hẹn của tôi</Link>
                     </nav>
                 </div>
 
@@ -67,13 +70,13 @@ const MainLayout = () => {
                                 backgroundColor: 'transparent', color: '#ef4444',
                                 borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 500
                             }}>
-                                <LogOut size={16} /> Logout
+                                <LogOut size={16} /> Đăng xuất
                             </button>
                         </div>
                     ) : (
                         <div style={{ display: 'flex', gap: '1rem' }}>
-                            <button onClick={() => navigate('/login')} className="btn-secondary" style={{ backgroundColor: 'transparent', border: '1px solid #d1d5db', padding: '0.5rem 1.5rem', color: '#374151' }}>Login</button>
-                            <button onClick={() => navigate('/register')} className="btn-primary" style={{ padding: '0.5rem 1.5rem', width: 'auto' }}>Register</button>
+                            <button onClick={() => navigate('/login')} className="btn-secondary" style={{ backgroundColor: 'transparent', border: '1px solid #d1d5db', padding: '0.5rem 1.5rem', color: '#374151' }}>Đăng nhập</button>
+                            <button onClick={() => navigate('/register')} className="btn-primary" style={{ padding: '0.5rem 1.5rem', width: 'auto' }}>Đăng ký</button>
                         </div>
                     )}
                 </div>
@@ -91,18 +94,18 @@ const MainLayout = () => {
                 <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '2rem' }}>
                     <div>
                         <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem', color: 'white' }}>Smart Clinic</h3>
-                        <p style={{ color: '#9ca3af', lineHeight: 1.6 }}>Providing the best healthcare services with modern technology and experienced doctors.</p>
+                        <p style={{ color: '#9ca3af', lineHeight: 1.6 }}>Cung cấp dịch vụ chăm sóc sức khỏe tốt nhất với công nghệ hiện đại và đội ngũ bác sĩ giàu kinh nghiệm.</p>
                     </div>
                     <div>
-                        <h4 style={{ marginBottom: '1rem', color: 'white' }}>Quick Links</h4>
+                        <h4 style={{ marginBottom: '1rem', color: 'white' }}>Liên kết nhanh</h4>
                         <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                            <li><Link to="/" style={{ color: '#9ca3af', textDecoration: 'none' }}>Home</Link></li>
-                            <li><Link to="#" style={{ color: '#9ca3af', textDecoration: 'none' }}>Book Appointment</Link></li>
-                            <li><Link to="#" style={{ color: '#9ca3af', textDecoration: 'none' }}>Find a Doctor</Link></li>
+                            <li><Link to="/" style={{ color: '#9ca3af', textDecoration: 'none' }}>Trang chủ</Link></li>
+                            <li><Link to="#" style={{ color: '#9ca3af', textDecoration: 'none' }}>Đặt lịch khám</Link></li>
+                            <li><Link to="#" style={{ color: '#9ca3af', textDecoration: 'none' }}>Tìm bác sĩ</Link></li>
                         </ul>
                     </div>
                     <div>
-                        <h4 style={{ marginBottom: '1rem', color: 'white' }}>Contact</h4>
+                        <h4 style={{ marginBottom: '1rem', color: 'white' }}>Liên hệ</h4>
                         <p style={{ color: '#9ca3af', marginBottom: '0.5rem' }}>Email: support@smartclinic.com</p>
                         <p style={{ color: '#9ca3af' }}>Phone: +84 587 205 181</p>
                     </div>

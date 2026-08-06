@@ -28,4 +28,7 @@ public class DoctorDto {
     private Integer totalReviews;
     private String biography;
     private com.smartclinic.backend.entity.Status status;
+    private Boolean canClinicVisit;
+    private Boolean canHomeVisit;
+    private Double homeVisitRadius;
 }

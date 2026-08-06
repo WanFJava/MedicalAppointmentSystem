@@ -23,4 +23,5 @@ public class ScheduleDto {
     private Integer currentPatient;
     private ScheduleStatus status;
     private String note;
+    private com.smartclinic.backend.entity.ScheduleType scheduleType;
 }

@@ -40,14 +40,14 @@ const SpecialtyDoctorsPage = () => {
     }, [id]);
 
     if (loading) {
-        return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', color: '#6b7280' }}>Loading doctors...</div>;
+        return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', color: '#6b7280' }}>Đang tải danh sách bác sĩ...</div>;
     }
 
     if (!specialty) {
         return (
             <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                <h2 style={{ fontSize: '1.5rem', color: '#ef4444', marginBottom: '1rem' }}>Specialty not found</h2>
-                <button className="btn-secondary" onClick={() => navigate('/')}>Back to Home</button>
+                <h2 style={{ fontSize: '1.5rem', color: '#ef4444', marginBottom: '1rem' }}>Không tìm thấy chuyên khoa</h2>
+                <button className="btn-secondary" onClick={() => navigate('/')}>Về Trang chủ</button>
             </div>
         );
     }
@@ -65,7 +65,7 @@ const SpecialtyDoctorsPage = () => {
                     }}
                     style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '500' }}
                 >
-                    ← Back
+                    ← Quay lại
                 </button>
 
                 {/* Specialty Header */}
@@ -113,7 +113,7 @@ const SpecialtyDoctorsPage = () => {
                 {/* Doctors List */}
                 <div>
                     <h2 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#1f2937', marginBottom: '1.5rem', borderBottom: '2px solid #e5e7eb', paddingBottom: '0.5rem' }}>
-                        Doctors in this Specialty ({doctors.length})
+                        Bác sĩ trong Chuyên khoa này ({doctors.length})
                     </h2>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -122,7 +122,7 @@ const SpecialtyDoctorsPage = () => {
                         ))}
                         {doctors.length === 0 && (
                             <p style={{ color: '#6b7280', gridColumn: '1 / -1', textAlign: 'center', padding: '2rem' }}>
-                                No doctors available in this specialty currently.
+                                Hiện chưa có bác sĩ nào trong chuyên khoa này.
                             </p>
                         )}
                     </div>

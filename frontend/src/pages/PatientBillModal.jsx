@@ -45,7 +45,7 @@ const PatientBillModal = ({ appointment, onClose }) => {
                 justifyContent: 'center', alignItems: 'center', zIndex: 1000
             }}>
                 <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '8px' }}>
-                    Loading your records...
+                    Đang tải hồ sơ của bạn...
                 </div>
             </div>
         );
@@ -64,7 +64,7 @@ const PatientBillModal = ({ appointment, onClose }) => {
             }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid #e5e7eb', paddingBottom: '1rem' }}>
                     <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#1f2937' }}>
-                        <FileText size={24} /> Appointment Details
+                        <FileText size={24} /> Chi tiết Lịch hẹn
                     </h2>
                     <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}>
                         <X size={24} />
@@ -73,12 +73,12 @@ const PatientBillModal = ({ appointment, onClose }) => {
 
                 <div style={{ marginBottom: '2rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', backgroundColor: '#f9fafb', padding: '1rem', borderRadius: '8px' }}>
                     <div>
-                        <p style={{ margin: '0 0 0.5rem 0', color: '#6b7280', fontSize: '0.875rem' }}>Doctor</p>
+                        <p style={{ margin: '0 0 0.5rem 0', color: '#6b7280', fontSize: '0.875rem' }}>Bác sĩ</p>
                         <p style={{ margin: 0, fontWeight: 600 }}>{appointment.doctorName}</p>
                     </div>
                     <div>
-                        <p style={{ margin: '0 0 0.5rem 0', color: '#6b7280', fontSize: '0.875rem' }}>Date</p>
-                        <p style={{ margin: 0, fontWeight: 600 }}>{appointment.scheduleDate} at {appointment.timeSlot}</p>
+                        <p style={{ margin: '0 0 0.5rem 0', color: '#6b7280', fontSize: '0.875rem' }}>Ngày</p>
+                        <p style={{ margin: 0, fontWeight: 600 }}>{appointment.scheduleDate} lúc {appointment.timeSlot}</p>
                     </div>
                 </div>
 

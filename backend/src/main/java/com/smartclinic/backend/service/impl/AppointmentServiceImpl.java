@@ -131,6 +131,21 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new IllegalArgumentException("Ca làm việc này không ở trạng thái AVAILABLE để đặt lịch.");
         }
 
+        // Clinic 1 slot = 1 patient rule
+        if (schedule.getScheduleType() == com.smartclinic.backend.entity.ScheduleType.CLINIC) {
+            if (requestDto.getExpectedTime() == null || requestDto.getExpectedTime().trim().isEmpty()) {
+                throw new IllegalArgumentException("Khung giờ (slot) là bắt buộc cho khám tại phòng khám.");
+            }
+            boolean slotTaken = appointmentRepository.existsByScheduleIdAndExpectedTimeAndStatusNotIn(
+                schedule.getId(),
+                requestDto.getExpectedTime(),
+                List.of(AppointmentStatus.CANCELLED_BY_PATIENT, AppointmentStatus.CANCELLED_BY_DOCTOR, AppointmentStatus.NO_SHOW_BY_DOCTOR, AppointmentStatus.NO_SHOW, AppointmentStatus.DECLINED)
+            );
+            if (slotTaken) {
+                throw new IllegalArgumentException("Khung giờ 30 phút này đã có bệnh nhân đặt. Vui lòng chọn khung giờ khác.");
+            }
+        }
+
         int current = schedule.getCurrentPatient() == null ? 0 : schedule.getCurrentPatient();
         int max = schedule.getMaxPatient() == null ? 0 : schedule.getMaxPatient();
         if (max <= 0 || current >= max) {
@@ -148,6 +163,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setDoctor(doctor);
         appointment.setSchedule(schedule);
         appointment.setSymptom(requestDto.getSymptom().trim());
+        appointment.setExpectedTime(requestDto.getExpectedTime()); // Save the 30-min slot
         appointment.setStatus(AppointmentStatus.PENDING); // Default status
         appointment.setIsReviewed(false);
 
@@ -208,8 +224,8 @@ public class AppointmentServiceImpl implements AppointmentService {
             if (!appointment.getPatient().getUser().getEmail().equals(auth.getName())) {
                 throw new AccessDeniedException("You can only cancel your own appointment.");
             }
-            if (oldStatus != AppointmentStatus.PENDING && oldStatus != AppointmentStatus.CONFIRMED) {
-                throw new IllegalArgumentException("Bệnh nhân chỉ có thể hủy lịch hẹn ở trạng thái Đang chờ (PENDING) hoặc Đã xác nhận (CONFIRMED).");
+            if (oldStatus != AppointmentStatus.PENDING && oldStatus != AppointmentStatus.CONFIRMED && oldStatus != AppointmentStatus.PENDING_CONFIRMATION) {
+                throw new IllegalArgumentException("Bệnh nhân chỉ có thể hủy lịch hẹn ở trạng thái Đang chờ (PENDING, PENDING_CONFIRMATION) hoặc Đã xác nhận (CONFIRMED).");
             }
             if (status != AppointmentStatus.CANCELLED_BY_PATIENT) {
                 throw new IllegalArgumentException("Bệnh nhân chỉ có quyền hủy lịch hẹn.");
@@ -219,8 +235,8 @@ public class AppointmentServiceImpl implements AppointmentService {
         // Enforce Doctor rules
         if (auth != null && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_DOCTOR") || a.getAuthority().equals("DOCTOR"))) {
             ensureDoctorIsSelf(appointment.getDoctor());
-            if (status == AppointmentStatus.CONFIRMED && appointment.getVisitType() != com.smartclinic.backend.entity.VisitType.HOME_VISIT) {
-                throw new IllegalArgumentException("Bác sĩ không có quyền xác nhận (CONFIRM) lịch hẹn tại phòng khám. Việc này do Lễ tân thực hiện.");
+            if (status == AppointmentStatus.CONFIRMED && oldStatus != AppointmentStatus.PENDING_CONFIRMATION) {
+                throw new IllegalArgumentException("Bác sĩ chỉ có quyền xác nhận lịch hẹn (CONFIRM) khi đang ở trạng thái chờ bác sĩ xác nhận (PENDING_CONFIRMATION).");
             }
             if ((status == AppointmentStatus.NO_SHOW || status == AppointmentStatus.NO_SHOW_BY_DOCTOR) && 
                 (oldStatus == AppointmentStatus.COMPLETED || oldStatus == AppointmentStatus.CANCELLED_BY_PATIENT || oldStatus == AppointmentStatus.CANCELLED_BY_DOCTOR)) {
@@ -229,6 +245,20 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         appointment.setStatus(status);
+
+        // Notify receptionist when doctor confirms a home visit
+        if (status == AppointmentStatus.CONFIRMED && oldStatus == AppointmentStatus.PENDING_CONFIRMATION && appointment.getVisitType() == com.smartclinic.backend.entity.VisitType.HOME_VISIT) {
+            userRepository.findByRole(Role.RECEPTIONIST).forEach(receptionist -> {
+                notificationService.sendNotification(receptionist.getId(), 
+                    "Bác sĩ " + appointment.getDoctor().getUser().getFullName() + " đã xác nhận lịch khám tại nhà cho bệnh nhân " + appointment.getPatient().getUser().getFullName());
+            });
+        }
+
+        if (status == AppointmentStatus.IN_PROGRESS) {
+            appointment.setActualStartTime(java.time.LocalTime.now());
+        } else if (status == AppointmentStatus.COMPLETED) {
+            appointment.setActualEndTime(java.time.LocalTime.now());
+        }
 
         if (status == AppointmentStatus.CHECKED_IN && appointment.getQueueNumber() == null) {
             Integer maxQueue = appointmentRepository.findMaxQueueNumberForDoctorAndDate(
@@ -262,6 +292,41 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         Appointment updatedAppointment = appointmentRepository.save(appointment);
         
+        // Automated Expected Arrival Time recalculation for HOME_VISIT
+        if (updatedAppointment.getVisitType() == com.smartclinic.backend.entity.VisitType.HOME_VISIT && status == AppointmentStatus.COMPLETED) {
+            if (updatedAppointment.getActualEndTime() != null) {
+                // Find next patient
+                Appointment nextPatient = appointmentRepository.findFirstByDoctorIdAndScheduleDateAndStatusAndExpectedTimeGreaterThanOrderByExpectedTimeAsc(
+                        updatedAppointment.getDoctor().getId(),
+                        updatedAppointment.getSchedule().getDate(),
+                        AppointmentStatus.CONFIRMED,
+                        updatedAppointment.getExpectedTime() != null ? updatedAppointment.getExpectedTime() : ""
+                );
+                
+                if (nextPatient != null && nextPatient.getExpectedTime() != null) {
+                    try {
+                        java.time.LocalTime originalExpected = java.time.LocalTime.parse(nextPatient.getExpectedTime());
+                        java.time.LocalTime newExpected = updatedAppointment.getActualEndTime().plusMinutes(30); // Travel Gap
+                        
+                        // If new time is LATER than original by 15 mins or more
+                        if (newExpected.isAfter(originalExpected.plusMinutes(14))) {
+                            String formattedNewTime = String.format("%02d:%02d", newExpected.getHour(), newExpected.getMinute());
+                            nextPatient.setExpectedTime(formattedNewTime);
+                            appointmentRepository.save(nextPatient);
+                            
+                            // Send notification
+                            if (nextPatient.getPatient() != null) {
+                                String msg = "Lịch khám tại nhà của bạn đã được cập nhật. Do lịch khám trước kéo dài hơn dự kiến, bác sĩ sẽ đến khoảng " + formattedNewTime + ". Mong quý khách thông cảm vì sự bất tiện này.";
+                                notificationService.sendNotification(nextPatient.getPatient().getUser().getId(), msg);
+                            }
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Error recalculating expected time: " + e.getMessage());
+                    }
+                }
+            }
+        }
+
         // Sync Schedule status for Home Visits
         if (updatedAppointment.getVisitType() == com.smartclinic.backend.entity.VisitType.HOME_VISIT && updatedAppointment.getSchedule() != null) {
             Schedule schedule = updatedAppointment.getSchedule();
@@ -558,6 +623,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         if (appointment.getId() != null) {
             hasComplaint = complaintRepository.existsByAppointmentId(appointment.getId());
         }
+        java.math.BigDecimal consultationFee = (appointment.getDoctor() != null) ? appointment.getDoctor().getConsultationFee() : null;
 
         AppointmentDto dto = new AppointmentDto(
                 appointment.getId(),
@@ -577,7 +643,9 @@ public class AppointmentServiceImpl implements AppointmentService {
                 hasComplaint,
                 appointment.getVisitType(),
                 appointment.getHomeAddress(),
-                appointment.getTravelFee()
+                appointment.getTravelFee(),
+                appointment.getExpectedTime(),
+                consultationFee
         );
         return dto;
     }
@@ -594,7 +662,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         
         if (requestDto.getPatientId() != null) {
             patient = patientRepository.findById(requestDto.getPatientId())
-                    .orElseThrow(() -> new RuntimeException("Patient not found"));
+                    .orElseThrow(() -> new RuntimeException("Patient not found for id: " + requestDto.getPatientId()));
             user = patient.getUser();
         } else {
             user = userRepository.findByPhone(requestDto.getPatientPhone()).orElse(null);
@@ -640,8 +708,35 @@ public class AppointmentServiceImpl implements AppointmentService {
                     if (!isCancelled) {
                         java.time.LocalTime existingStart = apt.getSchedule().getStartTime();
                         java.time.LocalTime existingEnd = apt.getSchedule().getEndTime();
+                        
+                        if (apt.getVisitType() == com.smartclinic.backend.entity.VisitType.HOME_VISIT && apt.getExpectedTime() != null) {
+                            try {
+                                if (apt.getExpectedTime().contains(" - ")) {
+                                    String[] p = apt.getExpectedTime().split(" - ");
+                                    existingStart = java.time.LocalTime.parse(p[0]);
+                                    existingEnd = java.time.LocalTime.parse(p[1]);
+                                } else {
+                                    existingStart = java.time.LocalTime.parse(apt.getExpectedTime());
+                                    existingEnd = existingStart.plusMinutes(30);
+                                }
+                            } catch (Exception ignored) {}
+                        }
+
                         java.time.LocalTime newStart = schedule.getStartTime();
                         java.time.LocalTime newEnd = schedule.getEndTime();
+                        
+                        if (requestDto.getExpectedTime() != null) {
+                            try {
+                                if (requestDto.getExpectedTime().contains(" - ")) {
+                                    String[] p = requestDto.getExpectedTime().split(" - ");
+                                    newStart = java.time.LocalTime.parse(p[0]);
+                                    newEnd = java.time.LocalTime.parse(p[1]);
+                                } else {
+                                    newStart = java.time.LocalTime.parse(requestDto.getExpectedTime());
+                                    newEnd = newStart.plusMinutes(30);
+                                }
+                            } catch (Exception ignored) {}
+                        }
                         
                         if (existingStart != null && existingEnd != null && newStart != null && newEnd != null) {
                             // Overlap condition: (StartA < EndB) && (EndA > StartB)
@@ -654,29 +749,93 @@ public class AppointmentServiceImpl implements AppointmentService {
             }
         }
 
-        int current = schedule.getCurrentPatient() == null ? 0 : schedule.getCurrentPatient();
-        int max = schedule.getMaxPatient() == null ? 0 : schedule.getMaxPatient();
-        if (max > 0 && current >= max) {
-            throw new IllegalArgumentException("Schedule is full.");
+        // (Removed strict currentPatient >= maxPatient check here for HOME_VISIT to allow multiple pending requests)
+        // schedule.setCurrentPatient(current + 1);
+        // if (max > 0 && schedule.getCurrentPatient() >= max) {
+        //     schedule.setStatus(ScheduleStatus.FULL);
+        // }
+        // scheduleRepository.save(schedule);
+
+        // Validate 1-hour prior rule for HOME visits
+        java.time.LocalTime newStart = null;
+        java.time.LocalTime newEnd = null;
+        if (requestDto.getExpectedTime() != null && !requestDto.getExpectedTime().trim().isEmpty()) {
+            try {
+                String[] parts = requestDto.getExpectedTime().split(" - ");
+                newStart = java.time.LocalTime.parse(parts[0]);
+                newEnd = java.time.LocalTime.parse(parts[1]);
+                java.time.LocalDateTime desiredDateTime = java.time.LocalDateTime.of(schedule.getDate(), newStart);
+                
+                if (java.time.LocalDateTime.now().plusHours(1).isAfter(desiredDateTime)) {
+                    throw new IllegalArgumentException("Bạn cần đặt lịch ít nhất 1 giờ trước thời gian mong muốn để phòng khám có đủ thời gian sắp xếp bác sĩ và lộ trình di chuyển. Vui lòng chọn khoảng thời gian khác hoặc ngày khác.");
+                }
+
+                if (java.time.Duration.between(newStart, newEnd).toMinutes() < 30) {
+                    throw new IllegalArgumentException("Khoảng thời gian mong muốn phải kéo dài ít nhất 30 phút.");
+                }
+            } catch (Exception e) {
+                if (e instanceof IllegalArgumentException) {
+                    throw e;
+                }
+            }
         }
-        schedule.setCurrentPatient(current + 1);
-        if (max > 0 && schedule.getCurrentPatient() >= max) {
-            schedule.setStatus(ScheduleStatus.FULL);
+
+        // Validate 30-minute buffer between appointments for the same doctor
+        if (newStart != null && newEnd != null) {
+            List<Appointment> doctorApts = appointmentRepository.findByDoctorIdOrderByIdDesc(doctor.getId());
+            for (Appointment apt : doctorApts) {
+                if (apt.getVisitType() == com.smartclinic.backend.entity.VisitType.HOME_VISIT && 
+                    apt.getSchedule() != null && 
+                    apt.getSchedule().getDate().equals(schedule.getDate())) {
+                    
+                    boolean isCancelled = apt.getStatus() == AppointmentStatus.CANCELLED_BY_PATIENT ||
+                                          apt.getStatus() == AppointmentStatus.CANCELLED_BY_DOCTOR ||
+                                          apt.getStatus() == AppointmentStatus.NO_SHOW_BY_DOCTOR ||
+                                          apt.getStatus() == AppointmentStatus.NO_SHOW ||
+                                          apt.getStatus() == AppointmentStatus.DECLINED;
+                    
+                    if (!isCancelled && apt.getExpectedTime() != null) {
+                        java.time.LocalTime existingStart;
+                        java.time.LocalTime existingEnd;
+                        try {
+                            if (apt.getExpectedTime().contains(" - ")) {
+                                String[] p = apt.getExpectedTime().split(" - ");
+                                existingStart = java.time.LocalTime.parse(p[0]);
+                                existingEnd = java.time.LocalTime.parse(p[1]);
+                            } else {
+                                existingStart = java.time.LocalTime.parse(apt.getExpectedTime());
+                                existingEnd = existingStart.plusMinutes(30);
+                            }
+
+                            boolean isSafeBefore = !newEnd.plusMinutes(30).isAfter(existingStart); // newEnd + 30 <= existingStart
+                            boolean isSafeAfter = !existingEnd.plusMinutes(30).isAfter(newStart); // existingEnd + 30 <= newStart
+                            
+                            if (!isSafeBefore && !isSafeAfter) {
+                                throw new IllegalArgumentException("Lịch đặt phải cách các ca khám khác ít nhất 30 phút để bác sĩ di chuyển. Khung giờ này đang quá sát với một ca khám khác.");
+                            }
+                        } catch (Exception e) {
+                            if (e instanceof IllegalArgumentException) {
+                                throw e;
+                            }
+                        }
+                    }
+                }
+            }
         }
-        scheduleRepository.save(schedule);
 
         Appointment appointment = Appointment.builder()
                 .patient(patient)
                 .doctor(doctor)
                 .schedule(schedule)
                 .symptom(requestDto.getSymptom())
-                .status(AppointmentStatus.PENDING_CONFIRMATION)
+                .status(AppointmentStatus.PENDING)
                 .visitType(com.smartclinic.backend.entity.VisitType.HOME_VISIT)
                 .homeAddress(requestDto.getHomeAddress())
                 .travelFee(requestDto.getTravelFee())
                 .note(requestDto.getNote())
                 .isReviewed(false)
                 .isReminded(false)
+                .expectedTime(requestDto.getExpectedTime())
                 .build();
 
         appointment = appointmentRepository.save(appointment);
@@ -686,6 +845,82 @@ public class AppointmentServiceImpl implements AppointmentService {
                 "Có lịch khám tại nhà mới từ Bệnh nhân " + user.getFullName() + " vào ngày " + schedule.getDate() + "."
         );
 
+        final User finalUser = user;
+        userRepository.findByRole(Role.RECEPTIONIST).forEach(receptionist -> {
+            notificationService.sendNotification(receptionist.getId(), 
+                "Bệnh nhân " + finalUser.getFullName() + " vừa đặt một lịch khám tại nhà mới (Chờ xử lý).");
+        });
+
         return mapToDto(appointment);
+    }
+
+    @Override
+    @Transactional
+    public AppointmentDto confirmHomeVisit(Long appointmentId, String exactTime, java.math.BigDecimal travelFee) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+        
+        if (appointment.getVisitType() != com.smartclinic.backend.entity.VisitType.HOME_VISIT) {
+            throw new IllegalArgumentException("Chỉ áp dụng cho khám tại nhà.");
+        }
+
+        // Check if there is another confirmed home visit for the same doctor at the same exact time
+        List<Appointment> doctorApts = appointmentRepository.findByDoctorIdOrderByIdDesc(appointment.getDoctor().getId());
+        for (Appointment apt : doctorApts) {
+            if (!apt.getId().equals(appointmentId) && 
+                apt.getVisitType() == com.smartclinic.backend.entity.VisitType.HOME_VISIT &&
+                (apt.getStatus() == AppointmentStatus.CONFIRMED || apt.getStatus() == AppointmentStatus.ON_THE_WAY || apt.getStatus() == AppointmentStatus.ARRIVED || apt.getStatus() == AppointmentStatus.IN_PROGRESS)) {
+                if (apt.getSchedule().getDate().equals(appointment.getSchedule().getDate())) {
+                    if (exactTime.equals(apt.getExpectedTime())) {
+                        throw new IllegalArgumentException("Bác sĩ đã có một lịch khám tại nhà khác vào lúc " + exactTime + " ngày hôm nay.");
+                    }
+                }
+            }
+        }
+
+        appointment.setExpectedTime(exactTime);
+        appointment.setTravelFee(travelFee);
+        appointment.setStatus(AppointmentStatus.PENDING_CONFIRMATION);
+
+        // Optional: Increase schedule currentPatient count here if we want to track confirmed ones.
+        Schedule schedule = appointment.getSchedule();
+        int current = schedule.getCurrentPatient() == null ? 0 : schedule.getCurrentPatient();
+        int max = schedule.getMaxPatient() == null ? 0 : schedule.getMaxPatient();
+        schedule.setCurrentPatient(current + 1);
+        if (max > 0 && schedule.getCurrentPatient() >= max) {
+            schedule.setStatus(ScheduleStatus.FULL);
+        }
+        scheduleRepository.save(schedule);
+
+        appointment = appointmentRepository.save(appointment);
+
+        // Notify patient
+        if (appointment.getPatient() != null && appointment.getPatient().getUser() != null) {
+            String msg = "Lịch khám tại nhà của bạn đã được xác nhận. Giờ đến dự kiến: " + exactTime + ". Phí di chuyển: " + (travelFee != null ? travelFee.longValue() + " VNĐ" : "0 VNĐ") + ".";
+            notificationService.sendNotification(appointment.getPatient().getUser().getId(), msg);
+        }
+
+        return mapToDto(appointment);
+    }
+
+    @Override
+    @Transactional
+    public AppointmentDto declineHomeVisitOutOfRange(Long appointmentId) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+        
+        if (appointment.getVisitType() != com.smartclinic.backend.entity.VisitType.HOME_VISIT) {
+            throw new IllegalArgumentException("Chỉ áp dụng cho khám tại nhà.");
+        }
+
+        appointment.setStatus(AppointmentStatus.DECLINED);
+        Appointment updatedAppointment = appointmentRepository.save(appointment);
+
+        if (updatedAppointment.getPatient() != null && updatedAppointment.getPatient().getUser() != null) {
+            notificationService.sendNotification(updatedAppointment.getPatient().getUser().getId(),
+                "Địa chỉ của bạn nằm ngoài phạm vi phục vụ khám tại nhà (15 km). Vui lòng liên hệ phòng khám để được hỗ trợ.");
+        }
+
+        return mapToDto(updatedAppointment);
     }
 }

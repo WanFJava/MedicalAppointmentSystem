@@ -8,6 +8,7 @@ const SpecialtyManager = () => {
     const [formData, setFormData] = useState({ name: '', description: '' });
     const [editingId, setEditingId] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
         fetchSpecialties();
@@ -63,15 +64,24 @@ const SpecialtyManager = () => {
         }
     };
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <div>Đang tải...</div>;
 
     return (
         <div>
             <div className="page-header">
-                <h2>Specialties Management</h2>
-                <button className="btn-primary" style={{ width: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={() => handleOpenModal()}>
-                    <Plus size={18} /> Add Specialty
-                </button>
+                <h2>Quản lý Chuyên khoa</h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <input
+                        type="text"
+                        placeholder="Tìm kiếm chuyên khoa..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #d1d5db', minWidth: '250px' }}
+                    />
+                    <button className="btn-primary" style={{ width: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={() => handleOpenModal()}>
+                        <Plus size={18} /> Thêm chuyên khoa
+                    </button>
+                </div>
             </div>
 
             <div className="table-container">
@@ -79,13 +89,13 @@ const SpecialtyManager = () => {
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Name</th>
-                            <th>Description</th>
-                            <th>Actions</th>
+                            <th>Tên chuyên khoa</th>
+                            <th>Mô tả</th>
+                            <th>Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {specialties.map((spec) => (
+                        {specialties.filter(spec => (spec.name?.toLowerCase() || '').includes(searchTerm.toLowerCase())).map((spec) => (
                             <tr key={spec.id}>
                                 <td>#{spec.id}</td>
                                 <td style={{ fontWeight: 500 }}>{spec.name}</td>
@@ -102,9 +112,9 @@ const SpecialtyManager = () => {
                                 </td>
                             </tr>
                         ))}
-                        {specialties.length === 0 && (
+                        {specialties.filter(spec => (spec.name?.toLowerCase() || '').includes(searchTerm.toLowerCase())).length === 0 && (
                             <tr>
-                                <td colSpan="4" style={{ textAlign: 'center', padding: '2rem' }}>No specialties found.</td>
+                                <td colSpan="4" style={{ textAlign: 'center', padding: '2rem' }}>Không tìm thấy chuyên khoa nào.</td>
                             </tr>
                         )}
                     </tbody>
@@ -115,14 +125,14 @@ const SpecialtyManager = () => {
                 <div className="modal-overlay">
                     <div className="modal-content">
                         <div className="modal-header">
-                            <h3>{editingId ? 'Edit Specialty' : 'Add New Specialty'}</h3>
+                            <h3>{editingId ? 'Cập nhật Chuyên khoa' : 'Thêm Chuyên khoa mới'}</h3>
                             <button className="btn-close" onClick={() => setIsModalOpen(false)}>
                                 <X size={24} />
                             </button>
                         </div>
                         <form onSubmit={handleSubmit}>
                             <div className="form-group">
-                                <label>Specialty Name</label>
+                                <label>Tên chuyên khoa</label>
                                 <input
                                     type="text"
                                     required
@@ -131,7 +141,7 @@ const SpecialtyManager = () => {
                                 />
                             </div>
                             <div className="form-group">
-                                <label>Description</label>
+                                <label>Mô tả</label>
                                 <textarea
                                     className="form-control"
                                     rows="4"
@@ -140,8 +150,8 @@ const SpecialtyManager = () => {
                                 ></textarea>
                             </div>
                             <div className="form-actions">
-                                <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>Cancel</button>
-                                <button type="submit" className="btn-primary" style={{ width: 'auto' }}>Save Specialty</button>
+                                <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>Hủy</button>
+                                <button type="submit" className="btn-primary" style={{ width: 'auto' }}>Lưu chuyên khoa</button>
                             </div>
                         </form>
                     </div>

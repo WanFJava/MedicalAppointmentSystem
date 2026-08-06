@@ -8,9 +8,11 @@ const DoctorManager = () => {
     const [doctors, setDoctors] = useState([]);
     const [specialties, setSpecialties] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [formData, setFormData] = useState({ userId: '', email: '', password: '', fullName: '', phone: '', specialtyId: '', degree: '', experience: 0, consultationFee: 0, biography: '', status: 'ACTIVE' });
+    const [formData, setFormData] = useState({ userId: '', email: '', password: '', fullName: '', phone: '', specialtyId: '', degree: '', experience: 0, consultationFee: 0, biography: '', status: 'ACTIVE', canClinicVisit: true, canHomeVisit: false, homeVisitRadius: 0 });
     const [editingId, setEditingId] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [visitTypeFilter, setVisitTypeFilter] = useState('ALL');
 
     useEffect(() => {
         fetchData();
@@ -44,7 +46,10 @@ const DoctorManager = () => {
                 experience: doctor.experience,
                 consultationFee: doctor.consultationFee,
                 biography: doctor.biography || '',
-                status: doctor.status || 'ACTIVE'
+                status: doctor.status || 'ACTIVE',
+                canClinicVisit: doctor.canClinicVisit !== undefined ? doctor.canClinicVisit : true,
+                canHomeVisit: doctor.canHomeVisit || false,
+                homeVisitRadius: doctor.homeVisitRadius || 0
             });
             setEditingId(doctor.id);
         } else {
@@ -59,7 +64,10 @@ const DoctorManager = () => {
                 experience: 0,
                 consultationFee: 0,
                 biography: '',
-                status: 'ACTIVE'
+                status: 'ACTIVE',
+                canClinicVisit: true,
+                canHomeVisit: false,
+                homeVisitRadius: 0
             });
             setEditingId(null);
         }
@@ -89,7 +97,10 @@ const DoctorManager = () => {
             specialtyId: sanitizedSpecId,
             experience: sanitizedExp,
             consultationFee: sanitizedFee,
-            userId: formData.userId ? parseInt(formData.userId, 10) : null
+            userId: formData.userId ? parseInt(formData.userId, 10) : null,
+            canClinicVisit: formData.canClinicVisit,
+            canHomeVisit: formData.canHomeVisit,
+            homeVisitRadius: parseFloat(formData.homeVisitRadius) || 0
         };
 
         try {
@@ -124,33 +135,71 @@ const DoctorManager = () => {
         }
     };
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <div>Đang tải...</div>;
 
     return (
         <div>
             <div className="page-header">
-                <h2>Doctors Management</h2>
-                <button className="btn-primary" style={{ width: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={() => handleOpenModal()}>
-                    <Plus size={18} /> Add Doctor
-                </button>
+                <h2>Quản lý Bác sĩ</h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <select
+                        value={visitTypeFilter}
+                        onChange={(e) => setVisitTypeFilter(e.target.value)}
+                        style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #d1d5db', outline: 'none' }}
+                    >
+                        <option value="ALL">Tất cả hình thức</option>
+                        <option value="HOME">Chỉ Khám tại nhà</option>
+                        <option value="CLINIC">Chỉ Khám tại trung tâm</option>
+                        <option value="BOTH">Hỗ trợ cả hai</option>
+                    </select>
+                    <input
+                        type="text"
+                        placeholder="Tìm kiếm bác sĩ hoặc chuyên khoa..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #d1d5db', minWidth: '250px' }}
+                    />
+                    <button className="btn-primary" style={{ width: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={() => handleOpenModal()}>
+                        <Plus size={18} /> Thêm bác sĩ
+                    </button>
+                </div>
             </div>
 
             <div className="table-container">
                 <table>
                     <thead>
                         <tr>
-                            <th>Doctor</th>
-                            <th>Specialty</th>
-                            <th>Degree</th>
-                            <th>Experience</th>
-                            <th>Fee</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th>Bác sĩ</th>
+                            <th>Chuyên khoa</th>
+                            <th>Bằng cấp</th>
+                            <th>Kinh nghiệm</th>
+                            <th>Phí khám</th>
+                            <th>Hình thức khám</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {doctors.map((doc) => (
-                            <tr key={doc.id}>
+                        {doctors.filter(doc => {
+                            const matchSearch = (doc.fullName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) || (doc.specialtyName?.toLowerCase() || '').includes(searchTerm.toLowerCase());
+                            let matchType = true;
+                            if (visitTypeFilter === 'HOME') matchType = doc.canHomeVisit && !doc.canClinicVisit;
+                            else if (visitTypeFilter === 'CLINIC') matchType = doc.canClinicVisit && !doc.canHomeVisit;
+                            else if (visitTypeFilter === 'BOTH') matchType = doc.canClinicVisit && doc.canHomeVisit;
+                            return matchSearch && matchType;
+                        }).map((doc) => {
+                            // Determine row style based on visit type
+                            let rowStyle = {};
+                            if (doc.canHomeVisit && !doc.canClinicVisit) {
+                                rowStyle = { backgroundColor: '#f0fdf4', borderLeft: '4px solid #166534' };
+                            } else if (doc.canClinicVisit && !doc.canHomeVisit) {
+                                rowStyle = { backgroundColor: '#f5f3ff', borderLeft: '4px solid #4f46e5' };
+                            } else if (doc.canClinicVisit && doc.canHomeVisit) {
+                                rowStyle = { backgroundColor: '#fffbeb', borderLeft: '4px solid #d97706' };
+                            }
+
+                            return (
+                            <tr key={doc.id} style={rowStyle}>
                                 <td>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                         <div className="user-avatar" style={{ width: '32px', height: '32px', fontSize: '1rem', overflow: 'hidden', borderRadius: '50%' }}>
@@ -173,8 +222,22 @@ const DoctorManager = () => {
                                 </td>
                                 <td>{doc.specialtyName}</td>
                                 <td>{doc.degree}</td>
-                                <td>{doc.experience} years</td>
-                                <td>${doc.consultationFee}</td>
+                                <td>{doc.experience} năm</td>
+                                <td>{doc.consultationFee} VNĐ</td>
+                                <td>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                        {doc.canClinicVisit && (
+                                            <span style={{ fontSize: '0.75rem', backgroundColor: '#e0e7ff', color: '#4f46e5', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 'bold', display: 'inline-block', width: 'fit-content' }}>
+                                                Khám tại trung tâm
+                                            </span>
+                                        )}
+                                        {doc.canHomeVisit && (
+                                            <span style={{ fontSize: '0.75rem', backgroundColor: '#dcfce7', color: '#166534', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 'bold', display: 'inline-block', width: 'fit-content' }}>
+                                                Khám tại nhà
+                                            </span>
+                                        )}
+                                    </div>
+                                </td>
                                 <td>
                                     <span style={{
                                         padding: '0.35rem 0.75rem',
@@ -224,10 +287,17 @@ const DoctorManager = () => {
                                     </div>
                                 </td>
                             </tr>
-                        ))}
-                        {doctors.length === 0 && (
+                        )})}
+                        {doctors.filter(doc => {
+                            const matchSearch = (doc.fullName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) || (doc.specialtyName?.toLowerCase() || '').includes(searchTerm.toLowerCase());
+                            let matchType = true;
+                            if (visitTypeFilter === 'HOME') matchType = doc.canHomeVisit && !doc.canClinicVisit;
+                            else if (visitTypeFilter === 'CLINIC') matchType = doc.canClinicVisit && !doc.canHomeVisit;
+                            else if (visitTypeFilter === 'BOTH') matchType = doc.canClinicVisit && doc.canHomeVisit;
+                            return matchSearch && matchType;
+                        }).length === 0 && (
                             <tr>
-                                <td colSpan="7" style={{ textAlign: 'center', padding: '2rem' }}>No doctors found.</td>
+                                <td colSpan="8" style={{ textAlign: 'center', padding: '2rem' }}>Không tìm thấy bác sĩ nào.</td>
                             </tr>
                         )}
                     </tbody>
@@ -238,7 +308,7 @@ const DoctorManager = () => {
                 <div className="modal-overlay">
                     <div className="modal-content" style={{ maxWidth: '800px', width: '90%' }}>
                         <div className="modal-header">
-                            <h3>{editingId ? 'Edit Doctor' : 'Add New Doctor'}</h3>
+                            <h3>{editingId ? 'Cập nhật Bác sĩ' : 'Thêm Bác sĩ mới'}</h3>
                             <button className="btn-close" onClick={() => setIsModalOpen(false)}>
                                 <X size={24} />
                             </button>
@@ -247,7 +317,7 @@ const DoctorManager = () => {
                             {!editingId && (
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                     <div className="form-group">
-                                        <label>Full Name</label>
+                                        <label>Họ và tên</label>
                                         <input
                                             type="text"
                                             required
@@ -267,7 +337,7 @@ const DoctorManager = () => {
                                         />
                                     </div>
                                     <div className="form-group">
-                                        <label>Phone</label>
+                                        <label>Số điện thoại</label>
                                         <input
                                             type="tel"
                                             required
@@ -277,7 +347,7 @@ const DoctorManager = () => {
                                         />
                                     </div>
                                     <div className="form-group">
-                                        <label>Password</label>
+                                        <label>Mật khẩu</label>
                                         <input
                                             type="password"
                                             required
@@ -290,21 +360,21 @@ const DoctorManager = () => {
                             )}
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div className="form-group">
-                                    <label>Specialty</label>
+                                    <label>Chuyên khoa</label>
                                     <select
                                         className="form-control"
                                         value={formData.specialtyId}
                                         onChange={(e) => setFormData({...formData, specialtyId: e.target.value})}
                                         required
                                     >
-                                        <option value="" disabled>Select Specialty</option>
+                                        <option value="" disabled>Chọn chuyên khoa</option>
                                         {specialties.map(spec => (
                                             <option key={spec.id} value={spec.id}>{spec.name}</option>
                                         ))}
                                     </select>
                                 </div>
                                 <div className="form-group">
-                                    <label>Degree</label>
+                                    <label>Bằng cấp</label>
                                     <input
                                         type="text"
                                         required
@@ -313,7 +383,7 @@ const DoctorManager = () => {
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label>Experience (Years)</label>
+                                    <label>Kinh nghiệm (Năm)</label>
                                     <input
                                         type="number"
                                         required
@@ -322,7 +392,7 @@ const DoctorManager = () => {
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label>Consultation Fee</label>
+                                    <label>Phí khám</label>
                                     <input
                                         type="number"
                                         step="0.01"
@@ -332,7 +402,7 @@ const DoctorManager = () => {
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label>Account Status</label>
+                                    <label>Trạng thái tài khoản</label>
                                     <select
                                         className="form-control"
                                         value={formData.status}
@@ -344,8 +414,43 @@ const DoctorManager = () => {
                                     </select>
                                 </div>
                             </div>
-                            <div className="form-group">
-                                <label>Biography</label>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginTop: '1rem', padding: '1rem', backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                                <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <input 
+                                        type="checkbox" 
+                                        id="canClinicVisit"
+                                        checked={formData.canClinicVisit}
+                                        onChange={(e) => setFormData({...formData, canClinicVisit: e.target.checked})}
+                                        style={{ width: '18px', height: '18px' }}
+                                    />
+                                    <label htmlFor="canClinicVisit" style={{ margin: 0, cursor: 'pointer' }}>Khám tại phòng khám</label>
+                                </div>
+                                <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <input 
+                                        type="checkbox" 
+                                        id="canHomeVisit"
+                                        checked={formData.canHomeVisit}
+                                        onChange={(e) => setFormData({...formData, canHomeVisit: e.target.checked})}
+                                        style={{ width: '18px', height: '18px' }}
+                                    />
+                                    <label htmlFor="canHomeVisit" style={{ margin: 0, cursor: 'pointer' }}>Khám tại nhà</label>
+                                </div>
+                                {formData.canHomeVisit && (
+                                    <div className="form-group">
+                                        <label>Bán kính phục vụ (km)</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            step="0.1"
+                                            value={formData.homeVisitRadius}
+                                            onChange={(e) => setFormData({...formData, homeVisitRadius: e.target.value})}
+                                            placeholder="Ví dụ: 10"
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                            <div className="form-group" style={{ marginTop: '1rem' }}>
+                                <label>Tiểu sử</label>
                                 <textarea
                                     className="form-control"
                                     rows="4"
@@ -355,8 +460,8 @@ const DoctorManager = () => {
                                 ></textarea>
                             </div>
                             <div className="form-actions">
-                                <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>Cancel</button>
-                                <button type="submit" className="btn-primary" style={{ width: 'auto' }}>Save Doctor</button>
+                                <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>Hủy</button>
+                                <button type="submit" className="btn-primary" style={{ width: 'auto' }}>Lưu bác sĩ</button>
                             </div>
                         </form>
                     </div>

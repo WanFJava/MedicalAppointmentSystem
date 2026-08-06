@@ -39,7 +39,7 @@ const PatientProfile = () => {
             } catch (requestError) {
                 console.error("Failed to fetch profile", requestError);
                 if (!isCancelled) {
-                    setMessage({ type: 'error', text: 'Failed to load profile data.' });
+                    setMessage({ type: 'error', text: 'Tải dữ liệu hồ sơ thất bại.' });
                 }
             } finally {
                 if (!isCancelled) setLoading(false);
@@ -62,23 +62,23 @@ const PatientProfile = () => {
             setSaving(true);
             setMessage({ type: '', text: '' });
             await updatePatientProfile(user.id, profile);
-            setMessage({ type: 'success', text: 'Profile updated successfully!' });
+            setMessage({ type: 'success', text: 'Cập nhật hồ sơ thành công!' });
         } catch (error) {
             console.error("Failed to update profile", error);
-            setMessage({ type: 'error', text: 'Failed to update profile.' });
+            setMessage({ type: 'error', text: 'Cập nhật hồ sơ thất bại.' });
         } finally {
             setSaving(false);
             setTimeout(() => setMessage({ type: '', text: '' }), 3000);
         }
     };
 
-    if (loading) return <div style={{ textAlign: 'center', padding: '3rem' }}>Loading profile...</div>;
+    if (loading) return <div style={{ textAlign: 'center', padding: '3rem' }}>Đang tải hồ sơ...</div>;
 
     return (
         <div style={{ maxWidth: '1000px', margin: '2rem auto', padding: '0 1rem' }}>
             <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
                 <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#1f2937' }}>
-                    <User size={32} color="var(--primary-color)" /> My Profile
+                    <User size={32} color="var(--primary-color)" /> Hồ sơ của tôi
                 </h1>
 
                 {message.text && (
@@ -95,7 +95,7 @@ const PatientProfile = () => {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
                         <div>
                             <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: '#4b5563', marginBottom: '0.5rem' }}>
-                                <User size={16} /> Full Name
+                                <User size={16} /> Họ và tên
                             </label>
                             <input
                                 type="text"
@@ -108,7 +108,7 @@ const PatientProfile = () => {
                         </div>
                         <div>
                             <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: '#4b5563', marginBottom: '0.5rem' }}>
-                                <Mail size={16} /> Email (Read-only)
+                                <Mail size={16} /> Email (Chỉ đọc)
                             </label>
                             <input
                                 type="email"
@@ -119,7 +119,7 @@ const PatientProfile = () => {
                         </div>
                         <div>
                             <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: '#4b5563', marginBottom: '0.5rem' }}>
-                                <Phone size={16} /> Phone
+                                <Phone size={16} /> Số điện thoại
                             </label>
                             <input
                                 type="tel"
@@ -131,7 +131,7 @@ const PatientProfile = () => {
                         </div>
                         <div>
                             <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: '#4b5563', marginBottom: '0.5rem' }}>
-                                <Calendar size={16} /> Birthday
+                                <Calendar size={16} /> Ngày sinh
                             </label>
                             <input
                                 type="date"
@@ -143,7 +143,7 @@ const PatientProfile = () => {
                         </div>
                         <div>
                             <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: '#4b5563', marginBottom: '0.5rem' }}>
-                                <User size={16} /> Gender
+                                <User size={16} /> Giới tính
                             </label>
                             <select
                                 name="gender"
@@ -151,15 +151,15 @@ const PatientProfile = () => {
                                 onChange={handleChange}
                                 style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', backgroundColor: 'white' }}
                             >
-                                <option value="">Select Gender</option>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                                <option value="Other">Other</option>
+                                <option value="">Chọn giới tính</option>
+                                <option value="Nam">Nam</option>
+                                <option value="Nữ">Nữ</option>
+                                <option value="Khác">Khác</option>
                             </select>
                         </div>
                         <div>
                             <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: '#4b5563', marginBottom: '0.5rem' }}>
-                                <Activity size={16} /> Blood Group
+                                <Activity size={16} /> Nhóm máu
                             </label>
                             <select
                                 name="bloodGroup"
@@ -167,7 +167,7 @@ const PatientProfile = () => {
                                 onChange={handleChange}
                                 style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', backgroundColor: 'white' }}
                             >
-                                <option value="">Select Blood Group</option>
+                                <option value="">Chọn nhóm máu</option>
                                 <option value="A+">A+</option>
                                 <option value="A-">A-</option>
                                 <option value="B+">B+</option>
@@ -183,7 +183,7 @@ const PatientProfile = () => {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
                         <div>
                             <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: '#4b5563', marginBottom: '0.5rem' }}>
-                                <MapPin size={16} /> Address
+                                <MapPin size={16} /> Địa chỉ
                             </label>
                             <input
                                 type="text"
@@ -196,13 +196,13 @@ const PatientProfile = () => {
 
                         <div>
                             <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: '#4b5563', marginBottom: '0.5rem' }}>
-                                <Activity size={16} /> Allergies / Medical Notes
+                                <Activity size={16} /> Dị ứng / Ghi chú Y tế
                             </label>
                             <textarea
                                 name="allergy"
                                 value={profile.allergy}
                                 onChange={handleChange}
-                                placeholder="List any allergies or important medical notes"
+                                placeholder="Liệt kê các dị ứng hoặc ghi chú y tế quan trọng"
                                 style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', minHeight: '46px', resize: 'vertical' }}
                             />
                         </div>
@@ -215,7 +215,7 @@ const PatientProfile = () => {
                             className="btn-primary"
                             style={{ padding: '0.75rem 2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem' }}
                         >
-                            <Save size={20} /> {saving ? 'Saving...' : 'Save Profile'}
+                            <Save size={20} /> {saving ? 'Đang lưu...' : 'Lưu Hồ sơ'}
                         </button>
                     </div>
                 </form>

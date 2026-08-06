@@ -4,7 +4,7 @@ import { Star, Clock, Activity, Heart, MapPin, Calendar, CheckSquare, ChevronDow
 import { AuthContext } from '../context/AuthContext';
 import { getAvailableSchedules } from '../api/appointmentApi';
 
-const DoctorCard = ({ doc, onDoctorSelect }) => {
+const HomeVisitDoctorCard = ({ doc, onDoctorSelect }) => {
     const navigate = useNavigate();
     const { user, favoriteDoctorIds, toggleFavorite } = useContext(AuthContext);
 
@@ -16,7 +16,7 @@ const DoctorCard = ({ doc, onDoctorSelect }) => {
         const fetchSchedules = async () => {
             try {
                 let schedules = await getAvailableSchedules(doc.id);
-                schedules = schedules.filter(s => s.scheduleType === 'CLINIC');
+                schedules = schedules.filter(s => s.scheduleType === 'HOME');
                 const grouped = schedules.reduce((acc, curr) => {
                     if (!acc[curr.date]) acc[curr.date] = [];
                     acc[curr.date].push(curr);
@@ -55,7 +55,7 @@ const DoctorCard = ({ doc, onDoctorSelect }) => {
             marginBottom: '1.5rem',
             cursor: 'pointer'
         }}
-        onClick={() => navigate(`/doctor/${doc.id}`)}
+        onClick={() => navigate(`/home-visit-doctor/${doc.id}`)}
         onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)'; }}
         onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 4px -1px rgba(0, 0, 0, 0.05)'; }}
         >
@@ -145,7 +145,7 @@ const DoctorCard = ({ doc, onDoctorSelect }) => {
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         if (user) {
-                                            navigate('/book', { state: { preselectDoctor: doc.id, selectedDate: selectedDate, selectedSchedule: sched } });
+                                            navigate('/book-home-visit', { state: { preselectDoctor: doc.id, selectedDate: selectedDate, selectedSchedule: sched } });
                                         } else {
                                             navigate('/login');
                                         }
@@ -198,4 +198,4 @@ const DoctorCard = ({ doc, onDoctorSelect }) => {
     );
 };
 
-export default DoctorCard;
+export default HomeVisitDoctorCard;

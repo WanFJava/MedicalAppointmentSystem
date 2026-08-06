@@ -17,4 +17,6 @@ public class ScheduleRequestDto {
     private LocalTime startTime;
     private LocalTime endTime;
     private Integer maxPatient;
+    private com.smartclinic.backend.entity.ScheduleType scheduleType;
+    private Boolean forceAssign;
 }

@@ -6,7 +6,7 @@ import { getFeedbacksByDoctor } from '../api/feedbackApi';
 import { AuthContext } from '../context/AuthContext';
 import { Star, Clock, MapPin, Activity, Stethoscope, Calendar as CalendarIcon, MessageSquare, Heart } from 'lucide-react';
 
-const DoctorProfile = () => {
+const HomeVisitDoctorProfile = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { user, favoriteDoctorIds, toggleFavorite } = useContext(AuthContext);
@@ -16,7 +16,7 @@ const DoctorProfile = () => {
     const [schedulesByDate, setSchedulesByDate] = useState({});
     const [selectedDate, setSelectedDate] = useState('');
     const [selectedSchedule, setSelectedSchedule] = useState(null);
-    const scheduleTypeTab = 'CLINIC';
+    const scheduleTypeTab = 'HOME';
     const [feedbacks, setFeedbacks] = useState([]);
 
     useEffect(() => {
@@ -148,7 +148,7 @@ const DoctorProfile = () => {
                                     <CalendarIcon size={18} /> Lịch khám
                                 </div>
                                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                    <span style={{ padding: '0.25rem 0.75rem', borderRadius: '1rem', fontWeight: '600', fontSize: '0.85rem', backgroundColor: '#0ea5e9', color: 'white' }}>Tại phòng khám</span>
+                                    <span style={{ padding: '0.25rem 0.75rem', borderRadius: '1rem', fontWeight: '600', fontSize: '0.85rem', backgroundColor: '#4f46e5', color: 'white' }}>Khám tại nhà</span>
                                 </div>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
@@ -220,7 +220,7 @@ const DoctorProfile = () => {
                             disabled={!selectedSchedule}
                             onClick={() => {
                                 if (user) {
-                                    navigate('/book', { state: { preselectDoctor: doctor.id, selectedDate, selectedSchedule } });
+                                    navigate('/book-home-visit', { state: { preselectDoctor: doctor.id, selectedDate, selectedSchedule } });
                                 } else {
                                     navigate('/login');
                                 }
@@ -287,4 +287,4 @@ const DoctorProfile = () => {
     );
 };
 
-export default DoctorProfile;
+export default HomeVisitDoctorProfile;

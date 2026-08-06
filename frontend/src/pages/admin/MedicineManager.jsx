@@ -8,6 +8,7 @@ const MedicineManager = () => {
     
     const [formData, setFormData] = useState({ name: '', unit: '', price: '', quantity: '', expiredDate: '' });
     const [editingId, setEditingId] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
         fetchMedicines();
@@ -63,7 +64,7 @@ const MedicineManager = () => {
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm("Are you sure you want to delete this medicine?")) {
+        if (window.confirm("Bạn có chắc chắn muốn xoá loại thuốc này không?")) {
             try {
                 await deleteMedicine(id);
                 fetchMedicines();
@@ -74,12 +75,19 @@ const MedicineManager = () => {
         }
     };
 
-    if (loading && medicines.length === 0) return <div style={{ padding: '2rem' }}>Loading medicines...</div>;
+    if (loading && medicines.length === 0) return <div style={{ padding: '2rem' }}>Đang tải danh sách thuốc...</div>;
 
     return (
         <div>
-            <div className="page-header">
-                <h2><Pill size={28} style={{ verticalAlign: 'middle', marginRight: '0.5rem' }}/> Medicine Catalog</h2>
+            <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h2><Pill size={28} style={{ verticalAlign: 'middle', marginRight: '0.5rem' }}/> Danh mục thuốc</h2>
+                <input
+                    type="text"
+                    placeholder="Tìm kiếm thuốc, đơn vị..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #d1d5db', minWidth: '250px' }}
+                />
             </div>
 
             <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
@@ -87,20 +95,20 @@ const MedicineManager = () => {
                     <table>
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Unit</th>
-                                <th>Price ($)</th>
-                                <th>Quantity</th>
-                                <th>Expired Date</th>
-                                <th>Actions</th>
+                                <th>Tên thuốc</th>
+                                <th>Đơn vị tính</th>
+                                <th>Giá (VNĐ)</th>
+                                <th>Số lượng</th>
+                                <th>Hạn sử dụng</th>
+                                <th>Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {medicines.map((med) => (
+                            {medicines.filter(m => (m.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) || (m.unit?.toLowerCase() || '').includes(searchTerm.toLowerCase())).map((med) => (
                                 <tr key={med.id}>
                                     <td style={{ fontWeight: 500 }}>{med.name}</td>
                                     <td>{med.unit}</td>
-                                    <td>${med.price}</td>
+                                    <td>{med.price} VNĐ</td>
                                     <td>{med.quantity}</td>
                                     <td>{med.expiredDate}</td>
                                     <td>
@@ -115,9 +123,9 @@ const MedicineManager = () => {
                                     </td>
                                 </tr>
                             ))}
-                            {medicines.length === 0 && (
+                            {medicines.filter(m => (m.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) || (m.unit?.toLowerCase() || '').includes(searchTerm.toLowerCase())).length === 0 && (
                                 <tr>
-                                    <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>No medicines found.</td>
+                                    <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>Không tìm thấy thuốc nào.</td>
                                 </tr>
                             )}
                         </tbody>
@@ -125,10 +133,10 @@ const MedicineManager = () => {
                 </div>
 
                 <div style={{ flex: '1 1 300px', backgroundColor: 'white', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                    <h3 style={{ marginTop: 0 }}>{editingId ? 'Edit Medicine' : 'Add New Medicine'}</h3>
+                    <h3 style={{ marginTop: 0 }}>{editingId ? 'Cập nhật Thuốc' : 'Thêm Thuốc mới'}</h3>
                     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         <div>
-                            <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem' }}>Name</label>
+                            <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem' }}>Tên thuốc</label>
                             <input 
                                 type="text" name="name" 
                                 value={formData.name} onChange={handleChange} 
@@ -137,7 +145,7 @@ const MedicineManager = () => {
                             />
                         </div>
                         <div>
-                            <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem' }}>Unit</label>
+                            <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem' }}>Đơn vị tính</label>
                             <input 
                                 type="text" name="unit" 
                                 value={formData.unit} onChange={handleChange} 
@@ -146,7 +154,7 @@ const MedicineManager = () => {
                             />
                         </div>
                         <div>
-                            <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem' }}>Price ($)</label>
+                            <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem' }}>Giá (VNĐ)</label>
                             <input 
                                 type="number" step="0.01" min="0" name="price" 
                                 value={formData.price} onChange={handleChange} 
@@ -155,7 +163,7 @@ const MedicineManager = () => {
                             />
                         </div>
                         <div>
-                            <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem' }}>Quantity</label>
+                            <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem' }}>Số lượng</label>
                             <input 
                                 type="number" min="0" name="quantity" 
                                 value={formData.quantity} onChange={handleChange} 
@@ -164,7 +172,7 @@ const MedicineManager = () => {
                             />
                         </div>
                         <div>
-                            <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem' }}>Expired Date</label>
+                            <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem' }}>Hạn sử dụng</label>
                             <input 
                                 type="date" name="expiredDate" 
                                 value={formData.expiredDate} onChange={handleChange} 
@@ -175,11 +183,11 @@ const MedicineManager = () => {
                         <div style={{ display: 'flex', gap: '1rem' }}>
                             <button type="submit" className="btn-primary" style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
                                 {editingId ? <Edit size={16} /> : <Plus size={16} />} 
-                                {editingId ? 'Update' : 'Add'}
+                                {editingId ? 'Cập nhật' : 'Thêm mới'}
                             </button>
                             {editingId && (
                                 <button type="button" onClick={() => { setEditingId(null); setFormData({ name: '', unit: '', price: '', quantity: '', expiredDate: '' }); }} style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #d1d5db', backgroundColor: 'white', cursor: 'pointer' }}>
-                                    Cancel
+                                    Hủy
                                 </button>
                             )}
                         </div>

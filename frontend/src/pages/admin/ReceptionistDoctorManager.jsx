@@ -9,6 +9,7 @@ const ReceptionistDoctorManager = () => {
     const [schedules, setSchedules] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [visitTypeFilter, setVisitTypeFilter] = useState('ALL');
     const [selectedDate, setSelectedDate] = useState(new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]);
 
     useEffect(() => {
@@ -96,10 +97,15 @@ const ReceptionistDoctorManager = () => {
         return { status: 'FULL', label: 'Kín lịch / Đã kết thúc', color: '#4b5563', bg: '#f3f4f6' };
     };
 
-    const filteredDoctors = doctors.filter(d => 
-        d.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        d.specialtyName?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredDoctors = doctors.filter(d => {
+        const matchSearch = d.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                            d.specialtyName?.toLowerCase().includes(searchTerm.toLowerCase());
+        let matchType = true;
+        if (visitTypeFilter === 'HOME') matchType = d.canHomeVisit && !d.canClinicVisit;
+        else if (visitTypeFilter === 'CLINIC') matchType = d.canClinicVisit && !d.canHomeVisit;
+        else if (visitTypeFilter === 'BOTH') matchType = d.canClinicVisit && d.canHomeVisit;
+        return matchSearch && matchType;
+    });
 
     if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Đang tải dữ liệu bác sĩ...</div>;
 
@@ -119,6 +125,16 @@ const ReceptionistDoctorManager = () => {
             </div>
 
             <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem' }}>
+                <select
+                    value={visitTypeFilter}
+                    onChange={(e) => setVisitTypeFilter(e.target.value)}
+                    style={{ padding: '0.75rem 1rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', outline: 'none', backgroundColor: 'white' }}
+                >
+                    <option value="ALL">Tất cả hình thức</option>
+                    <option value="HOME">Chỉ Khám tại nhà</option>
+                    <option value="CLINIC">Chỉ Khám tại trung tâm</option>
+                    <option value="BOTH">Hỗ trợ cả hai</option>
+                </select>
                 <div style={{ position: 'relative', flex: 1, maxWidth: '400px' }}>
                     <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#6b7280' }} />
                     <input
@@ -136,8 +152,17 @@ const ReceptionistDoctorManager = () => {
                     const statusInfo = getDoctorStatusInfo(doc.id);
                     const docSchedules = schedules.filter(s => s.doctorId === doc.id && s.status !== 'CANCELLED');
                     
+                    let cardStyle = { backgroundColor: 'white', borderRadius: '0.75rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column' };
+                    if (doc.canHomeVisit && !doc.canClinicVisit) {
+                        cardStyle = { ...cardStyle, backgroundColor: '#f0fdf4', borderTop: '4px solid #166534' };
+                    } else if (doc.canClinicVisit && !doc.canHomeVisit) {
+                        cardStyle = { ...cardStyle, backgroundColor: '#f5f3ff', borderTop: '4px solid #4f46e5' };
+                    } else if (doc.canClinicVisit && doc.canHomeVisit) {
+                        cardStyle = { ...cardStyle, backgroundColor: '#fffbeb', borderTop: '4px solid #d97706' };
+                    }
+
                     return (
-                        <div key={doc.id} style={{ backgroundColor: 'white', borderRadius: '0.75rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column' }}>
+                        <div key={doc.id} style={cardStyle}>
                             <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
                                 <div style={{ width: '60px', height: '60px', borderRadius: '50%', overflow: 'hidden', backgroundColor: '#f3f4f6', flexShrink: 0 }}>
                                     {doc.avatar ? (
@@ -151,6 +176,18 @@ const ReceptionistDoctorManager = () => {
                                 <div>
                                     <h3 style={{ margin: '0 0 0.25rem 0', fontSize: '1.1rem', color: '#1f2937' }}>{doc.fullName}</h3>
                                     <div style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.5rem' }}>{doc.specialtyName}</div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginBottom: '0.5rem' }}>
+                                        {doc.canClinicVisit && (
+                                            <span style={{ fontSize: '0.75rem', backgroundColor: '#e0e7ff', color: '#4f46e5', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 'bold', display: 'inline-block', width: 'fit-content' }}>
+                                                Khám tại trung tâm
+                                            </span>
+                                        )}
+                                        {doc.canHomeVisit && (
+                                            <span style={{ fontSize: '0.75rem', backgroundColor: '#dcfce7', color: '#166534', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 'bold', display: 'inline-block', width: 'fit-content' }}>
+                                                Khám tại nhà
+                                            </span>
+                                        )}
+                                    </div>
                                     <span style={{ 
                                         display: 'inline-block', 
                                         padding: '0.25rem 0.75rem', 

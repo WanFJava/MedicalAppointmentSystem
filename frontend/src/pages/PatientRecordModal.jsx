@@ -48,7 +48,7 @@ const PatientRecordModal = ({ appointment, onClose }) => {
                 justifyContent: 'center', alignItems: 'center', zIndex: 1000
             }}>
                 <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '8px' }}>
-                    Loading your records...
+                    Đang tải hồ sơ của bạn...
                 </div>
             </div>
         );
@@ -67,7 +67,7 @@ const PatientRecordModal = ({ appointment, onClose }) => {
             }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid #e5e7eb', paddingBottom: '1rem' }}>
                     <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#1f2937' }}>
-                        <FileText size={24} /> Appointment Details
+                        <FileText size={24} /> Chi tiết Lịch hẹn
                     </h2>
                     <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}>
                         <X size={24} />
@@ -76,27 +76,27 @@ const PatientRecordModal = ({ appointment, onClose }) => {
 
                 <div style={{ marginBottom: '2rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', backgroundColor: '#f9fafb', padding: '1rem', borderRadius: '8px' }}>
                     <div>
-                        <p style={{ margin: '0 0 0.5rem 0', color: '#6b7280', fontSize: '0.875rem' }}>Doctor</p>
+                        <p style={{ margin: '0 0 0.5rem 0', color: '#6b7280', fontSize: '0.875rem' }}>Bác sĩ</p>
                         <p style={{ margin: 0, fontWeight: 600 }}>{appointment.doctorName}</p>
                     </div>
                     <div>
-                        <p style={{ margin: '0 0 0.5rem 0', color: '#6b7280', fontSize: '0.875rem' }}>Date</p>
-                        <p style={{ margin: 0, fontWeight: 600 }}>{appointment.scheduleDate} at {appointment.timeSlot}</p>
+                        <p style={{ margin: '0 0 0.5rem 0', color: '#6b7280', fontSize: '0.875rem' }}>Ngày</p>
+                        <p style={{ margin: 0, fontWeight: 600 }}>{appointment.scheduleDate} lúc {appointment.timeSlot}</p>
                     </div>
                 </div>
 
                 {record ? (
                     <div style={{ marginBottom: '2rem' }}>
-                        <h3 style={{ borderBottom: '2px solid var(--primary-color)', paddingBottom: '0.5rem', display: 'inline-block', marginBottom: '1rem' }}>Medical Record</h3>
+                        <h3 style={{ borderBottom: '2px solid var(--primary-color)', paddingBottom: '0.5rem', display: 'inline-block', marginBottom: '1rem' }}>Bệnh án</h3>
 
                         <div style={{ marginBottom: '1rem' }}>
-                            <strong style={{ color: '#4b5563' }}>Diagnosis:</strong>
+                            <strong style={{ color: '#4b5563' }}>Chẩn đoán:</strong>
                             <p style={{ marginTop: '0.5rem', backgroundColor: '#f3f4f6', padding: '1rem', borderRadius: '8px' }}>{record.diagnosis}</p>
                         </div>
 
                         {record.advice && (
                             <div style={{ marginBottom: '1.5rem' }}>
-                                <strong style={{ color: '#4b5563' }}>Advice:</strong>
+                                <strong style={{ color: '#4b5563' }}>Lời khuyên:</strong>
                                 <p style={{ marginTop: '0.5rem', backgroundColor: '#f3f4f6', padding: '1rem', borderRadius: '8px' }}>{record.advice}</p>
                             </div>
                         )}
@@ -104,15 +104,15 @@ const PatientRecordModal = ({ appointment, onClose }) => {
                         {record.prescriptions && record.prescriptions.length > 0 && (
                             <div>
                                 <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '1.5rem 0 0.5rem 0' }}>
-                                    <Pill size={18} /> Prescription
+                                    <Pill size={18} /> Đơn thuốc
                                 </h4>
                                 <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden' }}>
                                     <thead>
                                         <tr style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                                            <th style={{ padding: '0.75rem', textAlign: 'left' }}>Medicine</th>
-                                            <th style={{ padding: '0.75rem', textAlign: 'left' }}>Dosage</th>
-                                            <th style={{ padding: '0.75rem', textAlign: 'left' }}>Instruction</th>
-                                            <th style={{ padding: '0.75rem', textAlign: 'center' }}>Quantity</th>
+                                            <th style={{ padding: '0.75rem', textAlign: 'left' }}>Thuốc</th>
+                                            <th style={{ padding: '0.75rem', textAlign: 'left' }}>Liều lượng</th>
+                                            <th style={{ padding: '0.75rem', textAlign: 'left' }}>Hướng dẫn</th>
+                                            <th style={{ padding: '0.75rem', textAlign: 'center' }}>Số lượng</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -131,7 +131,7 @@ const PatientRecordModal = ({ appointment, onClose }) => {
                     </div>
                 ) : (
                     <div style={{ padding: '1rem', backgroundColor: '#fef3c7', color: '#d97706', borderRadius: '8px', marginBottom: '2rem' }}>
-                        Medical record not available yet.
+                        Bệnh án chưa có sẵn.
                     </div>
                 )}
 

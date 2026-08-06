@@ -107,7 +107,8 @@ class ClinicalWorkflowIntegrationTests {
                 new BookingRequestDto(
                         fixture.doctor().getId(),
                         fixture.schedule().getId(),
-                        "Persistent headache"
+                        "Persistent headache",
+                        null
                 )
         );
         assertThat(booked.getStatus()).isEqualTo(AppointmentStatus.PENDING);
@@ -173,14 +174,14 @@ class ClinicalWorkflowIntegrationTests {
 
         authenticate(fixture.patientUser().getEmail(), Role.PATIENT);
         BookingRequestDto mismatchedRequest = new BookingRequestDto(
-                anotherDoctor.getId(), fixture.schedule().getId(), "Fever");
+                anotherDoctor.getId(), fixture.schedule().getId(), "Fever", null);
         assertThatThrownBy(() -> appointmentService.bookAppointment(
                 fixture.patientUser().getId(), mismatchedRequest))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("does not belong");
 
         BookingRequestDto validRequest = new BookingRequestDto(
-                fixture.doctor().getId(), fixture.schedule().getId(), "Fever");
+                fixture.doctor().getId(), fixture.schedule().getId(), "Fever", null);
         appointmentService.bookAppointment(fixture.patientUser().getId(), validRequest);
         assertThatThrownBy(() -> appointmentService.bookAppointment(
                 fixture.patientUser().getId(), validRequest))
@@ -197,7 +198,8 @@ class ClinicalWorkflowIntegrationTests {
                 new BookingRequestDto(
                         secondFixture.doctor().getId(),
                         secondFixture.schedule().getId(),
-                        "Back pain"
+                        "Back pain",
+                        null
                 )))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("full");

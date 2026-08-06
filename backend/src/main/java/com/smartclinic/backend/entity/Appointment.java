@@ -59,4 +59,13 @@ public class Appointment {
 
     @Column(name = "travel_fee")
     private java.math.BigDecimal travelFee;
+
+    @Column(name = "expected_time", columnDefinition = "NVARCHAR(50)")
+    private String expectedTime;
+
+    @Column(name = "actual_start_time")
+    private java.time.LocalTime actualStartTime;
+
+    @Column(name = "actual_end_time")
+    private java.time.LocalTime actualEndTime;
 }

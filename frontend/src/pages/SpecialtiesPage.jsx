@@ -23,15 +23,15 @@ const SpecialtiesPage = () => {
     }, []);
 
     if (loading) {
-        return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', color: '#6b7280' }}>Loading specialties...</div>;
+        return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', color: '#6b7280' }}>Đang tải chuyên khoa...</div>;
     }
 
     return (
         <div style={{ padding: '4rem 2rem', backgroundColor: '#f8fafc', minHeight: '100vh' }}>
             <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
                 <div style={{ marginBottom: '3rem', textAlign: 'center' }}>
-                    <h1 style={{ fontSize: '2.5rem', fontWeight: '800', color: '#1f2937', marginBottom: '1rem' }}>Our Specialties</h1>
-                    <p style={{ color: '#6b7280', fontSize: '1.125rem' }}>Discover our wide range of medical specialties and find the right expert for your needs.</p>
+                    <h1 style={{ fontSize: '2.5rem', fontWeight: '800', color: '#1f2937', marginBottom: '1rem' }}>Chuyên khoa của chúng tôi</h1>
+                    <p style={{ color: '#6b7280', fontSize: '1.125rem' }}>Khám phá các chuyên khoa y tế đa dạng của chúng tôi và tìm chuyên gia phù hợp với nhu cầu của bạn.</p>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -116,7 +116,7 @@ const SpecialtiesPage = () => {
                         </div>
                     ))}
                     {specialties.length === 0 && (
-                        <p style={{ color: '#6b7280', textAlign: 'center' }}>No specialties available.</p>
+                        <p style={{ color: '#6b7280', textAlign: 'center' }}>Không có chuyên khoa nào.</p>
                     )}
                 </div>
             </div>

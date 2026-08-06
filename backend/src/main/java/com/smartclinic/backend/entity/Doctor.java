@@ -42,4 +42,16 @@ public class Doctor {
 
     @Column(name = "biography", columnDefinition = "NVARCHAR(MAX)")
     private String biography;
+
+    @Column(name = "can_clinic_visit")
+    @Builder.Default
+    private Boolean canClinicVisit = true;
+
+    @Column(name = "can_home_visit")
+    @Builder.Default
+    private Boolean canHomeVisit = false;
+
+    @Column(name = "home_visit_radius")
+    @Builder.Default
+    private Double homeVisitRadius = 0.0;
 }

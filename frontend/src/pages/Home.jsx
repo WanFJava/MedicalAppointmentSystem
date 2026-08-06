@@ -50,7 +50,7 @@ const Home = () => {
                         marginBottom: '1.5rem',
                         lineHeight: 1.2
                     }}>
-                        Your Health, Our <span style={{ color: '#4f46e5' }}>Top Priority</span>
+                        Sức khỏe của bạn là <span style={{ color: '#4f46e5' }}>Ưu tiên hàng đầu</span>
                     </h1>
                     <p style={{
                         fontSize: '1.25rem',
@@ -58,8 +58,8 @@ const Home = () => {
                         marginBottom: '2.5rem',
                         lineHeight: 1.6
                     }}>
-                        Experience world-class medical care with our team of expert doctors.
-                        Book your appointment online and skip the waiting room.
+                        Trải nghiệm dịch vụ chăm sóc y tế đẳng cấp với đội ngũ bác sĩ chuyên gia.
+                        Đặt lịch hẹn trực tuyến và không cần chờ đợi.
                     </p>
                     <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '3rem' }}>
                         <button
@@ -74,7 +74,7 @@ const Home = () => {
                                 }
                             }}
                         >
-                            {user?.role === 'ADMIN' ? 'Go to Admin Dashboard' : 'Book an Appointment'}
+                            {user?.role === 'ADMIN' ? 'Đến bảng điều khiển Quản trị' : 'Đặt lịch khám'}
                         </button>
                         {!user && (
                             <button
@@ -91,7 +91,7 @@ const Home = () => {
                                 }}
                                 onClick={() => navigate('/register')}
                             >
-                                Register Now
+                                Đăng ký ngay
                             </button>
                         )}
                     </div>
@@ -114,7 +114,7 @@ const Home = () => {
                         />
                         <input
                             type="text"
-                            placeholder="Search doctors, specialties..."
+                            placeholder="Tìm kiếm bác sĩ, chuyên khoa..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             style={{
@@ -127,7 +127,7 @@ const Home = () => {
                             }}
                         />
                         <button type="submit" className="btn-primary" style={{ position: 'absolute', right: '0.5rem', top: '0.5rem', bottom: '0.5rem', padding: '0 1.5rem', borderRadius: '0.375rem', width: 'auto' }}>
-                            Search
+                            Tìm kiếm
                         </button>
                     </form>
                 </div>
@@ -137,7 +137,7 @@ const Home = () => {
             <div style={{ padding: '4rem 2rem', backgroundColor: '#f8fafc' }}>
                 <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
                     <div style={{ marginBottom: '2rem' }}>
-                        <h2 style={{ fontSize: '2rem', fontWeight: '700', color: '#1f2937' }}>Our Specialties</h2>
+                        <h2 style={{ fontSize: '2rem', fontWeight: '700', color: '#1f2937' }}>Chuyên khoa của chúng tôi</h2>
                     </div>
 
                     <div style={{ 
@@ -213,7 +213,7 @@ const Home = () => {
                             </div>
                         ))}
                         {specialties.length === 0 && (
-                            <p style={{ color: '#6b7280', gridColumn: '1 / -1', textAlign: 'center' }}>No specialties available.</p>
+                            <p style={{ color: '#6b7280', gridColumn: '1 / -1', textAlign: 'center' }}>Không có chuyên khoa nào.</p>
                         )}
                     </div>
                 </div>
@@ -223,8 +223,8 @@ const Home = () => {
             <div style={{ padding: '4rem 2rem', backgroundColor: 'white' }}>
                 <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
                     <div style={{ marginBottom: '2rem' }}>
-                        <h2 style={{ fontSize: '2rem', fontWeight: '700', color: '#1f2937' }}>Top Rated Doctors</h2>
-                        <p style={{ color: '#6b7280' }}>Our most highly rated professionals.</p>
+                        <h2 style={{ fontSize: '2rem', fontWeight: '700', color: '#1f2937' }}>Bác sĩ Đánh giá Cao</h2>
+                        <p style={{ color: '#6b7280' }}>Những chuyên gia được đánh giá cao nhất của chúng tôi.</p>
                     </div>
 
                     <div style={{ 
@@ -304,10 +304,10 @@ const Home = () => {
                                     <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#475569', fontSize: '0.9rem', paddingBottom: '1.25rem', borderBottom: '1px dashed #e2e8f0', marginBottom: '1.25rem' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                                             <Clock size={16} color="#9ca3af" />
-                                            <span><strong>{doc.experience}</strong> yrs exp</span>
+                                            <span><strong>{doc.experience}</strong> năm kinh nghiệm</span>
                                         </div>
                                         <div style={{ fontWeight: '700', color: '#10b981', fontSize: '1.05rem' }}>
-                                            ${doc.consultationFee}
+                                            {doc.consultationFee} VNĐ
                                         </div>
                                     </div>
 
@@ -322,7 +322,8 @@ const Home = () => {
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             if (user) {
-                                                navigate('/book', { state: { preselectDoctor: doc.id } });
+                                                const targetPath = (doc.canClinicVisit === false || (doc.canClinicVisit == null && doc.canHomeVisit === true)) ? '/book-home-visit' : '/book';
+                                                navigate(targetPath, { state: { preselectDoctor: doc.id } });
                                             } else {
                                                 navigate('/login');
                                             }
@@ -334,7 +335,7 @@ const Home = () => {
                             </div>
                         ))}
                         {doctors.length === 0 && (
-                            <p style={{ color: '#6b7280', gridColumn: '1 / -1', textAlign: 'center' }}>No top-rated doctors available.</p>
+                            <p style={{ color: '#6b7280', gridColumn: '1 / -1', textAlign: 'center' }}>Không có bác sĩ nào được đánh giá cao.</p>
                         )}
                     </div>
                 </div>
@@ -344,16 +345,16 @@ const Home = () => {
             <div style={{ padding: '4rem 2rem', backgroundColor: '#f8fafc' }}>
                 <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
                     <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-                        <h2 style={{ fontSize: '2rem', fontWeight: '700', color: '#1f2937', marginBottom: '1rem' }}>Why Choose Us?</h2>
-                        <p style={{ color: '#6b7280', fontSize: '1.125rem' }}>We provide the best medical services for you and your family.</p>
+                        <h2 style={{ fontSize: '2rem', fontWeight: '700', color: '#1f2937', marginBottom: '1rem' }}>Tại sao chọn chúng tôi?</h2>
+                        <p style={{ color: '#6b7280', fontSize: '1.125rem' }}>Chúng tôi cung cấp dịch vụ y tế tốt nhất cho bạn và gia đình.</p>
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem' }}>
                         {[
-                            { icon: <Activity size={32} />, title: 'Expert Doctors', desc: 'Our clinic is staffed by highly qualified professionals.' },
-                            { icon: <Calendar size={32} />, title: 'Easy Booking', desc: 'Schedule appointments online with just a few clicks.' },
-                            { icon: <Clock size={32} />, title: '24/7 Support', desc: 'We are always here to help you when you need it most.' },
-                            { icon: <Shield size={32} />, title: 'Secure Records', desc: 'Your medical history is kept strictly confidential and secure.' }
+                            { icon: <Activity size={32} />, title: 'Bác sĩ Chuyên môn', desc: 'Phòng khám của chúng tôi có đội ngũ chuyên gia trình độ cao.' },
+                            { icon: <Calendar size={32} />, title: 'Đặt lịch dễ dàng', desc: 'Đặt lịch hẹn trực tuyến chỉ với vài cú nhấp chuột.' },
+                            { icon: <Clock size={32} />, title: 'Hỗ trợ 24/7', desc: 'Chúng tôi luôn ở đây để giúp bạn khi bạn cần nhất.' },
+                            { icon: <Shield size={32} />, title: 'Hồ sơ Bảo mật', desc: 'Tiền sử bệnh của bạn được giữ bí mật và an toàn tuyệt đối.' }
                         ].map((feature, index) => (
                             <div key={index} style={{
                                 padding: '2rem',

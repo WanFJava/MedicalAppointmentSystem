@@ -18,6 +18,8 @@ const BookingPage = () => {
     const [specialties, setSpecialties] = useState([]);
     const [doctors, setDoctors] = useState([]);
     const [filteredDoctors, setFilteredDoctors] = useState([]);
+    const [searchSpec, setSearchSpec] = useState('');
+    const [searchDoc, setSearchDoc] = useState('');
 
     // Selection state
     const [selectedSpec, setSelectedSpec] = useState(location.state?.selectedSpec || '');
@@ -25,6 +27,7 @@ const BookingPage = () => {
     const [schedulesByDate, setSchedulesByDate] = useState({});
     const [selectedDate, setSelectedDate] = useState('');
     const [selectedSchedule, setSelectedSchedule] = useState(null);
+    const [selectedSlotStr, setSelectedSlotStr] = useState('');
     const [symptom, setSymptom] = useState('');
     const [patientProfile, setPatientProfile] = useState(null);
 
@@ -55,7 +58,7 @@ const BookingPage = () => {
             // Check if profile is complete
             const profile = await getPatientProfile(user.id);
             if (!profile.birthday || !profile.gender || !profile.address || !profile.bloodGroup || !profile.phone) {
-                alert("Please complete your profile information (Phone, Birthday, Gender, Address, Blood Group) before booking an appointment.");
+                alert("Vui lòng cập nhật thông tin hồ sơ (Số điện thoại, Ngày sinh, Giới tính, Địa chỉ, Nhóm máu) trước khi đặt lịch khám.");
                 navigate('/profile');
                 return;
             }
@@ -73,8 +76,28 @@ const BookingPage = () => {
 
                     if (initialSelectedDate && initialSelectedSchedule) {
                         setSelectedDate(initialSelectedDate);
-                        setSelectedSchedule(initialSelectedSchedule);
-                        setStep(4);
+                        fetchSchedules(doc.id);
+
+                        const formatT = (t) => {
+                            if (!t) return '';
+                            if (Array.isArray(t)) return `${t[0].toString().padStart(2, '0')}:${t[1].toString().padStart(2, '0')}`;
+                            return t.substring(0, 5);
+                        };
+
+                        const startStr = formatT(initialSelectedSchedule.startTime);
+                        const endStr = formatT(initialSelectedSchedule.endTime);
+                        const d1 = new Date(`1970-01-01T${startStr}:00`);
+                        const d2 = new Date(`1970-01-01T${endStr}:00`);
+
+                        if (d2 - d1 === 30 * 60000) {
+                            // It's a 30-minute slot, auto-select it
+                            setSelectedSchedule(initialSelectedSchedule);
+                            setSelectedSlotStr(`${startStr} - ${endStr}`);
+                            setStep(4);
+                        } else {
+                            // It's a longer schedule, user needs to pick a slot
+                            setStep(3);
+                        }
                     } else {
                         fetchSchedules(doc.id);
                         setStep(3);
@@ -82,7 +105,7 @@ const BookingPage = () => {
                 }
             } else if (location.state?.selectedSpec) {
                 // Restore filtered doctors if user navigated back
-                const docsFiltered = docs.filter(d => d.specialtyId === parseInt(location.state.selectedSpec) && d.status === 'ACTIVE');
+                const docsFiltered = docs.filter(d => d.specialtyId === parseInt(location.state.selectedSpec) && d.status === 'ACTIVE' && (d.canClinicVisit === true || (d.canClinicVisit == null && d.canHomeVisit !== true)));
                 setFilteredDoctors(docsFiltered);
             }
         } catch (error) {
@@ -92,7 +115,7 @@ const BookingPage = () => {
 
     const handleSpecSelect = (specId) => {
         setSelectedSpec(specId);
-        const docs = doctors.filter(d => d.specialtyId === parseInt(specId) && d.status === 'ACTIVE');
+        const docs = doctors.filter(d => d.specialtyId === parseInt(specId) && d.status === 'ACTIVE' && (d.canClinicVisit === true || (d.canClinicVisit == null && d.canHomeVisit !== true)));
         setFilteredDoctors(docs);
         setSelectedDoctor(null);
         setStep(2);
@@ -107,7 +130,10 @@ const BookingPage = () => {
     const fetchSchedules = async (doctorId) => {
         try {
             setLoading(true);
-            const data = await getAvailableSchedules(doctorId);
+            let data = await getAvailableSchedules(doctorId);
+            // Filter to only CLINIC schedules
+            data = data.filter(s => s.scheduleType === 'CLINIC');
+            
             // Group by date
             const grouped = data.reduce((acc, curr) => {
                 if (!acc[curr.date]) acc[curr.date] = [];
@@ -143,14 +169,44 @@ const BookingPage = () => {
         return timeStr.substring(0, 5);
     };
 
-    const handleScheduleSelect = (schedule) => {
-        setSelectedSchedule(schedule);
+    const generateSlots = (schedule) => {
+        const slots = [];
+        let current = new Date(`1970-01-01T${formatTime(schedule.startTime)}:00Z`);
+        const end = new Date(`1970-01-01T${formatTime(schedule.endTime)}:00Z`);
+        
+        while (current < end) {
+            const next = new Date(current.getTime() + 30 * 60000);
+            if (next <= end) {
+                const slotStart = current.toISOString().substring(11, 16);
+                const slotEnd = next.toISOString().substring(11, 16);
+                slots.push({
+                    schedule: schedule,
+                    timeRange: `${slotStart} - ${slotEnd}`
+                });
+            }
+            current = next;
+        }
+        return slots;
+    };
+
+    const getAvailableSlotsForDate = (date) => {
+        if (!schedulesByDate[date]) return [];
+        let allSlots = [];
+        schedulesByDate[date].forEach(sched => {
+            allSlots = allSlots.concat(generateSlots(sched));
+        });
+        return allSlots;
+    };
+
+    const handleSlotSelect = (slot) => {
+        setSelectedSchedule(slot.schedule);
+        setSelectedSlotStr(slot.timeRange);
         setStep(4);
     };
 
     const handleBooking = async () => {
         if (!selectedSchedule || !symptom.trim()) {
-            alert("Please provide your symptoms.");
+            alert("Vui lòng cung cấp triệu chứng của bạn.");
             return;
         }
 
@@ -159,11 +215,12 @@ const BookingPage = () => {
             const response = await bookAppointment(user.id, {
                 doctorId: selectedDoctor.id,
                 scheduleId: selectedSchedule.id,
-                symptom: symptom
+                symptom: symptom,
+                expectedTime: selectedSlotStr
             });
             setSuccess(true);
         } catch (error) {
-            alert("Booking failed. Please try again.");
+            alert("Đặt lịch thất bại. Vui lòng thử lại.");
             console.error(error);
         } finally {
             setLoading(false);
@@ -174,13 +231,13 @@ const BookingPage = () => {
         return (
             <div style={{ maxWidth: '600px', margin: '4rem auto', textAlign: 'center', backgroundColor: 'white', padding: '4rem 3rem', borderRadius: '1.5rem', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)' }}>
                 <CheckCircle size={80} color="#10b981" style={{ margin: '0 auto 1.5rem' }} />
-                <h2 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#111827', fontWeight: 800 }}>Booking Successful!</h2>
+                <h2 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#111827', fontWeight: 800 }}>Đặt lịch Thành công!</h2>
                 <p style={{ color: '#4b5563', marginBottom: '2.5rem', fontSize: '1.125rem', lineHeight: 1.6 }}>
-                    Your appointment with <strong style={{color: '#1f2937'}}>{selectedDoctor.fullName}</strong> on <strong style={{color: '#1f2937'}}>{selectedDate}</strong> at <strong style={{color: '#1f2937'}}>{formatTime(selectedSchedule.startTime)} - {formatTime(selectedSchedule.endTime)}</strong> has been placed.
+                    Lịch khám của bạn với <strong style={{color: '#1f2937'}}>{selectedDoctor.fullName}</strong> vào ngày <strong style={{color: '#1f2937'}}>{selectedDate}</strong> lúc <strong style={{color: '#1f2937'}}>{selectedSlotStr}</strong> đã được đặt thành công.
                 </p>
                 <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                    <button onClick={() => navigate('/')} style={{ padding: '0.875rem 1.5rem', borderRadius: '0.75rem', fontWeight: 600, backgroundColor: '#f3f4f6', color: '#374151', border: 'none', cursor: 'pointer', transition: 'all 0.2s', fontSize: '1rem' }} onMouseOver={e => e.currentTarget.style.backgroundColor = '#e5e7eb'} onMouseOut={e => e.currentTarget.style.backgroundColor = '#f3f4f6'}>Back to Home</button>
-                    <button className="btn-primary" onClick={() => navigate('/my-appointments')} style={{ width: 'auto', padding: '0.875rem 1.5rem', borderRadius: '0.75rem', fontWeight: 600, fontSize: '1rem' }}>View My Appointments</button>
+                    <button onClick={() => navigate('/')} style={{ padding: '0.875rem 1.5rem', borderRadius: '0.75rem', fontWeight: 600, backgroundColor: '#f3f4f6', color: '#374151', border: 'none', cursor: 'pointer', transition: 'all 0.2s', fontSize: '1rem' }} onMouseOver={e => e.currentTarget.style.backgroundColor = '#e5e7eb'} onMouseOut={e => e.currentTarget.style.backgroundColor = '#f3f4f6'}>Về Trang chủ</button>
+                    <button className="btn-primary" onClick={() => navigate('/my-appointments')} style={{ width: 'auto', padding: '0.875rem 1.5rem', borderRadius: '0.75rem', fontWeight: 600, fontSize: '1rem' }}>Xem Lịch hẹn của tôi</button>
                 </div>
             </div>
         );
@@ -189,7 +246,7 @@ const BookingPage = () => {
     return (
         <div className="booking-container">
             <h1 style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '3rem', color: '#111827', textAlign: 'center' }}>
-                Book an Appointment
+                Đặt lịch Khám
             </h1>
 
             {/* Stepper */}
@@ -198,10 +255,10 @@ const BookingPage = () => {
                 <div style={{ position: 'absolute', top: '24px', left: '10%', width: `${(step - 1) * 33.33}%`, height: '4px', backgroundColor: 'var(--primary-color)', zIndex: 1, transition: 'width 0.4s ease' }}></div>
 
                 {[
-                    { num: 1, label: 'Specialty', icon: <Stethoscope size={24} /> },
-                    { num: 2, label: 'Doctor', icon: <User size={24} /> },
-                    { num: 3, label: 'Time', icon: <Clock size={24} /> },
-                    { num: 4, label: 'Confirm', icon: <CheckCircle size={24} /> }
+                    { num: 1, label: 'Chuyên khoa', icon: <Stethoscope size={24} /> },
+                    { num: 2, label: 'Bác sĩ', icon: <User size={24} /> },
+                    { num: 3, label: 'Thời gian', icon: <Clock size={24} /> },
+                    { num: 4, label: 'Xác nhận', icon: <CheckCircle size={24} /> }
                 ].map(s => (
                     <div key={s.num} style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
                         <div style={{
@@ -232,11 +289,22 @@ const BookingPage = () => {
                                 navigate('/');
                             }
                         }} style={{ marginBottom: '1.5rem', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 600, padding: 0 }} onMouseOver={e => e.currentTarget.style.color = 'var(--primary-color)'} onMouseOut={e => e.currentTarget.style.color = '#6b7280'}>
-                            ← Back
+                            ← Quay lại
                         </button>
-                        <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '2rem', color: '#111827', textAlign: 'center' }}>Select a Medical Specialty</h2>
+                        <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '1.5rem', color: '#111827', textAlign: 'center' }}>Chọn Chuyên khoa Y tế</h2>
+                        <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'center' }}>
+                            <input 
+                                type="text" 
+                                placeholder="Tìm kiếm chuyên khoa..." 
+                                value={searchSpec}
+                                onChange={e => setSearchSpec(e.target.value)}
+                                style={{ width: '100%', maxWidth: '500px', padding: '1rem', borderRadius: '0.75rem', border: '2px solid #e2e8f0', fontSize: '1rem', outline: 'none' }}
+                                onFocus={e => e.target.style.borderColor = 'var(--primary-color)'}
+                                onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+                            />
+                        </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                            {specialties.map(spec => (
+                            {specialties.filter(spec => spec.name.toLowerCase().includes(searchSpec.toLowerCase())).map(spec => (
                                 <div key={spec.id} style={{
                                     backgroundColor: 'white',
                                     borderRadius: '0.5rem',
@@ -246,6 +314,7 @@ const BookingPage = () => {
                                     transition: 'transform 0.2s, boxShadow 0.2s',
                                     display: 'flex',
                                     flexDirection: 'row',
+                                    flexWrap: 'wrap',
                                     alignItems: 'stretch',
                                     cursor: 'pointer'
                                 }}
@@ -264,7 +333,7 @@ const BookingPage = () => {
                                 }}
                                 >
                                     {/* LEFT COLUMN: Icon & Title */}
-                                    <div style={{ padding: '1.5rem', flex: '1 1 45%', display: 'flex', gap: '1.5rem', borderRight: '1px solid #e2e8f0', alignItems: 'center' }}>
+                                    <div style={{ padding: '1.5rem', flex: '1 1 300px', display: 'flex', gap: '1.5rem', borderRight: '1px solid #e2e8f0', alignItems: 'center' }}>
                                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '100px' }}>
                                             <div style={{
                                                 width: '100px',
@@ -294,7 +363,7 @@ const BookingPage = () => {
                                     </div>
 
                                     {/* RIGHT COLUMN: Description & Action */}
-                                    <div style={{ padding: '1.5rem', flex: '1 1 55%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                                    <div style={{ padding: '1.5rem', flex: '1 1 300px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                                         <p style={{ color: '#64748b', fontSize: '1rem', lineHeight: '1.6', marginBottom: '1.5rem' }}>
                                             {spec.description}
                                         </p>
@@ -309,16 +378,27 @@ const BookingPage = () => {
                 {step === 2 && (
                     <div style={{ animation: 'fadeIn 0.3s ease-out' }}>
                         <button onClick={() => setStep(1)} style={{ marginBottom: '1.5rem', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 600, padding: 0 }} onMouseOver={e => e.currentTarget.style.color = 'var(--primary-color)'} onMouseOut={e => e.currentTarget.style.color = '#6b7280'}>
-                            ← Back to Specialties
+                            ← Quay lại Chọn chuyên khoa
                         </button>
-                        <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '2rem', color: '#111827' }}>Select a Doctor</h2>
-                        {filteredDoctors.length === 0 ? (
+                        <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '1.5rem', color: '#111827' }}>Chọn Bác sĩ</h2>
+                        <div style={{ marginBottom: '2rem' }}>
+                            <input 
+                                type="text" 
+                                placeholder="Tìm kiếm bác sĩ..." 
+                                value={searchDoc}
+                                onChange={e => setSearchDoc(e.target.value)}
+                                style={{ width: '100%', maxWidth: '500px', padding: '1rem', borderRadius: '0.75rem', border: '2px solid #e2e8f0', fontSize: '1rem', outline: 'none' }}
+                                onFocus={e => e.target.style.borderColor = 'var(--primary-color)'}
+                                onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+                            />
+                        </div>
+                        {filteredDoctors.filter(doc => doc.fullName.toLowerCase().includes(searchDoc.toLowerCase())).length === 0 ? (
                             <div style={{ padding: '3rem', backgroundColor: '#fef2f2', border: '2px dashed #fca5a5', borderRadius: '1rem', textAlign: 'center' }}>
-                                <p style={{ color: '#ef4444', fontSize: '1.125rem', fontWeight: 500 }}>No doctors found for this specialty.</p>
+                                <p style={{ color: '#ef4444', fontSize: '1.125rem', fontWeight: 500 }}>Không tìm thấy bác sĩ nào phù hợp.</p>
                             </div>
                         ) : (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                                {filteredDoctors.map(doc => (
+                                {filteredDoctors.filter(doc => doc.fullName.toLowerCase().includes(searchDoc.toLowerCase())).map(doc => (
                                     <DoctorCard key={doc.id} doc={doc} onDoctorSelect={handleDoctorSelect} />
                                 ))}
                             </div>
@@ -337,16 +417,16 @@ const BookingPage = () => {
                                 setStep(2);
                             }
                         }} style={{ marginBottom: '1.5rem', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 600, padding: 0 }} onMouseOver={e => e.currentTarget.style.color = 'var(--primary-color)'} onMouseOut={e => e.currentTarget.style.color = '#6b7280'}>
-                            ← {preselectDoctorId ? 'Back' : 'Back to Doctors'}
+                            ← {preselectDoctorId ? 'Quay lại' : 'Quay lại Chọn bác sĩ'}
                         </button>
-                        <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '2rem', color: '#111827' }}>Select Date & Time</h2>
+                        <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '2rem', color: '#111827' }}>Chọn Ngày & Giờ</h2>
 
                         <div style={{ marginBottom: '2.5rem', backgroundColor: '#f8fafc', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #e2e8f0' }}>
-                            <label style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 700, color: '#374151', fontSize: '1.125rem' }}>Select Date</label>
+                            <label style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 700, color: '#374151', fontSize: '1.125rem' }}>Chọn Ngày</label>
                             {loading ? (
-                                <p style={{ color: '#6b7280' }}>Loading schedules...</p>
+                                <p style={{ color: '#6b7280' }}>Đang tải lịch khám...</p>
                             ) : Object.keys(schedulesByDate).length === 0 ? (
-                                <p style={{ color: '#ef4444', fontWeight: 500 }}>This doctor has no available schedules at the moment.</p>
+                                <p style={{ color: '#ef4444', fontWeight: 500 }}>Bác sĩ này hiện chưa có lịch khám nào.</p>
                             ) : (
                                 <div>
                                     <input
@@ -371,7 +451,7 @@ const BookingPage = () => {
                                     />
                                     {selectedDate && !schedulesByDate[selectedDate] && (
                                         <p style={{ color: '#ef4444', marginTop: '0.75rem', fontSize: '0.95rem', fontWeight: 500 }}>
-                                            No time slots available on this date. Please select another date.
+                                            Không có khung giờ nào trống trong ngày này. Vui lòng chọn ngày khác.
                                         </p>
                                     )}
                                 </div>
@@ -380,11 +460,11 @@ const BookingPage = () => {
 
                         {selectedDate && schedulesByDate[selectedDate] && (
                             <div>
-                                <label style={{ display: 'block', marginBottom: '1rem', fontWeight: 700, color: '#374151', fontSize: '1.125rem' }}>Available Time Slots for {selectedDate}</label>
+                                <label style={{ display: 'block', marginBottom: '1rem', fontWeight: 700, color: '#374151', fontSize: '1.125rem' }}>Các khung giờ trống ngày {selectedDate}</label>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
-                                    {schedulesByDate[selectedDate].map(sched => (
-                                        <button key={sched.id} className="time-slot-btn" onClick={() => handleScheduleSelect(sched)}>
-                                            {formatTime(sched.startTime)} - {formatTime(sched.endTime)}
+                                    {getAvailableSlotsForDate(selectedDate).map((slot, index) => (
+                                        <button key={index} className="time-slot-btn" onClick={() => handleSlotSelect(slot)}>
+                                            {slot.timeRange}
                                         </button>
                                     ))}
                                 </div>
@@ -404,78 +484,78 @@ const BookingPage = () => {
                                 setStep(3);
                             }
                         }} style={{ marginBottom: '1.5rem', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 600, padding: 0 }} onMouseOver={e => e.currentTarget.style.color = 'var(--primary-color)'} onMouseOut={e => e.currentTarget.style.color = '#6b7280'}>
-                            ← {(preselectDoctorId && initialSelectedDate && initialSelectedSchedule) ? 'Back' : 'Back to Time Slots'}
+                            ← {(preselectDoctorId && initialSelectedDate && initialSelectedSchedule) ? 'Quay lại' : 'Quay lại Chọn khung giờ'}
                         </button>
-                        <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '2rem', color: '#111827' }}>Confirm Appointment Details</h2>
+                        <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '2rem', color: '#111827' }}>Xác nhận Chi tiết Lịch hẹn</h2>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2.5rem' }}>
                             <div style={{ backgroundColor: '#f8fafc', padding: '2rem', borderRadius: '1.25rem', border: '1px solid #e2e8f0' }}>
                                 <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1f2937', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <Stethoscope size={20} color="var(--primary-color)" /> Appointment Info
+                                    <Stethoscope size={20} color="var(--primary-color)" /> Thông tin Lịch hẹn
                                 </h3>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                                     <div>
-                                        <div style={{ color: '#6b7280', fontSize: '0.95rem', fontWeight: 500, marginBottom: '0.25rem' }}>Doctor</div>
+                                        <div style={{ color: '#6b7280', fontSize: '0.95rem', fontWeight: 500, marginBottom: '0.25rem' }}>Bác sĩ</div>
                                         <div style={{ fontWeight: 700, color: '#111827', fontSize: '1.125rem' }}>{selectedDoctor?.fullName}</div>
                                     </div>
                                     <div>
-                                        <div style={{ color: '#6b7280', fontSize: '0.95rem', fontWeight: 500, marginBottom: '0.25rem' }}>Specialty</div>
+                                        <div style={{ color: '#6b7280', fontSize: '0.95rem', fontWeight: 500, marginBottom: '0.25rem' }}>Chuyên khoa</div>
                                         <div style={{ fontWeight: 700, color: '#111827', fontSize: '1.125rem' }}>{specialties.find(s => s.id === parseInt(selectedSpec))?.name}</div>
                                     </div>
                                     <div style={{ display: 'flex', gap: '2rem' }}>
                                         <div>
-                                            <div style={{ color: '#6b7280', fontSize: '0.95rem', fontWeight: 500, marginBottom: '0.25rem' }}>Date</div>
+                                            <div style={{ color: '#6b7280', fontSize: '0.95rem', fontWeight: 500, marginBottom: '0.25rem' }}>Ngày</div>
                                             <div style={{ fontWeight: 700, color: '#111827', fontSize: '1.125rem' }}>{selectedDate}</div>
                                         </div>
                                         <div>
-                                            <div style={{ color: '#6b7280', fontSize: '0.95rem', fontWeight: 500, marginBottom: '0.25rem' }}>Time</div>
-                                            <div style={{ fontWeight: 700, color: '#111827', fontSize: '1.125rem' }}>{formatTime(selectedSchedule?.startTime)} - {formatTime(selectedSchedule?.endTime)}</div>
+                                            <div style={{ color: '#6b7280', fontSize: '0.95rem', fontWeight: 500, marginBottom: '0.25rem' }}>Thời gian</div>
+                                            <div style={{ fontWeight: 700, color: '#111827', fontSize: '1.125rem' }}>{selectedSlotStr}</div>
                                         </div>
                                     </div>
                                     <div>
-                                        <div style={{ color: '#6b7280', fontSize: '0.95rem', fontWeight: 500, marginBottom: '0.25rem' }}>Consultation Fee</div>
-                                        <div style={{ fontWeight: 800, color: '#059669', fontSize: '1.25rem' }}>${selectedDoctor?.consultationFee}</div>
+                                        <div style={{ color: '#6b7280', fontSize: '0.95rem', fontWeight: 500, marginBottom: '0.25rem' }}>Phí khám bệnh</div>
+                                        <div style={{ fontWeight: 800, color: '#059669', fontSize: '1.25rem' }}>{selectedDoctor?.consultationFee} VNĐ</div>
                                     </div>
                                 </div>
                             </div>
 
                             <div style={{ backgroundColor: '#f8fafc', padding: '2rem', borderRadius: '1.25rem', border: '1px solid #e2e8f0' }}>
                                 <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1f2937', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <User size={20} color="var(--primary-color)" /> Patient Info
+                                    <User size={20} color="var(--primary-color)" /> Thông tin Bệnh nhân
                                 </h3>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                                     <div>
-                                        <div style={{ color: '#6b7280', fontSize: '0.95rem', fontWeight: 500, marginBottom: '0.25rem' }}>Patient Name</div>
+                                        <div style={{ color: '#6b7280', fontSize: '0.95rem', fontWeight: 500, marginBottom: '0.25rem' }}>Tên Bệnh nhân</div>
                                         <div style={{ fontWeight: 700, color: '#111827', fontSize: '1.125rem' }}>{patientProfile?.fullName}</div>
                                     </div>
                                     <div>
-                                        <div style={{ color: '#6b7280', fontSize: '0.95rem', fontWeight: 500, marginBottom: '0.25rem' }}>Phone Number</div>
+                                        <div style={{ color: '#6b7280', fontSize: '0.95rem', fontWeight: 500, marginBottom: '0.25rem' }}>Số điện thoại</div>
                                         <div style={{ fontWeight: 700, color: '#111827', fontSize: '1.125rem' }}>{patientProfile?.phone}</div>
                                     </div>
                                     <div style={{ display: 'flex', gap: '2rem' }}>
                                         <div>
-                                            <div style={{ color: '#6b7280', fontSize: '0.95rem', fontWeight: 500, marginBottom: '0.25rem' }}>Gender</div>
+                                            <div style={{ color: '#6b7280', fontSize: '0.95rem', fontWeight: 500, marginBottom: '0.25rem' }}>Giới tính</div>
                                             <div style={{ fontWeight: 700, color: '#111827', fontSize: '1.125rem' }}>{patientProfile?.gender}</div>
                                         </div>
                                         <div>
-                                            <div style={{ color: '#6b7280', fontSize: '0.95rem', fontWeight: 500, marginBottom: '0.25rem' }}>Blood Group</div>
+                                            <div style={{ color: '#6b7280', fontSize: '0.95rem', fontWeight: 500, marginBottom: '0.25rem' }}>Nhóm máu</div>
                                             <div style={{ fontWeight: 700, color: '#ef4444', fontSize: '1.125rem' }}>{patientProfile?.bloodGroup}</div>
                                         </div>
                                     </div>
                                     <div>
-                                        <div style={{ color: '#6b7280', fontSize: '0.95rem', fontWeight: 500, marginBottom: '0.25rem' }}>Allergies</div>
-                                        <div style={{ fontWeight: 700, color: '#111827', fontSize: '1.125rem' }}>{patientProfile?.allergy || 'None'}</div>
+                                        <div style={{ color: '#6b7280', fontSize: '0.95rem', fontWeight: 500, marginBottom: '0.25rem' }}>Dị ứng</div>
+                                        <div style={{ fontWeight: 700, color: '#111827', fontSize: '1.125rem' }}>{patientProfile?.allergy || 'Không'}</div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <div style={{ marginBottom: '2.5rem' }}>
-                            <label style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 700, color: '#111827', fontSize: '1.125rem' }}>Describe your symptoms <span style={{color: '#ef4444'}}>*</span></label>
+                            <label style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 700, color: '#111827', fontSize: '1.125rem' }}>Mô tả triệu chứng của bạn <span style={{color: '#ef4444'}}>*</span></label>
                             <textarea
                                 value={symptom}
                                 onChange={(e) => setSymptom(e.target.value)}
-                                placeholder="E.g., I have a severe headache and fever..."
+                                placeholder="VD: Tôi bị đau đầu dữ dội và sốt cao..."
                                 style={{ width: '100%', padding: '1.25rem', border: '2px solid #e2e8f0', borderRadius: '1rem', resize: 'vertical', minHeight: '120px', fontSize: '1rem', outline: 'none', transition: 'border-color 0.2s', fontFamily: 'inherit' }}
                                 onFocus={e => e.target.style.borderColor = 'var(--primary-color)'}
                                 onBlur={e => e.target.style.borderColor = '#e2e8f0'}
@@ -489,9 +569,9 @@ const BookingPage = () => {
                             onClick={handleBooking}
                             disabled={loading || !symptom.trim()}
                         >
-                            {loading ? 'Processing...' : (
+                            {loading ? 'Đang xử lý...' : (
                                 <>
-                                    Confirm & Book Appointment <CheckCircle size={20} />
+                                    Xác nhận & Đặt lịch <CheckCircle size={20} />
                                 </>
                             )}
                         </button>

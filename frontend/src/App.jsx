@@ -12,13 +12,16 @@ import ReceptionistDoctorManager from './pages/admin/ReceptionistDoctorManager';
 import AdminSchedulePage from './pages/admin/AdminSchedulePage';
 import ReceptionistDashboard from './pages/admin/ReceptionistDashboard';
 import DoctorDashboard from './pages/admin/DoctorDashboard';
+import ScheduleAppointmentsPage from './pages/admin/ScheduleAppointmentsPage';
 import MedicineManager from './pages/admin/MedicineManager';
 import UserManager from './pages/admin/UserManager';
 import QueueManager from './pages/admin/QueueManager';
 import MainLayout from './layouts/MainLayout';
 import Home from './pages/Home';
 import DoctorProfile from './pages/DoctorProfile';
+import HomeVisitDoctorProfile from './pages/HomeVisitDoctorProfile';
 import BookingPage from './pages/BookingPage';
+import BookHomeVisit from './pages/BookHomeVisit';
 import MyAppointments from './pages/MyAppointments';
 import PatientProfile from './pages/PatientProfile';
 import SearchPage from './pages/SearchPage';
@@ -57,9 +60,11 @@ function App() {
         <Route path="/specialties" element={<SpecialtiesPage />} />
         <Route path="/specialty/:id" element={<SpecialtyDoctorsPage />} />
         <Route path="/doctor/:id" element={<DoctorProfile />} />
+        <Route path="/home-visit-doctor/:id" element={<HomeVisitDoctorProfile />} />
         <Route path="/login" element={user ? (['ADMIN', 'RECEPTIONIST', 'DOCTOR'].includes(user.role) ? <Navigate to="/admin" /> : <Navigate to="/" />) : <Login />} />
         <Route path="/register" element={user ? (['ADMIN', 'RECEPTIONIST', 'DOCTOR'].includes(user.role) ? <Navigate to="/admin" /> : <Navigate to="/" />) : <Register />} />
         <Route path="/book" element={<RoleRoute user={user} roles={['PATIENT']}><BookingPage /></RoleRoute>} />
+        <Route path="/book-home-visit" element={<RoleRoute user={user} roles={['PATIENT']}><BookHomeVisit /></RoleRoute>} />
         <Route path="/my-appointments" element={<RoleRoute user={user} roles={['PATIENT']}><MyAppointments /></RoleRoute>} />
         <Route path="/favorites" element={<RoleRoute user={user} roles={['PATIENT']}><FavoriteDoctors /></RoleRoute>} />
         <Route path="/profile" element={<RoleRoute user={user} roles={['PATIENT']}><PatientProfile /></RoleRoute>} />
@@ -79,6 +84,7 @@ function App() {
         <Route path="live-chat" element={<RoleRoute user={user} roles={['ADMIN', 'RECEPTIONIST']}><LiveChatDashboard /></RoleRoute>} />
         <Route path="feedbacks" element={<RoleRoute user={user} roles={['ADMIN']}><FeedbackManager /></RoleRoute>} />
         <Route path="my-schedule" element={<RoleRoute user={user} roles={['DOCTOR']}><DoctorDashboard tab="appointments" /></RoleRoute>} />
+        <Route path="schedule-appointments/:scheduleId" element={<RoleRoute user={user} roles={['DOCTOR']}><ScheduleAppointmentsPage /></RoleRoute>} />
         <Route path="my-shifts" element={<RoleRoute user={user} roles={['DOCTOR']}><DoctorDashboard tab="myShifts" /></RoleRoute>} />
         <Route path="open-shifts" element={<RoleRoute user={user} roles={['DOCTOR']}><DoctorDashboard tab="openShifts" /></RoleRoute>} />
         <Route path="medicines" element={<RoleRoute user={user} roles={['ADMIN']}><MedicineManager /></RoleRoute>} />

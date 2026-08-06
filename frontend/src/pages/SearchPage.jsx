@@ -62,13 +62,13 @@ const SearchPage = () => {
     return (
         <div style={{ backgroundColor: '#f8fafc', minHeight: '100vh', padding: '2rem' }}>
             <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-                <h1 style={{ fontSize: '2.5rem', fontWeight: '800', color: '#1f2937', marginBottom: '2rem', textAlign: 'center' }}>Search </h1>
+                <h1 style={{ fontSize: '2.5rem', fontWeight: '800', color: '#1f2937', marginBottom: '2rem', textAlign: 'center' }}>Tìm kiếm </h1>
 
                 <form onSubmit={(e) => e.preventDefault()} style={{ position: 'relative', maxWidth: '600px', margin: '0 auto 3rem auto', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', borderRadius: '0.5rem' }}>
                     <Search style={{ position: 'absolute', left: '16px', top: '16px', color: '#9ca3af' }} size={24} />
                     <input
                         type="text"
-                        placeholder="Search doctors, specialties..."
+                        placeholder="Tìm kiếm bác sĩ, chuyên khoa..."
                         value={searchQuery}
                         onChange={(e) => {
                             const val = e.target.value;
@@ -91,13 +91,13 @@ const SearchPage = () => {
                 </form>
 
                 {loading ? (
-                    <div style={{ textAlign: 'center', color: '#6b7280', fontSize: '1.25rem' }}>Searching...</div>
+                    <div style={{ textAlign: 'center', color: '#6b7280', fontSize: '1.25rem' }}>Đang tìm kiếm...</div>
                 ) : (
                     <>
                         {/* Specialties Results */}
                         <div style={{ marginBottom: '4rem' }}>
                             <h2 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#1f2937', marginBottom: '1.5rem', borderBottom: '2px solid #e5e7eb', paddingBottom: '0.5rem' }}>
-                                Specialties ({filteredSpecialties.length})
+                                Chuyên khoa ({filteredSpecialties.length})
                             </h2>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                 {filteredSpecialties.map((spec) => (
@@ -166,7 +166,7 @@ const SearchPage = () => {
                                     </div>
                                 ))}
                                 {filteredSpecialties.length === 0 && (
-                                    <p style={{ color: '#6b7280' }}>No specialties found matching '{currentQuery}'.</p>
+                                    <p style={{ color: '#6b7280' }}>Không tìm thấy chuyên khoa nào phù hợp với '{currentQuery}'.</p>
                                 )}
                             </div>
                         </div>
@@ -174,14 +174,14 @@ const SearchPage = () => {
                         {/* Doctors Results */}
                         <div>
                             <h2 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#1f2937', marginBottom: '1.5rem', borderBottom: '2px solid #e5e7eb', paddingBottom: '0.5rem' }}>
-                                Doctors ({filteredDoctors.length})
+                                Bác sĩ ({filteredDoctors.length})
                             </h2>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                 {filteredDoctors.map((doc) => (
                                 <DoctorCard key={doc.id} doc={doc} />
                                 ))}
                                 {filteredDoctors.length === 0 && (
-                                    <p style={{ color: '#6b7280' }}>No doctors found matching '{currentQuery}'.</p>
+                                    <p style={{ color: '#6b7280' }}>Không tìm thấy bác sĩ nào phù hợp với '{currentQuery}'.</p>
                                 )}
                             </div>
                         </div>

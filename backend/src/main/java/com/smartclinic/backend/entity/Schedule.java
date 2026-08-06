@@ -46,4 +46,9 @@ public class Schedule {
 
     @Column(name = "note", columnDefinition = "NVARCHAR(255)")
     private String note;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "schedule_type", nullable = false)
+    @Builder.Default
+    private ScheduleType scheduleType = ScheduleType.CLINIC;
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { bookHomeVisit, getAllAppointments, updateAppointmentStatus, getAvailableSchedules } from '../../api/appointmentApi';
+import { bookHomeVisit, getAllAppointments, updateAppointmentStatus, getAvailableSchedules, confirmHomeVisit } from '../../api/appointmentApi';
 import { getSpecialties, getDoctors } from '../../api/adminApi';
 import { getAllPatients } from '../../api/patientApi';
 import { toast } from 'react-hot-toast';
@@ -14,6 +14,9 @@ const HomeVisitManager = () => {
     const [schedules, setSchedules] = useState([]);
     const [patients, setPatients] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [patientSearch, setPatientSearch] = useState('');
+    const [doctorSearch, setDoctorSearch] = useState('');
 
     const [formData, setFormData] = useState({
         patientId: '',
@@ -127,13 +130,77 @@ const HomeVisitManager = () => {
     };
 
     const handleCancel = async (id) => {
-        if (window.confirm("Bạn có chắc muốn hủy lịch này?")) {
+        const result = await Swal.fire({
+            title: 'Hủy lịch hẹn?',
+            text: 'Bạn có chắc muốn hủy lịch này?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Đồng ý',
+            cancelButtonText: 'Hủy'
+        });
+
+        if (result.isConfirmed) {
             try {
-                await updateAppointmentStatus(id, 'CANCELLED_BY_DOCTOR');
-                toast.success("Đã hủy lịch");
+                await updateAppointmentStatus(id, 'CANCELLED_BY_PATIENT');
+                toast.success('Đã hủy lịch hẹn');
                 fetchAppointments();
             } catch (error) {
-                toast.error("Lỗi khi hủy lịch");
+                toast.error('Lỗi khi hủy lịch hẹn');
+            }
+        }
+    };
+
+    const handleConfirmHomeVisit = async (apt) => {
+        const defaultTime = apt.expectedTime ? apt.expectedTime.split(' - ')[0].trim() : '';
+        const { value: formValues } = await Swal.fire({
+            title: 'Xác nhận Khám tại nhà',
+            html: `
+                <div style="text-align: left;">
+                    <p style="margin-bottom: 5px;"><strong>Bệnh nhân mong muốn:</strong> ${apt.expectedTime || 'Không rõ'}</p>
+                    <p style="margin-bottom: 5px;"><strong>Địa chỉ:</strong> ${apt.homeAddress || 'Không rõ'}</p>
+                    <hr style="margin: 10px 0; border: 0; border-top: 1px solid #eee;" />
+                    <label for="exactTime" style="display: block; margin-bottom: 5px; font-weight: bold;">Giờ đến dự kiến chính xác <span style="color:red">*</span>:</label>
+                    <input type="time" id="exactTime" value="${defaultTime}" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; margin-bottom: 15px; font-size: 16px;">
+                    
+                    <label for="distanceFee" style="display: block; margin-bottom: 5px; font-weight: bold;">Khoảng cách di chuyển <span style="color:red">*</span>:</label>
+                    <select id="distanceFee" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 16px;">
+                        <option value="50000">0 - 5 km (Phí: 50.000 VNĐ)</option>
+                        <option value="80000">Trên 5 - 10 km (Phí: 80.000 VNĐ)</option>
+                        <option value="120000">Trên 10 - 15 km (Phí: 120.000 VNĐ)</option>
+                        <option value="REJECT">Trên 15 km (Từ chối phục vụ)</option>
+                    </select>
+                </div>
+            `,
+            focusConfirm: false,
+            showCancelButton: true,
+            confirmButtonText: 'Xác nhận',
+            cancelButtonText: 'Đóng',
+            preConfirm: () => {
+                const exactTime = document.getElementById('exactTime').value;
+                const distanceFee = document.getElementById('distanceFee').value;
+                
+                if (distanceFee !== 'REJECT' && !exactTime) {
+                    Swal.showValidationMessage('Vui lòng nhập Giờ đến dự kiến!');
+                    return false;
+                }
+                return { exactTime, distanceFee };
+            }
+        });
+
+        if (formValues) {
+            try {
+                if (formValues.distanceFee === 'REJECT') {
+                    // Call the new API to decline
+                    const { declineHomeVisitOutOfRange } = await import('../../api/appointmentApi');
+                    await declineHomeVisitOutOfRange(apt.id);
+                    Swal.fire('Đã từ chối', 'Đã từ chối phục vụ do ngoài phạm vi 15km.', 'info');
+                } else {
+                    await confirmHomeVisit(apt.id, formValues.exactTime, formValues.distanceFee);
+                    Swal.fire('Thành công', `Đã xác nhận giờ đến lúc ${formValues.exactTime} và tính phí di chuyển.`, 'success');
+                }
+                fetchAppointments();
+            } catch (error) {
+                Swal.fire('Lỗi', `Xác nhận thất bại: ${error.response?.data?.message || error.message}`, 'error');
             }
         }
     };
@@ -161,6 +228,7 @@ const HomeVisitManager = () => {
 
     const getStatusLabel = (status) => {
         const statusMap = {
+            'PENDING': { text: 'Chờ Xử Lý', color: '#f59e0b' },
             'PENDING_CONFIRMATION': { text: 'Chờ BS Xác Nhận', color: '#f59e0b' },
             'CONFIRMED': { text: 'Đã Xác Nhận', color: '#10b981' },
             'DECLINED': { text: 'BS Từ Chối', color: '#ef4444' },
@@ -175,6 +243,12 @@ const HomeVisitManager = () => {
         const config = statusMap[status] || { text: status, color: '#6b7280' };
         return <span style={{ backgroundColor: config.color, color: 'white', padding: '4px 8px', borderRadius: '4px', fontSize: '12px' }}>{config.text}</span>;
     };
+
+    const filteredAppointments = appointments.filter(app => 
+        (app.patientName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (app.doctorName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (app.status?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+    );
 
     return (
         <div style={{ padding: '20px', backgroundColor: '#f8fafc', minHeight: '100vh' }}>
@@ -195,49 +269,68 @@ const HomeVisitManager = () => {
 
             {activeTab === 'list' ? (
                 <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+                    <div style={{ marginBottom: '15px' }}>
+                        <input 
+                            type="text" 
+                            placeholder="Tìm kiếm theo tên bệnh nhân, bác sĩ, trạng thái..." 
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            style={{ padding: '10px', width: '100%', maxWidth: '400px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                        />
+                    </div>
                     {loading ? <p>Đang tải...</p> : (
                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                             <thead>
                                 <tr style={{ backgroundColor: '#f1f5f9', textAlign: 'left' }}>
-                                    <th style={{ padding: '12px', borderBottom: '1px solid #e2e8f0' }}>Bệnh nhân</th>
-                                    <th style={{ padding: '12px', borderBottom: '1px solid #e2e8f0' }}>Bác sĩ</th>
-                                    <th style={{ padding: '12px', borderBottom: '1px solid #e2e8f0' }}>Thời gian</th>
-                                    <th style={{ padding: '12px', borderBottom: '1px solid #e2e8f0' }}>Trạng thái</th>
-                                    <th style={{ padding: '12px', borderBottom: '1px solid #e2e8f0' }}>Thao tác</th>
+                                    <th style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', verticalAlign: 'middle' }}>Bệnh nhân</th>
+                                    <th style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', verticalAlign: 'middle' }}>Bác sĩ</th>
+                                    <th style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', verticalAlign: 'middle' }}>Thời gian</th>
+                                    <th style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', verticalAlign: 'middle' }}>Trạng thái</th>
+                                    <th style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', verticalAlign: 'middle' }}>Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {appointments.map(app => (
+                                {filteredAppointments.map(app => (
                                     <tr key={app.id}>
-                                        <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0' }}>
+                                        <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', verticalAlign: 'middle' }}>
                                             <strong>{app.patientName}</strong><br/>
                                             <small style={{ color: '#64748b' }}><MapPin size={12}/> {app.homeAddress}</small>
                                         </td>
-                                        <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0' }}>{app.doctorName}</td>
-                                        <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0' }}>
-                                            {app.scheduleDate} <br/> {app.timeSlot}
+                                        <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', verticalAlign: 'middle' }}>{app.doctorName}</td>
+                                        <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', verticalAlign: 'middle' }}>
+                                            {app.scheduleDate} <br/> Ca: {app.timeSlot}
+                                            <div style={{ fontSize: '12px', color: '#4338ca', fontWeight: 600, marginTop: '4px' }}>
+                                                Dự kiến: {app.expectedTime || 'Chưa chốt'}
+                                            </div>
                                             {app.travelFee > 0 && (
                                                 <div style={{ marginTop: '4px', fontSize: '12px', color: '#16a34a', fontWeight: 'bold' }}>
                                                     + Phí di chuyển: {app.travelFee.toLocaleString('vi-VN')}đ
                                                 </div>
                                             )}
                                         </td>
-                                        <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0' }}>
+                                        <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', verticalAlign: 'middle' }}>
                                             {getStatusLabel(app.status)}
                                         </td>
-                                        <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', display: 'flex', gap: '8px' }}>
-                                            {(app.status === 'PENDING_CONFIRMATION' || app.status === 'DECLINED') && (
-                                                <button onClick={() => handleCancel(app.id)} style={{ padding: '6px 12px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Hủy</button>
+                                        <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', verticalAlign: 'middle' }}>
+                                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                            {(app.status === 'PENDING' || app.status === 'PENDING_CONFIRMATION' || app.status === 'DECLINED') && (
+                                                <>
+                                                    <button onClick={() => handleConfirmHomeVisit(app)} style={{ padding: '6px 12px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                        <CheckCircle size={14} /> Xác nhận
+                                                    </button>
+                                                    <button onClick={() => handleCancel(app.id)} style={{ padding: '6px 12px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Hủy</button>
+                                                </>
                                             )}
                                             {['CONFIRMED', 'ON_THE_WAY', 'ARRIVED', 'IN_PROGRESS'].includes(app.status) && (
                                                 <button onClick={() => handleDoctorAbsent(app.id)} title="Đánh vắng bác sĩ" style={{ padding: '6px 12px', backgroundColor: '#f59e0b', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                                     <AlertTriangle size={14} /> Bác sĩ vắng
                                                 </button>
                                             )}
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
-                                {appointments.length === 0 && (
+                                {filteredAppointments.length === 0 && (
                                     <tr><td colSpan="5" style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>Không có dữ liệu</td></tr>
                                 )}
                             </tbody>
@@ -250,6 +343,13 @@ const HomeVisitManager = () => {
                         <div style={{ gridColumn: '1 / -1' }}><h3 style={{ borderBottom: '2px solid #e2e8f0', paddingBottom: '10px' }}>1. Thông tin bệnh nhân</h3></div>
                         <div style={{ gridColumn: '1 / -1' }}>
                             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Chọn bệnh nhân <span style={{color:'red'}}>*</span></label>
+                            <input 
+                                type="text" 
+                                placeholder="Tìm kiếm bệnh nhân (tên hoặc SĐT)..." 
+                                value={patientSearch}
+                                onChange={(e) => setPatientSearch(e.target.value)}
+                                style={{ border: '1px solid #cbd5e1', borderRadius: '6px', padding: '10px', width: '100%', marginBottom: '10px' }}
+                            />
                             <select required value={formData.patientId} onChange={e => {
                                 const patId = e.target.value;
                                 if (patId === 'NEW') {
@@ -265,7 +365,9 @@ const HomeVisitManager = () => {
                             }} style={{ border: '1px solid #cbd5e1', borderRadius: '6px', padding: '10px', width: '100%' }}>
                                 <option value="">-- Chọn bệnh nhân --</option>
                                 <option value="NEW" style={{ fontWeight: 'bold', color: '#10b981' }}>+ Thêm bệnh nhân mới</option>
-                                {patients.map(p => <option key={p.id} value={p.id}>{p.fullName} - {p.phone}</option>)}
+                                {patients
+                                    .filter(p => p.fullName.toLowerCase().includes(patientSearch.toLowerCase()) || (p.phone && p.phone.includes(patientSearch)))
+                                    .map(p => <option key={p.id} value={p.id}>{p.fullName} - {p.phone}</option>)}
                             </select>
                         </div>
                         
@@ -307,12 +409,23 @@ const HomeVisitManager = () => {
                         </div>
                         <div>
                             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Bác sĩ <span style={{color:'red'}}>*</span></label>
+                            {formData.specialtyId && (
+                                <input 
+                                    type="text" 
+                                    placeholder="Tìm kiếm bác sĩ..." 
+                                    value={doctorSearch}
+                                    onChange={(e) => setDoctorSearch(e.target.value)}
+                                    style={{ border: '1px solid #cbd5e1', borderRadius: '6px', padding: '10px', width: '100%', marginBottom: '10px' }}
+                                />
+                            )}
                             <select required value={formData.doctorId} onChange={e => {
                                 setFormData({...formData, doctorId: e.target.value, scheduleId: ''});
                                 handleDoctorDateChange(e.target.value, formData.date);
                             }} style={{ border: '1px solid #cbd5e1', borderRadius: '6px', padding: '10px', width: '100%' }} disabled={!formData.specialtyId}>
                                 <option value="">-- Chọn bác sĩ --</option>
-                                {doctors.map(d => <option key={d.id} value={d.id}>{d.fullName}</option>)}
+                                {doctors
+                                    .filter(d => d.fullName.toLowerCase().includes(doctorSearch.toLowerCase()))
+                                    .map(d => <option key={d.id} value={d.id}>{d.fullName}</option>)}
                             </select>
                         </div>
                         <div>

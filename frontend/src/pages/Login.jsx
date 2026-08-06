@@ -18,7 +18,7 @@ const Login = () => {
             const data = await loginApi(email, password);
             login(data);
         } catch (err) {
-            setError(err.response?.data?.message || 'Invalid email or password');
+            setError(err.response?.data?.message || 'Email hoặc mật khẩu không hợp lệ');
         } finally {
             setIsLoading(false);
         }
@@ -27,8 +27,8 @@ const Login = () => {
     return (
         <div className="auth-container">
             <div className="auth-card">
-                <h2>Welcome Back</h2>
-                <p>Sign in to your Smart Clinic account</p>
+                <h2>Chào mừng trở lại</h2>
+                <p>Đăng nhập vào tài khoản Smart Clinic của bạn</p>
                 {error && <div className="error-message">{error}</div>}
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
@@ -38,25 +38,25 @@ const Login = () => {
                             required
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            placeholder="Enter your email"
+                            placeholder="Nhập email của bạn"
                         />
                     </div>
                     <div className="form-group">
-                        <label>Password</label>
+                        <label>Mật khẩu</label>
                         <input
                             type="password"
                             required
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Enter your password"
+                            placeholder="Nhập mật khẩu của bạn"
                         />
                     </div>
                     <button type="submit" className="btn-primary" disabled={isLoading}>
-                        {isLoading ? 'Signing In...' : 'Sign In'}
+                        {isLoading ? 'Đang đăng nhập...' : 'Đăng nhập'}
                     </button>
                 </form>
                 <div className="auth-footer">
-                    Don't have an account? <Link to="/register">Sign Up</Link>
+                    Chưa có tài khoản? <Link to="/register">Đăng ký</Link>
                 </div>
             </div>
         </div>

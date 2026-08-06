@@ -30,7 +30,10 @@ const AdminSchedulePage = () => {
         date: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0],
         startTime: '08:00',
         endTime: '11:30',
-        maxPatient: 10
+        maxPatient: 1,
+        scheduleType: 'CLINIC',
+        autoSplit: false,
+        forceAssign: false
     });
 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -39,7 +42,7 @@ const AdminSchedulePage = () => {
         date: '',
         startTime: '',
         endTime: '',
-        maxPatient: 10
+        maxPatient: 1
     });
 
     useEffect(() => {
@@ -92,19 +95,54 @@ const AdminSchedulePage = () => {
             return;
         }
 
-        const payload = {
-            date: createForm.date,
-            startTime: createForm.startTime,
-            endTime: createForm.endTime,
-            maxPatient: parseInt(createForm.maxPatient, 10)
-        };
-
         try {
-            if (createForm.doctorId) {
-                await createSchedule(createForm.doctorId, payload);
+            if (createForm.scheduleType === 'CLINIC' && createForm.autoSplit) {
+                // Auto-split logic (30 mins each)
+                let currentStart = new Date(shiftStart);
+                const end = new Date(shiftEnd);
+                const promises = [];
+                
+                while (currentStart < end) {
+                    let nextEnd = new Date(currentStart.getTime() + 30 * 60000); // +30 mins
+                    if (nextEnd > end) nextEnd = end;
+                    
+                    const formatTimeStr = (d) => d.toTimeString().slice(0, 5);
+                    const chunkPayload = {
+                        date: createForm.date,
+                        startTime: formatTimeStr(currentStart),
+                        endTime: formatTimeStr(nextEnd),
+                        maxPatient: parseInt(createForm.maxPatient, 10),
+                        scheduleType: 'CLINIC',
+                        forceAssign: createForm.forceAssign
+                    };
+                    
+                    if (createForm.doctorId) {
+                        promises.push(createSchedule(createForm.doctorId, chunkPayload));
+                    } else {
+                        promises.push(createOpenSchedule(chunkPayload));
+                    }
+                    
+                    currentStart = nextEnd;
+                }
+                
+                await Promise.all(promises);
             } else {
-                await createOpenSchedule(payload);
+                // Normal creation
+                const payload = {
+                    date: createForm.date,
+                    startTime: createForm.startTime,
+                    endTime: createForm.endTime,
+                    maxPatient: parseInt(createForm.maxPatient, 10),
+                    scheduleType: createForm.scheduleType,
+                    forceAssign: createForm.forceAssign
+                };
+                if (createForm.doctorId) {
+                    await createSchedule(createForm.doctorId, payload);
+                } else {
+                    await createOpenSchedule(payload);
+                }
             }
+            
             setIsCreateModalOpen(false);
             fetchSchedules();
         } catch (error) {
@@ -228,7 +266,11 @@ const AdminSchedulePage = () => {
                             setCreateForm(prev => ({
                                 ...prev,
                                 doctorId: selectedDoctorId || '',
-                                date: selectedDate
+                                date: selectedDate,
+                                scheduleType: 'CLINIC',
+                                autoSplit: false,
+                                forceAssign: false,
+                                maxPatient: 10
                             }));
                             setIsCreateModalOpen(true);
                         }}
@@ -352,6 +394,11 @@ const AdminSchedulePage = () => {
                                     </td>
                                     <td>
                                         {getStatusBadge(sch.status)}
+                                        {sch.scheduleType === 'HOME' && (
+                                            <div style={{ marginTop: '0.25rem' }}>
+                                                <span style={{ fontSize: '0.75rem', backgroundColor: '#e0e7ff', color: '#3730a3', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 'bold' }}>🏠 Khám tại nhà</span>
+                                            </div>
+                                        )}
                                     </td>
                                     <td>
                                         <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', alignItems: 'center' }}>
@@ -399,6 +446,35 @@ const AdminSchedulePage = () => {
                         <form onSubmit={handleCreateShift}>
                             <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem 0' }}>
                                 <div className="form-group">
+                                    <label>Loại ca làm (Nơi làm việc) <span style={{ color: 'red' }}>*</span></label>
+                                    <select
+                                        className="form-control"
+                                        value={createForm.scheduleType}
+                                        onChange={(e) => {
+                                            const newType = e.target.value;
+                                            // Check if current doctor supports the new type
+                                            const currentDoc = doctors.find(d => d.id == createForm.doctorId);
+                                            let newDoctorId = createForm.doctorId;
+                                            if (currentDoc) {
+                                                if (newType === 'HOME' && !currentDoc.canHomeVisit) newDoctorId = '';
+                                                if (newType === 'CLINIC' && !currentDoc.canClinicVisit) newDoctorId = '';
+                                            }
+                                            
+                                            setCreateForm({
+                                                ...createForm, 
+                                                scheduleType: newType,
+                                                doctorId: newDoctorId,
+                                                autoSplit: newType === 'HOME' ? false : createForm.autoSplit,
+                                                maxPatient: 1
+                                            });
+                                        }}
+                                    >
+                                        <option value="CLINIC">Khám tại phòng khám (CLINIC)</option>
+                                        <option value="HOME">Khám tại nhà (HOME)</option>
+                                    </select>
+                                </div>
+
+                                <div className="form-group">
                                     <label>Gán Bác Sĩ (Tùy chọn)</label>
                                     <select
                                         className="form-control"
@@ -406,13 +482,33 @@ const AdminSchedulePage = () => {
                                         onChange={(e) => setCreateForm({...createForm, doctorId: e.target.value})}
                                     >
                                         <option value="">-- Ca Mở (Chưa gán bác sĩ - Chờ bác sĩ đăng ký) --</option>
-                                        {doctors.filter(doc => doc.status === 'ACTIVE').map(doc => (
+                                        {doctors.filter(doc => {
+                                            if (doc.status !== 'ACTIVE') return false;
+                                            if (createForm.scheduleType === 'HOME' && !doc.canHomeVisit) return false;
+                                            if (createForm.scheduleType === 'CLINIC' && !doc.canClinicVisit) return false;
+                                            return true;
+                                        }).map(doc => (
                                             <option key={doc.id} value={doc.id}>
                                                 {doc.fullName} ({doc.specialtyName})
                                             </option>
                                         ))}
                                     </select>
                                 </div>
+
+                                {createForm.doctorId && (
+                                    <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#e0e7ff', padding: '0.75rem', borderRadius: '6px' }}>
+                                        <input
+                                            type="checkbox"
+                                            id="forceAssign"
+                                            checked={createForm.forceAssign}
+                                            onChange={(e) => setCreateForm({...createForm, forceAssign: e.target.checked})}
+                                            style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                                        />
+                                        <label htmlFor="forceAssign" style={{ margin: 0, cursor: 'pointer', fontWeight: 'bold', color: '#3730a3' }}>
+                                            Gán trực tiếp cho bác sĩ (Không cần xác nhận)
+                                        </label>
+                                    </div>
+                                )}
 
                                 <div className="form-group">
                                     <label>Ngày khám <span style={{ color: 'red' }}>*</span></label>
@@ -424,6 +520,28 @@ const AdminSchedulePage = () => {
                                         onChange={(e) => setCreateForm({...createForm, date: e.target.value})}
                                     />
                                 </div>
+
+
+
+                                {createForm.scheduleType === 'CLINIC' && (
+                                    <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#f3f4f6', padding: '0.75rem', borderRadius: '6px' }}>
+                                        <input
+                                            type="checkbox"
+                                            id="autoSplit"
+                                            checked={createForm.autoSplit}
+                                            onChange={(e) => {
+                                                const isChecked = e.target.checked;
+                                                setCreateForm({
+                                                    ...createForm,
+                                                    autoSplit: isChecked,
+                                                    maxPatient: 1
+                                                })
+                                            }}
+                                            style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                                        />
+                                        <label htmlFor="autoSplit" style={{ margin: 0, cursor: 'pointer', fontWeight: 'bold' }}>Tự động sinh ca nhỏ mỗi 30 phút</label>
+                                    </div>
+                                )}
 
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                     <div className="form-group">
@@ -462,13 +580,13 @@ const AdminSchedulePage = () => {
                                 </div>
 
                                 <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', padding: '0.75rem', borderRadius: '6px', fontSize: '0.85rem', color: '#166534' }}>
-                                    <strong>Ghi chú:</strong> Ca khám mới tạo sẽ có trạng thái ban đầu là <strong>OPEN</strong> để bác sĩ đăng ký nhận ca.
+                                    <strong>Ghi chú:</strong> {createForm.forceAssign ? 'Ca khám sẽ được gán trực tiếp cho bác sĩ với trạng thái AVAILABLE.' : 'Ca khám mới tạo sẽ có trạng thái ban đầu là OPEN để bác sĩ đăng ký nhận ca.'}
                                 </div>
                             </div>
 
                             <div className="form-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
                                 <button type="button" className="btn-secondary" onClick={() => setIsCreateModalOpen(false)}>Hủy</button>
-                                <button type="submit" className="btn-primary" style={{ width: 'auto' }}>Tạo Ca Khám (OPEN)</button>
+                                <button type="submit" className="btn-primary" style={{ width: 'auto' }}>{createForm.forceAssign ? 'Tạo Ca Khám (AVAILABLE)' : 'Tạo Ca Khám (OPEN)'}</button>
                             </div>
                         </form>
                     </div>

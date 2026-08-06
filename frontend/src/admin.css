@@ -311,3 +311,17 @@ select.form-control {
   font-size: 1rem;
   background-color: white;
 }
+.nav-item.receptionist-item {
+  border-left: 4px solid var(--rec-color);
+  color: var(--rec-color);
+  background-color: var(--rec-bg);
+  margin-bottom: 0.25rem;
+}
+.nav-item.receptionist-item:hover {
+  filter: brightness(0.95);
+}
+.nav-item.receptionist-item.active {
+  background-color: var(--rec-color);
+  color: white;
+  box-shadow: 0 4px 6px -1px var(--rec-color);
+}

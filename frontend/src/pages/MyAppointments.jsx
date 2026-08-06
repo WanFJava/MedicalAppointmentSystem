@@ -3,7 +3,7 @@ import Swal from 'sweetalert2';
 import { AuthContext } from '../context/AuthContext';
 import { getPatientAppointments, updateAppointmentStatus } from '../api/appointmentApi';
 import { createComplaint } from '../api/complaintApi';
-import { Calendar, Clock, Stethoscope, FileText, Info, MessageSquare, Star, Home, Building, CreditCard } from 'lucide-react';
+import { Calendar, Clock, Stethoscope, FileText, Info, MessageSquare, Star, Home, Building, CreditCard, Activity } from 'lucide-react';
 import { getBillByAppointment, payBill } from '../api/billApi';
 import PatientRecordModal from './PatientRecordModal';
 import PatientBillModal from './PatientBillModal';
@@ -105,7 +105,7 @@ const MyAppointments = () => {
         }
     };
 
-    if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading your appointments...</div>;
+    if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Đang tải lịch hẹn của bạn...</div>;
 
     const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
     const displayedAppointments = showAll
@@ -115,7 +115,7 @@ const MyAppointments = () => {
     return (
         <div style={{ maxWidth: '1000px', margin: '3rem auto', padding: '0 1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: '#1f2937', margin: 0 }}>My Appointments</h1>
+                <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: '#1f2937', margin: 0 }}>Lịch hẹn của tôi</h1>
                 {!showAll ? (
                     <button
                         onClick={() => setShowAll(true)}
@@ -137,8 +137,8 @@ const MyAppointments = () => {
             {appointments.length === 0 ? (
                 <div style={{ backgroundColor: 'white', padding: '3rem', textAlign: 'center', borderRadius: '1rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
                     <Calendar size={48} color="#9ca3af" style={{ margin: '0 auto 1rem' }} />
-                    <h3 style={{ fontSize: '1.25rem', color: '#374151', marginBottom: '0.5rem' }}>No Appointments Found</h3>
-                    <p style={{ color: '#6b7280' }}>You haven't booked any appointments yet.</p>
+                    <h3 style={{ fontSize: '1.25rem', color: '#374151', marginBottom: '0.5rem' }}>Không tìm thấy lịch hẹn</h3>
+                    <p style={{ color: '#6b7280' }}>Bạn chưa đặt lịch hẹn nào.</p>
                 </div>
             ) : (
                 <div style={{ display: 'grid', gap: '1.5rem' }}>
@@ -205,7 +205,7 @@ const MyAppointments = () => {
 
                                 {/* RIGHT COLUMN */}
                                 <div style={{ padding: '1.5rem', flex: '1 1 55%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                                    <div style={{ display: 'flex', gap: '2rem', marginBottom: '1.5rem' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '0.75rem', marginBottom: '1rem' }}>
                                         <div>
                                             <div style={{ color: '#6b7280', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.25rem' }}>
                                                 <Calendar size={16} /> Ngày khám
@@ -214,10 +214,34 @@ const MyAppointments = () => {
                                         </div>
                                         <div>
                                             <div style={{ color: '#6b7280', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.25rem' }}>
-                                                <Clock size={16} /> Giờ khám
+                                                <Clock size={16} /> {apt.visitType === 'HOME_VISIT' ? 'Dự kiến' : 'Giờ khám'}
                                             </div>
-                                            <div style={{ fontWeight: 600, color: '#1f2937', fontSize: '1.1rem' }}>{apt.timeSlot}</div>
+                                            <div style={{ fontWeight: 600, color: '#1f2937', fontSize: '1.1rem' }}>
+                                                {apt.visitType === 'HOME_VISIT' ? (apt.expectedTime || 'Chưa chốt') : apt.timeSlot}
+                                            </div>
                                         </div>
+                                        
+                                        {/* Hiển thị phí trực tiếp trên thẻ nếu là Khám tại nhà và đã có phí */}
+                                        {apt.visitType === 'HOME_VISIT' && apt.travelFee !== undefined && apt.travelFee !== null && apt.consultationFee !== undefined && apt.consultationFee !== null && (
+                                            <div style={{ gridColumn: '1 / -1', borderTop: '1px dashed #cbd5e1', paddingTop: '0.75rem', marginTop: '0.25rem', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: '#475569' }}>
+                                                    <span>Phí khám:</span>
+                                                    <span>{apt.consultationFee.toLocaleString('vi-VN')} đ</span>
+                                                </div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: '#475569' }}>
+                                                    <span>Phí di chuyển:</span>
+                                                    <span>{apt.travelFee.toLocaleString('vi-VN')} đ</span>
+                                                </div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px', borderTop: '1px solid #e2e8f0', paddingTop: '6px' }}>
+                                                    <div style={{ color: '#166534', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.25rem', fontWeight: '600' }}>
+                                                        <Activity size={16} /> Tổng tạm tính
+                                                    </div>
+                                                    <div style={{ fontWeight: 'bold', color: '#14532d', fontSize: '1.1rem' }}>
+                                                        {(apt.consultationFee + apt.travelFee).toLocaleString('vi-VN')} đ
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div style={{ display: 'flex', gap: '0.75rem', marginTop: 'auto', flexWrap: 'wrap' }}>
@@ -234,7 +258,7 @@ const MyAppointments = () => {
                                             <Info size={16} /> Chi tiết
                                         </button>
 
-                                        {apt.status === 'PENDING' && (
+                                        {['PENDING', 'PENDING_CONFIRMATION', 'CONFIRMED'].includes(apt.status) && (
                                             <button
                                                 onClick={() => handleCancel(apt.id)}
                                                 style={{

@@ -31,4 +31,6 @@ public class AppointmentDto {
     private VisitType visitType;
     private String homeAddress;
     private java.math.BigDecimal travelFee;
+    private String expectedTime;
+    private java.math.BigDecimal consultationFee;
 }

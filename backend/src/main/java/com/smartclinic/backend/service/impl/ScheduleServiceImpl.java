@@ -114,7 +114,14 @@ public class ScheduleServiceImpl implements ScheduleService {
         schedule.setEndTime(requestDto.getEndTime());
         schedule.setMaxPatient(requestDto.getMaxPatient());
         schedule.setCurrentPatient(0);
-        schedule.setStatus(ScheduleStatus.OPEN);
+        
+        if (doctorId != null && Boolean.TRUE.equals(requestDto.getForceAssign())) {
+            schedule.setStatus(ScheduleStatus.AVAILABLE);
+        } else {
+            schedule.setStatus(ScheduleStatus.OPEN);
+        }
+        
+        schedule.setScheduleType(requestDto.getScheduleType() != null ? requestDto.getScheduleType() : com.smartclinic.backend.entity.ScheduleType.CLINIC);
 
         Schedule savedSchedule = scheduleRepository.save(schedule);
 
@@ -137,6 +144,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         schedule.setMaxPatient(requestDto.getMaxPatient());
         schedule.setCurrentPatient(0);
         schedule.setStatus(ScheduleStatus.OPEN);
+        schedule.setScheduleType(requestDto.getScheduleType() != null ? requestDto.getScheduleType() : com.smartclinic.backend.entity.ScheduleType.CLINIC);
 
         return mapToDto(scheduleRepository.save(schedule));
     }
@@ -350,6 +358,17 @@ public class ScheduleServiceImpl implements ScheduleService {
             }
         }
 
+        if (status == ScheduleStatus.IN_PROGRESS) {
+            List<Schedule> doctorSchedules = scheduleRepository.findByDoctorIdAndDate(schedule.getDoctor().getId(), schedule.getDate());
+            for (Schedule existing : doctorSchedules) {
+                if (existing.getStartTime().isBefore(schedule.getStartTime())) {
+                    if (existing.getStatus() != ScheduleStatus.COMPLETED && existing.getStatus() != ScheduleStatus.CANCELLED) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bạn phải hoàn thành (hoặc hủy) ca làm việc trước đó (" + existing.getStartTime() + " - " + existing.getEndTime() + ") mới được bắt đầu ca này.");
+                    }
+                }
+            }
+        }
+
         schedule.setStatus(status);
         Schedule savedSchedule = scheduleRepository.save(schedule);
 
@@ -428,7 +447,8 @@ public class ScheduleServiceImpl implements ScheduleService {
                 schedule.getMaxPatient(),
                 schedule.getCurrentPatient(),
                 schedule.getStatus(),
-                schedule.getNote()
+                schedule.getNote(),
+                schedule.getScheduleType()
         );
     }
 }

@@ -23,10 +23,10 @@ const FeedbackModal = ({ appointment, isReadOnly, onClose, onFeedbackSubmitted }
                 setRating(data.rating);
                 setComment(data.comment);
             } else {
-                setError("Feedback not found.");
+                setError("Không tìm thấy đánh giá.");
             }
         } catch (err) {
-            setError("Failed to load feedback.");
+            setError("Tải đánh giá thất bại.");
         } finally {
             setLoading(false);
         }
@@ -35,7 +35,7 @@ const FeedbackModal = ({ appointment, isReadOnly, onClose, onFeedbackSubmitted }
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (rating === 0) {
-            setError("Please select a rating.");
+            setError("Vui lòng chọn mức đánh giá.");
             return;
         }
 
@@ -51,7 +51,7 @@ const FeedbackModal = ({ appointment, isReadOnly, onClose, onFeedbackSubmitted }
             onFeedbackSubmitted();
             onClose();
         } catch (err) {
-            setError("Failed to submit feedback. Please try again.");
+            setError("Gửi đánh giá thất bại. Vui lòng thử lại.");
             setLoading(false);
         }
     };
@@ -75,7 +75,7 @@ const FeedbackModal = ({ appointment, isReadOnly, onClose, onFeedbackSubmitted }
                     backgroundColor: '#f8fafc'
                 }}>
                     <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', margin: 0, color: '#1e293b' }}>
-                        {isReadOnly ? 'Patient Feedback' : 'Leave Feedback'}
+                        {isReadOnly ? 'Đánh giá của Bệnh nhân' : 'Gửi Đánh giá'}
                     </h2>
                     <button onClick={onClose} style={{
                         background: 'none', border: 'none', cursor: 'pointer',
@@ -87,20 +87,20 @@ const FeedbackModal = ({ appointment, isReadOnly, onClose, onFeedbackSubmitted }
 
                 <div style={{ padding: '1.5rem' }}>
                     {loading && isReadOnly ? (
-                        <div style={{ textAlign: 'center', color: '#64748b', padding: '2rem' }}>Loading feedback...</div>
+                        <div style={{ textAlign: 'center', color: '#64748b', padding: '2rem' }}>Đang tải đánh giá...</div>
                     ) : (
                         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                             {error && <div style={{ color: '#ef4444', fontSize: '0.875rem' }}>{error}</div>}
 
                             {!isReadOnly && (
                                 <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
-                                    How was your experience with <strong>{appointment.doctorName}</strong> on {appointment.scheduleDate}?
+                                    Trải nghiệm của bạn với <strong>{appointment.doctorName}</strong> vào ngày {appointment.scheduleDate} như thế nào?
                                 </div>
                             )}
 
                             <div>
                                 <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#334155', marginBottom: '0.5rem' }}>
-                                    Rating
+                                    Đánh giá
                                 </label>
                                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                                     {[1, 2, 3, 4, 5].map((star) => (
@@ -125,13 +125,13 @@ const FeedbackModal = ({ appointment, isReadOnly, onClose, onFeedbackSubmitted }
 
                             <div>
                                 <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#334155', marginBottom: '0.5rem' }}>
-                                    Comment
+                                    Bình luận
                                 </label>
                                 <textarea
                                     disabled={isReadOnly}
                                     value={comment}
                                     onChange={(e) => setComment(e.target.value)}
-                                    placeholder={isReadOnly ? '' : "Tell us about your experience..."}
+                                    placeholder={isReadOnly ? '' : "Cho chúng tôi biết về trải nghiệm của bạn..."}
                                     style={{
                                         width: '100%', minHeight: '100px', padding: '0.75rem',
                                         borderRadius: '0.5rem', border: '1px solid #cbd5e1',
@@ -151,7 +151,7 @@ const FeedbackModal = ({ appointment, isReadOnly, onClose, onFeedbackSubmitted }
                                             border: 'none', borderRadius: '0.5rem', fontWeight: 500, cursor: 'pointer'
                                         }}
                                     >
-                                        Cancel
+                                        Hủy
                                     </button>
                                     <button
                                         type="submit"
@@ -162,7 +162,7 @@ const FeedbackModal = ({ appointment, isReadOnly, onClose, onFeedbackSubmitted }
                                             cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1
                                         }}
                                     >
-                                        {loading ? 'Submitting...' : 'Submit Feedback'}
+                                        {loading ? 'Đang gửi...' : 'Gửi Đánh giá'}
                                     </button>
                                 </div>
                             )}

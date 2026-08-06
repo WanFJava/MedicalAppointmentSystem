@@ -19,9 +19,19 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             Long patientId,
             Long scheduleId,
             List<com.smartclinic.backend.entity.AppointmentStatus> statuses);
+    boolean existsByScheduleIdAndExpectedTimeAndStatusNotIn(
+            Long scheduleId,
+            String expectedTime,
+            List<com.smartclinic.backend.entity.AppointmentStatus> statuses);
 
     @Query("SELECT MAX(a.queueNumber) FROM Appointment a WHERE a.doctor.id = :doctorId AND a.schedule.date = :scheduleDate")
     Integer findMaxQueueNumberForDoctorAndDate(@Param("doctorId") Long doctorId, @Param("scheduleDate") LocalDate scheduleDate);
+
+    Appointment findFirstByDoctorIdAndScheduleDateAndStatusAndExpectedTimeGreaterThanOrderByExpectedTimeAsc(
+            Long doctorId,
+            LocalDate scheduleDate,
+            com.smartclinic.backend.entity.AppointmentStatus status,
+            String expectedTime);
 
     int countByDoctorIdAndStatusIn(Long doctorId, List<com.smartclinic.backend.entity.AppointmentStatus> statuses);
     int countByPatientIdAndStatusIn(Long patientId, List<com.smartclinic.backend.entity.AppointmentStatus> statuses);

@@ -143,18 +143,18 @@ const UserManager = () => {
         }
     };
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <div>Đang tải...</div>;
 
     return (
         <div>
             <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-                <h2>User Management</h2>
+                <h2>Quản lý Người dùng</h2>
                 <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                     <div style={{ position: 'relative' }}>
                         <Search size={18} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#666' }} />
                         <input
                             type="text"
-                            placeholder="Search by name or email..."
+                            placeholder="Tìm kiếm theo tên, email..."
                             className="form-control"
                             style={{ paddingLeft: '2.5rem', width: '250px' }}
                             value={searchTerm}
@@ -162,20 +162,20 @@ const UserManager = () => {
                         />
                     </div>
                     <select className="form-control" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
-                        <option value="">All Roles</option>
+                        <option value="">Tất cả vai trò</option>
                         <option value="ADMIN">ADMIN</option>
                         <option value="DOCTOR">DOCTOR</option>
                         <option value="RECEPTIONIST">RECEPTIONIST</option>
                         <option value="PATIENT">PATIENT</option>
                     </select>
                     <select className="form-control" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-                        <option value="">All Statuses</option>
+                        <option value="">Tất cả trạng thái</option>
                         <option value="ACTIVE">ACTIVE</option>
                         <option value="INACTIVE">INACTIVE</option>
                         <option value="LOCKED">LOCKED</option>
                     </select>
                     <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={() => handleOpenModal()}>
-                        <Plus size={18} /> Add User
+                        <Plus size={18} /> Thêm người dùng
                     </button>
                 </div>
             </div>
@@ -184,12 +184,12 @@ const UserManager = () => {
                 <table>
                     <thead>
                         <tr>
-                            <th>User</th>
-                            <th>Phone</th>
-                            <th>Role</th>
-                            <th>Status</th>
-                            <th>Joined Date</th>
-                            <th>Actions</th>
+                            <th>Người dùng</th>
+                            <th>Số điện thoại</th>
+                            <th>Vai trò</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày tham gia</th>
+                            <th>Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -258,7 +258,7 @@ const UserManager = () => {
                         ))}
                         {filteredUsers.length === 0 && (
                             <tr>
-                                <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>No users found.</td>
+                                <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>Không tìm thấy người dùng nào.</td>
                             </tr>
                         )}
                     </tbody>
@@ -269,7 +269,7 @@ const UserManager = () => {
                 <div className="modal-overlay">
                     <div className="modal-content" style={{ maxWidth: '600px', width: '90%' }}>
                         <div className="modal-header">
-                            <h3>{editingId ? 'Edit User' : 'Add New User'}</h3>
+                            <h3>{editingId ? 'Cập nhật Người dùng' : 'Thêm Người dùng mới'}</h3>
                             <button className="btn-close" onClick={() => setIsModalOpen(false)}>
                                 <X size={24} />
                             </button>
@@ -277,7 +277,7 @@ const UserManager = () => {
                         <form onSubmit={handleSubmit}>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div className="form-group">
-                                    <label>Full Name</label>
+                                    <label>Họ và tên</label>
                                     <input
                                         type="text" required className="form-control"
                                         value={formData.fullName}
@@ -294,7 +294,7 @@ const UserManager = () => {
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label>Phone</label>
+                                    <label>Số điện thoại</label>
                                     <input
                                         type="tel" className="form-control"
                                         value={formData.phone}
@@ -302,7 +302,7 @@ const UserManager = () => {
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label>{editingId ? 'New Password (leave blank to keep)' : 'Password'}</label>
+                                    <label>{editingId ? 'Mật khẩu mới (bỏ trống để giữ nguyên)' : 'Mật khẩu'}</label>
                                     <input
                                         type="password" className="form-control"
                                         required={!editingId}
@@ -311,7 +311,7 @@ const UserManager = () => {
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label>Role</label>
+                                    <label>Vai trò</label>
                                     <select
                                         className="form-control" required
                                         value={formData.role}
@@ -324,7 +324,7 @@ const UserManager = () => {
                                     </select>
                                 </div>
                                 <div className="form-group">
-                                    <label>Status</label>
+                                    <label>Trạng thái</label>
                                     <select
                                         className="form-control" required
                                         value={formData.status}
@@ -341,13 +341,13 @@ const UserManager = () => {
                                     </div>
                                 </div>
                                 <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-                                    <label>Avatar</label>
+                                    <label>Ảnh đại diện</label>
                                     <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.5rem' }}>
                                         <label>
-                                            <input type="radio" name="avatarType" checked={avatarUploadType === 'url'} onChange={() => setAvatarUploadType('url')} /> Use URL
+                                            <input type="radio" name="avatarType" checked={avatarUploadType === 'url'} onChange={() => setAvatarUploadType('url')} /> Dùng URL
                                         </label>
                                         <label>
-                                            <input type="radio" name="avatarType" checked={avatarUploadType === 'file'} onChange={() => setAvatarUploadType('file')} /> Upload File
+                                            <input type="radio" name="avatarType" checked={avatarUploadType === 'file'} onChange={() => setAvatarUploadType('file')} /> Tải file lên
                                         </label>
                                     </div>
                                     {avatarUploadType === 'url' ? (
@@ -375,8 +375,8 @@ const UserManager = () => {
                                 </div>
                             </div>
                             <div className="form-actions" style={{ marginTop: '1.5rem' }}>
-                                <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>Cancel</button>
-                                <button type="submit" className="btn-primary" style={{ width: 'auto' }}>Save User</button>
+                                <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>Hủy</button>
+                                <button type="submit" className="btn-primary" style={{ width: 'auto' }}>Lưu người dùng</button>
                             </div>
                         </form>
                     </div>

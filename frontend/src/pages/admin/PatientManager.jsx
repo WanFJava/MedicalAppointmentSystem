@@ -107,7 +107,7 @@ const PatientManager = () => {
         }
     };
 
-    if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading patients...</div>;
+    if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Đang tải danh sách bệnh nhân...</div>;
 
     return (
         <div>
