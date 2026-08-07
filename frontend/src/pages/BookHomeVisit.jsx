@@ -6,6 +6,7 @@ import { getSpecialties, getDoctors } from '../api/adminApi';
 import { getAvailableSchedules, bookHomeVisit } from '../api/appointmentApi';
 import HomeVisitDoctorCard from '../components/HomeVisitDoctorCard';
 import { getPatientProfile } from '../api/patientApi';
+import { getSpecialtyIconAndColor } from '../utils/iconMap';
 
 const BookHomeVisit = () => {
     const { user } = useContext(AuthContext);
@@ -34,6 +35,7 @@ const BookHomeVisit = () => {
     const [homeAddress, setHomeAddress] = useState('');
     const [searchSpec, setSearchSpec] = useState('');
     const [searchDoc, setSearchDoc] = useState('');
+    const [sortOrder, setSortOrder] = useState('');
 
     // State
     const [loading, setLoading] = useState(false);
@@ -271,15 +273,24 @@ const BookHomeVisit = () => {
     }
 
     const filteredSpecialties = specialties.filter(spec => spec.name.toLowerCase().includes(searchSpec.toLowerCase()));
-    const searchedDoctors = filteredDoctors.filter(doc => doc.fullName.toLowerCase().includes(searchDoc.toLowerCase()));
+    const searchedDoctors = filteredDoctors
+        .filter(doc => doc.fullName.toLowerCase().includes(searchDoc.toLowerCase()))
+        .sort((a, b) => {
+            if (sortOrder === 'price_asc') return a.consultationFee - b.consultationFee;
+            if (sortOrder === 'price_desc') return b.consultationFee - a.consultationFee;
+            return 0;
+        });
 
     return (
-        <div style={{ maxWidth: '900px', margin: '0 auto', padding: '2rem 1rem' }}>
-            <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-                <h1 style={{ fontSize: '2.5rem', fontWeight: 800, color: '#111827', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
-                    <Activity color="#4f46e5" size={40} /> Khám Tại Nhà
+        <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '2rem 1rem' }}>
+            <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+                <h1 style={{ fontSize: '3rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', background: 'linear-gradient(to right, #1e293b, #3b82f6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '-0.02em', margin: '0 0 1rem 0' }}>
+                    <div style={{ padding: '0.5rem', backgroundColor: '#eff6ff', borderRadius: '1rem', display: 'flex' }}>
+                        <Activity color="#3b82f6" size={40} />
+                    </div>
+                    Khám Tại Nhà
                 </h1>
-                <p style={{ color: '#64748b', fontSize: '1.125rem', marginTop: '0.5rem' }}>
+                <p style={{ color: '#64748b', fontSize: '1.125rem', margin: 0 }}>
                     Bác sĩ chuyên khoa đến tận nơi, chăm sóc sức khỏe cho bạn và gia đình.
                 </p>
             </div>
@@ -313,14 +324,34 @@ const BookHomeVisit = () => {
             {/* Step 1: Specialty */}
             {step === 1 && (
                 <div style={{ animation: 'fadeIn 0.3s ease' }}>
-                    <div style={{ marginBottom: '2rem' }}>
-                        <input 
-                            type="text" 
-                            placeholder="Tìm kiếm chuyên khoa..." 
-                            value={searchSpec}
-                            onChange={e => setSearchSpec(e.target.value)}
-                            style={{ width: '100%', padding: '1rem', borderRadius: '0.75rem', border: '1px solid #cbd5e1', fontSize: '1.125rem', outline: 'none', boxSizing: 'border-box' }}
-                        />
+                    <div style={{ marginBottom: '3rem', display: 'flex', justifyContent: 'center' }}>
+                        <div style={{ position: 'relative', width: '100%', maxWidth: '600px' }}>
+                            <input 
+                                type="text" 
+                                placeholder="Tìm kiếm chuyên khoa..." 
+                                value={searchSpec}
+                                onChange={e => setSearchSpec(e.target.value)}
+                                style={{ 
+                                    width: '100%', 
+                                    padding: '1.25rem 1.5rem', 
+                                    borderRadius: '1.5rem', 
+                                    border: '2px solid #e2e8f0', 
+                                    fontSize: '1.125rem', 
+                                    outline: 'none',
+                                    transition: 'all 0.2s ease',
+                                    boxSizing: 'border-box',
+                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)'
+                                }}
+                                onFocus={e => {
+                                    e.target.style.borderColor = '#c7d2fe';
+                                    e.target.style.boxShadow = '0 0 0 4px rgba(199, 210, 254, 0.5)';
+                                }}
+                                onBlur={e => {
+                                    e.target.style.borderColor = '#e2e8f0';
+                                    e.target.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05)';
+                                }}
+                            />
+                        </div>
                     </div>
                     {filteredSpecialties.length === 0 ? (
                         <div style={{ textAlign: 'center', padding: '3rem', backgroundColor: '#f8fafc', borderRadius: '1rem' }}>
@@ -328,36 +359,47 @@ const BookHomeVisit = () => {
                         </div>
                     ) : (
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '2rem' }}>
-                            {filteredSpecialties.map(spec => (
-                                <div 
-                                    key={spec.id}
-                                    onClick={() => handleSpecSelect(spec.id)}
-                                    style={{
-                                        padding: '2rem',
-                                        backgroundColor: 'white',
-                                        borderRadius: '1.5rem',
-                                        border: '2px solid #f1f5f9',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        alignItems: 'center',
-                                        textAlign: 'center',
-                                        gap: '1.5rem',
-                                        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
-                                    }}
-                                    onMouseOver={e => { e.currentTarget.style.borderColor = '#4f46e5'; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.1)'; }}
-                                    onMouseOut={e => { e.currentTarget.style.borderColor = '#f1f5f9'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.05)'; }}
-                                >
-                                    <div style={{ width: '80px', height: '80px', borderRadius: '50%', backgroundColor: '#e0e7ff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4f46e5' }}>
-                                        <Stethoscope size={40} />
+                            {filteredSpecialties.map(spec => {
+                                const { icon: SpecIcon, color, bg } = getSpecialtyIconAndColor(spec.name);
+                                return (
+                                    <div 
+                                        key={spec.id}
+                                        onClick={() => handleSpecSelect(spec.id)}
+                                        style={{
+                                            padding: '2rem',
+                                            backgroundColor: 'white',
+                                            borderRadius: '1.5rem',
+                                            border: '2px solid #f1f5f9',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            textAlign: 'center',
+                                            gap: '1.5rem',
+                                            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
+                                        }}
+                                        onMouseOver={e => { 
+                                            e.currentTarget.style.borderColor = color; 
+                                            e.currentTarget.style.transform = 'translateY(-6px)'; 
+                                            e.currentTarget.style.boxShadow = `0 20px 25px -5px ${color}20, 0 8px 10px -6px ${color}20`; 
+                                        }}
+                                        onMouseOut={e => { 
+                                            e.currentTarget.style.borderColor = '#f1f5f9'; 
+                                            e.currentTarget.style.transform = 'none'; 
+                                            e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.05)'; 
+                                        }}
+                                    >
+                                        <div style={{ width: '80px', height: '80px', borderRadius: '50%', backgroundColor: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: color, transition: 'all 0.3s' }}>
+                                            <SpecIcon size={40} />
+                                        </div>
+                                        <div>
+                                            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>{spec.name}</h3>
+                                            <p style={{ fontSize: '1rem', color: '#64748b', margin: '0.5rem 0 0 0' }}>Nhấn để chọn</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>{spec.name}</h3>
-                                        <p style={{ fontSize: '1rem', color: '#64748b', margin: '0.5rem 0 0 0' }}>Nhấn để chọn</p>
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     )}
                 </div>
@@ -366,15 +408,61 @@ const BookHomeVisit = () => {
             {/* Step 2: Doctor */}
             {step === 2 && (
                 <div style={{ animation: 'fadeIn 0.3s ease' }}>
-                    <div style={{ marginBottom: '2rem', display: 'flex', gap: '1rem' }}>
+                    <div style={{ marginBottom: '3rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                         <input 
                             type="text" 
                             placeholder="Tìm kiếm bác sĩ theo tên..." 
                             value={searchDoc}
                             onChange={e => setSearchDoc(e.target.value)}
-                            style={{ flex: 1, padding: '1rem', borderRadius: '0.75rem', border: '1px solid #cbd5e1', fontSize: '1.125rem', outline: 'none', boxSizing: 'border-box' }}
+                            style={{ 
+                                flex: 1, 
+                                minWidth: '250px', 
+                                padding: '1.25rem 1.5rem', 
+                                borderRadius: '1.5rem', 
+                                border: '2px solid #e2e8f0', 
+                                fontSize: '1.125rem', 
+                                outline: 'none',
+                                transition: 'all 0.2s ease',
+                                boxSizing: 'border-box',
+                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)'
+                            }}
+                            onFocus={e => {
+                                e.target.style.borderColor = '#c7d2fe';
+                                e.target.style.boxShadow = '0 0 0 4px rgba(199, 210, 254, 0.5)';
+                            }}
+                            onBlur={e => {
+                                e.target.style.borderColor = '#e2e8f0';
+                                e.target.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05)';
+                            }}
                         />
-                        <button onClick={() => setStep(1)} className="btn-secondary" style={{ padding: '0 1.5rem', whiteSpace: 'nowrap' }}>Quay lại</button>
+                        <select
+                            value={sortOrder}
+                            onChange={e => setSortOrder(e.target.value)}
+                            style={{ 
+                                padding: '1.25rem 1.5rem', 
+                                borderRadius: '1.5rem', 
+                                border: '2px solid #e2e8f0', 
+                                fontSize: '1.125rem', 
+                                outline: 'none', 
+                                minWidth: '220px', 
+                                backgroundColor: 'white', 
+                                cursor: 'pointer',
+                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
+                                transition: 'all 0.2s ease',
+                                color: '#475569'
+                            }}
+                            onFocus={e => {
+                                e.target.style.borderColor = '#c7d2fe';
+                            }}
+                            onBlur={e => {
+                                e.target.style.borderColor = '#e2e8f0';
+                            }}
+                        >
+                            <option value="">Sắp xếp mặc định</option>
+                            <option value="price_asc">Giá khám: Tăng dần</option>
+                            <option value="price_desc">Giá khám: Giảm dần</option>
+                        </select>
+                        <button onClick={() => setStep(1)} className="btn-secondary" style={{ padding: '0 1.5rem', whiteSpace: 'nowrap', borderRadius: '1.5rem', border: '2px solid #e2e8f0' }}>Quay lại</button>
                     </div>
                     {searchedDoctors.length === 0 ? (
                         <div style={{ textAlign: 'center', padding: '3rem', backgroundColor: '#f8fafc', borderRadius: '1rem' }}>

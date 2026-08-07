@@ -81,4 +81,42 @@ public class AuthController {
         String response = authService.register(registerDto);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<String> verifyOtp(@RequestBody com.smartclinic.backend.dto.OtpRequestDto otpRequestDto) {
+        String response = authService.verifyRegisterOtp(otpRequestDto);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/resend-otp")
+    public ResponseEntity<String> resendOtp(@RequestBody java.util.Map<String, String> request) {
+        String response = authService.resendRegisterOtp(request.get("email"));
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestBody com.smartclinic.backend.dto.ForgotPasswordDto forgotPasswordDto) {
+        String response = authService.forgotPassword(forgotPasswordDto);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/verify-forgot-password-otp")
+    public ResponseEntity<String> verifyForgotPasswordOtp(@RequestBody com.smartclinic.backend.dto.OtpRequestDto otpRequestDto) {
+        String response = authService.verifyForgotPasswordOtp(otpRequestDto);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody com.smartclinic.backend.dto.ResetPasswordDto resetPasswordDto) {
+        String response = authService.resetPassword(resetPasswordDto);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<String> changePassword(
+            @RequestBody com.smartclinic.backend.dto.ChangePasswordDto changePasswordDto,
+            java.security.Principal principal) {
+        String response = authService.changePassword(principal.getName(), changePasswordDto);
+        return ResponseEntity.ok(response);
+    }
 }

@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const storedUser = localStorage.getItem('user');
+        const storedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
         if (storedUser) {
             const parsedUser = JSON.parse(storedUser);
             setUser(parsedUser);
@@ -51,10 +51,16 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const login = (userData) => {
+    const login = (userData, rememberMe = true) => {
         setUser(userData);
-        localStorage.setItem('user', JSON.stringify(userData));
-        localStorage.setItem('accessToken', userData.accessToken);
+        
+        if (rememberMe) {
+            localStorage.setItem('user', JSON.stringify(userData));
+            localStorage.setItem('accessToken', userData.accessToken);
+        } else {
+            sessionStorage.setItem('user', JSON.stringify(userData));
+            sessionStorage.setItem('accessToken', userData.accessToken);
+        }
 
         if (userData.role === 'PATIENT') {
             fetchFavorites(userData.id);
@@ -72,6 +78,8 @@ export const AuthProvider = ({ children }) => {
         setFavoriteDoctorIds(new Set());
         localStorage.removeItem('user');
         localStorage.removeItem('accessToken');
+        sessionStorage.removeItem('user');
+        sessionStorage.removeItem('accessToken');
         navigate('/login');
     };
 

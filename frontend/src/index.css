@@ -96,16 +96,24 @@ a:hover {
 }
 
 .btn-primary {
-  width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 0.6rem 1.25rem;
   background-color: var(--primary-color);
   color: white;
   border: none;
   border-radius: 0.5rem;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s ease, transform 0.1s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-card .btn-primary {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
 }
 
 .btn-primary:hover {
@@ -114,6 +122,31 @@ a:hover {
 
 .btn-primary:active {
   transform: scale(0.98);
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.page-header select, .page-header input[type="text"], .page-header input[type="date"] {
+  padding: 0.6rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #d1d5db;
+  outline: none;
+  font-size: 0.9rem;
+  background-color: #f9fafb;
+  transition: all 0.2s;
+}
+
+.page-header select:focus, .page-header input:focus {
+  border-color: var(--primary-color);
+  background-color: white;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
 .btn-primary:disabled {
@@ -247,4 +280,24 @@ a:hover {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+.quill-content ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+  margin-top: 0.5rem;
+}
+.quill-content ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+  margin-top: 0.5rem;
+}
+.quill-content p {
+  margin-bottom: 0.5rem;
+}
+.quill-content h1, .quill-content h2, .quill-content h3 {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
 }

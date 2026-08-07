@@ -19,7 +19,7 @@ const PatientManager = () => {
         email: '',
         phone: '',
         password: '',
-        gender: 'MALE',
+        gender: 'Nam',
         birthday: '',
         address: ''
     });
@@ -58,9 +58,11 @@ const PatientManager = () => {
             fullName: patient.fullName || '',
             email: patient.email || '',
             phone: patient.phone || '',
-            gender: patient.gender || 'MALE',
+            gender: patient.gender || 'Nam',
             birthday: patient.birthday || '',
-            address: patient.address || ''
+            address: patient.address || '',
+            bloodGroup: patient.bloodGroup || '',
+            allergy: patient.allergy || ''
         });
         setShowModal(true);
     };
@@ -73,9 +75,11 @@ const PatientManager = () => {
             email: '',
             phone: '',
             password: '',
-            gender: 'MALE',
+            gender: 'Nam',
             birthday: '',
-            address: ''
+            address: '',
+            bloodGroup: '',
+            allergy: ''
         });
         setShowModal(true);
     };
@@ -111,23 +115,22 @@ const PatientManager = () => {
 
     return (
         <div>
-            <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="page-header">
                 <h2>Quản lý Bệnh nhân</h2>
-                <button className="btn-primary" onClick={handleAddNew} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Plus size={18} /> Thêm Bệnh nhân
-                </button>
-            </div>
-
-            <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem' }}>
-                <div style={{ position: 'relative', flex: 1, maxWidth: '400px' }}>
-                    <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#6b7280' }} />
-                    <input
-                        type="text"
-                        placeholder="Tìm theo tên, email, sđt..."
-                        value={searchTerm}
-                        onChange={handleSearch}
-                        style={{ width: '100%', padding: '0.75rem 1rem 0.75rem 2.5rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
-                    />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', backgroundColor: 'white', padding: '0.75rem 1rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', flexWrap: 'wrap' }}>
+                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                        <Search size={18} style={{ position: 'absolute', left: '10px', color: '#6b7280' }} />
+                        <input
+                            type="text"
+                            placeholder="Tìm theo tên, email, sđt..."
+                            value={searchTerm}
+                            onChange={handleSearch}
+                            style={{ paddingLeft: '2.5rem', width: '250px' }}
+                        />
+                    </div>
+                    <button className="btn-primary" onClick={handleAddNew}>
+                        <Plus size={18} style={{ marginRight: '0.5rem' }} /> Thêm Bệnh nhân
+                    </button>
                 </div>
             </div>
 
@@ -158,11 +161,17 @@ const PatientManager = () => {
                                 </td>
                                 <td>
                                     <div style={{ fontSize: '0.875rem', color: '#4b5563' }}>
-                                        Giới tính: {p.gender === 'MALE' ? 'Nam' : p.gender === 'FEMALE' ? 'Nữ' : 'Khác'}
+                                        Giới tính: {p.gender === 'MALE' ? 'Nam' : p.gender === 'FEMALE' ? 'Nữ' : p.gender === 'OTHER' ? 'Khác' : p.gender || 'Chưa cập nhật'}
                                     </div>
                                     <div style={{ fontSize: '0.875rem', color: '#4b5563' }}>
                                         Ngày sinh: {p.birthday || 'Chưa cập nhật'}
                                     </div>
+                                    {(p.bloodGroup || p.allergy) && (
+                                        <div style={{ fontSize: '0.875rem', color: '#4b5563', marginTop: '0.25rem' }}>
+                                            {p.bloodGroup && <span style={{ marginRight: '0.5rem', backgroundColor: '#fee2e2', color: '#991b1b', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600 }}>Nhóm máu: {p.bloodGroup}</span>}
+                                            {p.allergy && <span style={{ backgroundColor: '#fef3c7', color: '#92400e', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600 }}>Dị ứng: {p.allergy}</span>}
+                                        </div>
+                                    )}
                                 </td>
                                 <td>
                                     <button 
@@ -254,9 +263,9 @@ const PatientManager = () => {
                                         value={formData.gender}
                                         onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
                                     >
-                                        <option value="MALE">Nam</option>
-                                        <option value="FEMALE">Nữ</option>
-                                        <option value="OTHER">Khác</option>
+                                        <option value="Nam">Nam</option>
+                                        <option value="Nữ">Nữ</option>
+                                        <option value="Khác">Khác</option>
                                     </select>
                                 </div>
                                 <div className="form-group">
@@ -273,6 +282,33 @@ const PatientManager = () => {
                                         type="text" className="form-control"
                                         value={formData.address}
                                         onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Nhóm máu</label>
+                                    <select
+                                        className="form-control"
+                                        value={formData.bloodGroup}
+                                        onChange={(e) => setFormData({ ...formData, bloodGroup: e.target.value })}
+                                    >
+                                        <option value="">Chưa xác định</option>
+                                        <option value="A+">A+</option>
+                                        <option value="A-">A-</option>
+                                        <option value="B+">B+</option>
+                                        <option value="B-">B-</option>
+                                        <option value="O+">O+</option>
+                                        <option value="O-">O-</option>
+                                        <option value="AB+">AB+</option>
+                                        <option value="AB-">AB-</option>
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label>Tiền sử dị ứng</label>
+                                    <input
+                                        type="text" className="form-control"
+                                        placeholder="Ví dụ: Dị ứng penicillin, phấn hoa..."
+                                        value={formData.allergy}
+                                        onChange={(e) => setFormData({ ...formData, allergy: e.target.value })}
                                     />
                                 </div>
                             </div>

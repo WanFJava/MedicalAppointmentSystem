@@ -19,6 +19,8 @@ const ReceptionistDashboard = () => {
     const [showBookingModal, setShowBookingModal] = useState(false);
     const [filterDate, setFilterDate] = useState(new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]);
     const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('ALL');
+    const [visitTypeFilter, setVisitTypeFilter] = useState('ALL');
 
     useEffect(() => {
         fetchAppointments();
@@ -130,47 +132,81 @@ const ReceptionistDashboard = () => {
         ? appointments.filter(apt => apt.scheduleDate === filterDate)
         : appointments;
 
-    const filteredAppointments = dateFiltered.filter(apt => 
-        (apt.patientName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-        (apt.doctorName?.toLowerCase() || '').includes(searchTerm.toLowerCase())
-    );
+    const filteredAppointments = dateFiltered.filter(apt => {
+        const matchSearch = (apt.patientName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                            (apt.doctorName?.toLowerCase() || '').includes(searchTerm.toLowerCase());
+                            
+        let matchStatus = true;
+        if (statusFilter !== 'ALL') {
+            matchStatus = apt.status === statusFilter;
+        }
+
+        let matchType = true;
+        if (visitTypeFilter !== 'ALL') {
+            matchType = apt.visitType === visitTypeFilter;
+        }
+
+        return matchSearch && matchStatus && matchType;
+    });
 
     return (
         <div>
-            <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                 <div>
                     <h2>Quản lý Lịch hẹn</h2>
                     <div style={{ color: 'var(--text-secondary)' }}>Xin chào, {user?.fullName}</div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', backgroundColor: 'white', padding: '0.75rem 1rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', backgroundColor: 'white', padding: '0.75rem 1rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', flexWrap: 'wrap' }}>
                     <button 
                         className="btn-primary" 
                         onClick={() => setShowBookingModal(true)} 
-                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginRight: '1rem', padding: '0.5rem 1rem' }}
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginRight: '0.5rem' }}
                     >
                         <Plus size={16} /> Đặt lịch hộ
                     </button>
+                    <select
+                        value={visitTypeFilter}
+                        onChange={(e) => setVisitTypeFilter(e.target.value)}
+                    >
+                        <option value="ALL">Loại hình: Tất cả</option>
+                        <option value="CLINIC_VISIT">Tại trung tâm</option>
+                        <option value="HOME_VISIT">Tại nhà</option>
+                    </select>
+                    <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                    >
+                        <option value="ALL">Trạng thái: Tất cả</option>
+                        <option value="PENDING">Chờ khám</option>
+                        <option value="CONFIRMED">Đã xác nhận</option>
+                        <option value="CHECKED_IN">Đang khám</option>
+                        <option value="COMPLETED">Hoàn thành</option>
+                        <option value="CANCELLED_BY_PATIENT">BN Hủy</option>
+                        <option value="CANCELLED_BY_DOCTOR">BS Hủy</option>
+                        <option value="NO_SHOW_BY_DOCTOR">BS Vắng</option>
+                    </select>
                     <input
                         type="text"
-                        placeholder="Tìm bệnh nhân hoặc bác sĩ..."
+                        placeholder="Tìm bệnh nhân, bác sĩ..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #d1d5db', marginRight: '10px' }}
+                        style={{ width: '200px' }}
                     />
-                    <label style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>Xem lịch ngày:</label>
-                    <input
-                        type="date"
-                        value={filterDate}
-                        onChange={(e) => setFilterDate(e.target.value)}
-                        style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #d1d5db' }}
-                    />
-                    <button
-                        onClick={() => setFilterDate('')}
-                        style={{ padding: '0.5rem', backgroundColor: '#f3f4f6', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }}
-                        title="Xem tất cả ngày"
-                    >
-                        Tất cả
-                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', borderLeft: '1px solid #e5e7eb', paddingLeft: '0.75rem' }}>
+                        <label style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>Ngày:</label>
+                        <input
+                            type="date"
+                            value={filterDate}
+                            onChange={(e) => setFilterDate(e.target.value)}
+                        />
+                        <button
+                            onClick={() => setFilterDate('')}
+                            style={{ padding: '0.5rem 1rem', backgroundColor: '#f3f4f6', border: 'none', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600, transition: 'all 0.2s' }}
+                            title="Xem tất cả ngày"
+                        >
+                            Tất cả
+                        </button>
+                    </div>
                 </div>
             </div>
 

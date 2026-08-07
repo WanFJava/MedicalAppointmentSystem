@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getDoctors, createDoctor, updateDoctor, updateDoctorStatus, getSpecialties } from '../../api/adminApi';
 import { Edit2, Plus, X, Calendar, Power } from 'lucide-react';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 
 const DoctorManager = () => {
     const navigate = useNavigate();
@@ -13,6 +15,8 @@ const DoctorManager = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [visitTypeFilter, setVisitTypeFilter] = useState('ALL');
+    const [statusFilter, setStatusFilter] = useState('ALL');
+    const [priceFilter, setPriceFilter] = useState('ALL');
 
     useEffect(() => {
         fetchData();
@@ -141,25 +145,42 @@ const DoctorManager = () => {
         <div>
             <div className="page-header">
                 <h2>Quản lý Bác sĩ</h2>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', backgroundColor: 'white', padding: '0.75rem 1rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', flexWrap: 'wrap' }}>
                     <select
                         value={visitTypeFilter}
                         onChange={(e) => setVisitTypeFilter(e.target.value)}
-                        style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #d1d5db', outline: 'none' }}
                     >
-                        <option value="ALL">Tất cả hình thức</option>
+                        <option value="ALL">Hình thức: Tất cả</option>
                         <option value="HOME">Chỉ Khám tại nhà</option>
-                        <option value="CLINIC">Chỉ Khám tại trung tâm</option>
+                        <option value="CLINIC">Chỉ Khám trung tâm</option>
                         <option value="BOTH">Hỗ trợ cả hai</option>
+                    </select>
+                    <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                    >
+                        <option value="ALL">Trạng thái: Tất cả</option>
+                        <option value="ACTIVE">Đang hoạt động</option>
+                        <option value="INACTIVE">Ngưng hoạt động</option>
+                        <option value="LOCKED">Tạm khóa</option>
+                    </select>
+                    <select
+                        value={priceFilter}
+                        onChange={(e) => setPriceFilter(e.target.value)}
+                    >
+                        <option value="ALL">Mức giá: Tất cả</option>
+                        <option value="UNDER_300">Dưới 300.000 VNĐ</option>
+                        <option value="300_TO_500">300.000 - 500.000 VNĐ</option>
+                        <option value="OVER_500">Trên 500.000 VNĐ</option>
                     </select>
                     <input
                         type="text"
-                        placeholder="Tìm kiếm bác sĩ hoặc chuyên khoa..."
+                        placeholder="Tìm kiếm bác sĩ, chuyên khoa..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #d1d5db', minWidth: '250px' }}
+                        style={{ minWidth: '220px' }}
                     />
-                    <button className="btn-primary" style={{ width: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={() => handleOpenModal()}>
+                    <button className="btn-primary" onClick={() => handleOpenModal()}>
                         <Plus size={18} /> Thêm bác sĩ
                     </button>
                 </div>
@@ -186,7 +207,18 @@ const DoctorManager = () => {
                             if (visitTypeFilter === 'HOME') matchType = doc.canHomeVisit && !doc.canClinicVisit;
                             else if (visitTypeFilter === 'CLINIC') matchType = doc.canClinicVisit && !doc.canHomeVisit;
                             else if (visitTypeFilter === 'BOTH') matchType = doc.canClinicVisit && doc.canHomeVisit;
-                            return matchSearch && matchType;
+
+                            let matchStatus = true;
+                            if (statusFilter !== 'ALL') {
+                                matchStatus = doc.status === statusFilter;
+                            }
+
+                            let matchPrice = true;
+                            if (priceFilter === 'UNDER_300') matchPrice = doc.consultationFee < 300000;
+                            else if (priceFilter === '300_TO_500') matchPrice = doc.consultationFee >= 300000 && doc.consultationFee <= 500000;
+                            else if (priceFilter === 'OVER_500') matchPrice = doc.consultationFee > 500000;
+
+                            return matchSearch && matchType && matchStatus && matchPrice;
                         }).map((doc) => {
                             // Determine row style based on visit type
                             let rowStyle = {};
@@ -227,12 +259,12 @@ const DoctorManager = () => {
                                 <td>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                                         {doc.canClinicVisit && (
-                                            <span style={{ fontSize: '0.75rem', backgroundColor: '#e0e7ff', color: '#4f46e5', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 'bold', display: 'inline-block', width: 'fit-content' }}>
+                                            <span style={{ fontSize: '0.75rem', backgroundColor: '#e0e7ff', color: '#4f46e5', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 'bold', display: 'inline-block', width: 'fit-content', whiteSpace: 'nowrap' }}>
                                                 Khám tại trung tâm
                                             </span>
                                         )}
                                         {doc.canHomeVisit && (
-                                            <span style={{ fontSize: '0.75rem', backgroundColor: '#dcfce7', color: '#166534', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 'bold', display: 'inline-block', width: 'fit-content' }}>
+                                            <span style={{ fontSize: '0.75rem', backgroundColor: '#dcfce7', color: '#166534', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 'bold', display: 'inline-block', width: 'fit-content', whiteSpace: 'nowrap' }}>
                                                 Khám tại nhà
                                             </span>
                                         )}
@@ -244,6 +276,8 @@ const DoctorManager = () => {
                                         borderRadius: '1rem',
                                         fontSize: '0.8rem',
                                         fontWeight: 'bold',
+                                        display: 'inline-block',
+                                        whiteSpace: 'nowrap',
                                         backgroundColor: doc.status === 'ACTIVE' ? '#d1fae5' : (doc.status === 'LOCKED' ? '#fee2e2' : '#fef3c7'),
                                         color: doc.status === 'ACTIVE' ? '#047857' : (doc.status === 'LOCKED' ? '#b91c1c' : '#b45309'),
                                         border: `1px solid ${doc.status === 'ACTIVE' ? '#6ee7b7' : (doc.status === 'LOCKED' ? '#fca5a5' : '#fde68a')}`
@@ -294,7 +328,18 @@ const DoctorManager = () => {
                             if (visitTypeFilter === 'HOME') matchType = doc.canHomeVisit && !doc.canClinicVisit;
                             else if (visitTypeFilter === 'CLINIC') matchType = doc.canClinicVisit && !doc.canHomeVisit;
                             else if (visitTypeFilter === 'BOTH') matchType = doc.canClinicVisit && doc.canHomeVisit;
-                            return matchSearch && matchType;
+
+                            let matchStatus = true;
+                            if (statusFilter !== 'ALL') {
+                                matchStatus = doc.status === statusFilter;
+                            }
+
+                            let matchPrice = true;
+                            if (priceFilter === 'UNDER_300') matchPrice = doc.consultationFee < 300000;
+                            else if (priceFilter === '300_TO_500') matchPrice = doc.consultationFee >= 300000 && doc.consultationFee <= 500000;
+                            else if (priceFilter === 'OVER_500') matchPrice = doc.consultationFee > 500000;
+
+                            return matchSearch && matchType && matchStatus && matchPrice;
                         }).length === 0 && (
                             <tr>
                                 <td colSpan="8" style={{ textAlign: 'center', padding: '2rem' }}>Không tìm thấy bác sĩ nào.</td>
@@ -449,15 +494,15 @@ const DoctorManager = () => {
                                     </div>
                                 )}
                             </div>
-                            <div className="form-group" style={{ marginTop: '1rem' }}>
+                            <div className="form-group" style={{ marginTop: '1rem', marginBottom: '1.5rem' }}>
                                 <label>Tiểu sử</label>
-                                <textarea
-                                    className="form-control"
-                                    rows="4"
+                                <ReactQuill
+                                    theme="snow"
                                     value={formData.biography}
-                                    onChange={(e) => setFormData({...formData, biography: e.target.value})}
-                                    placeholder="Enter doctor's biography..."
-                                ></textarea>
+                                    onChange={(content) => setFormData({...formData, biography: content})}
+                                    style={{ backgroundColor: 'white', borderRadius: '0.5rem', marginBottom: '3rem' }}
+                                    placeholder="Nhập tiểu sử chi tiết, hỗ trợ in đậm, gạch đầu dòng..."
+                                />
                             </div>
                             <div className="form-actions">
                                 <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>Hủy</button>

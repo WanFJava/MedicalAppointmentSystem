@@ -18,6 +18,7 @@ const HomeVisitDoctorProfile = () => {
     const [selectedSchedule, setSelectedSchedule] = useState(null);
     const scheduleTypeTab = 'HOME';
     const [feedbacks, setFeedbacks] = useState([]);
+    const [isExpanded, setIsExpanded] = useState(false);
 
     useEffect(() => {
         const fetchDoctor = async () => {
@@ -234,7 +235,41 @@ const HomeVisitDoctorProfile = () => {
                 {doctor.biography && (
                     <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '0.5rem', textAlign: 'left', marginBottom: '2rem', border: '1px solid #e2e8f0' }}>
                         <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1f2937', marginBottom: '1rem' }}>Giới thiệu về Bác sĩ</h3>
-                        <p style={{ color: '#4b5563', lineHeight: '1.8', whiteSpace: 'pre-wrap', fontSize: '1rem' }}>{doctor.biography}</p>
+                        <div style={{ position: 'relative' }}>
+                            <div 
+                                className="quill-content" 
+                                dangerouslySetInnerHTML={{ __html: doctor.biography || '' }} 
+                                style={{ 
+                                    color: '#4b5563', 
+                                    lineHeight: '1.8', 
+                                    fontSize: '1rem',
+                                    wordWrap: 'break-word',
+                                    overflowWrap: 'break-word',
+                                    display: isExpanded ? 'block' : '-webkit-box',
+                                    WebkitLineClamp: isExpanded ? 'unset' : 6,
+                                    WebkitBoxOrient: 'vertical',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis'
+                                }} 
+                            />
+                            {doctor.biography?.length > 300 && (
+                                <button
+                                    onClick={() => setIsExpanded(!isExpanded)}
+                                    style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        color: '#0ea5e9',
+                                        cursor: 'pointer',
+                                        marginTop: '0.5rem',
+                                        padding: 0,
+                                        fontSize: '0.95rem',
+                                        fontWeight: '600'
+                                    }}
+                                >
+                                    {isExpanded ? 'Ẩn bớt' : 'Xem thêm'}
+                                </button>
+                            )}
+                        </div>
                     </div>
                 )}
 

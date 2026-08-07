@@ -6,6 +6,7 @@ import { getSpecialties, getDoctors } from '../api/adminApi';
 import { getAvailableSchedules, bookAppointment } from '../api/appointmentApi';
 import DoctorCard from '../components/DoctorCard';
 import { getPatientProfile } from '../api/patientApi';
+import { getSpecialtyIconAndColor } from '../utils/iconMap';
 
 const BookingPage = () => {
     const { user } = useContext(AuthContext);
@@ -20,6 +21,7 @@ const BookingPage = () => {
     const [filteredDoctors, setFilteredDoctors] = useState([]);
     const [searchSpec, setSearchSpec] = useState('');
     const [searchDoc, setSearchDoc] = useState('');
+    const [sortOrder, setSortOrder] = useState('');
 
     // Selection state
     const [selectedSpec, setSelectedSpec] = useState(location.state?.selectedSpec || '');
@@ -244,9 +246,9 @@ const BookingPage = () => {
     }
 
     return (
-        <div className="booking-container">
-            <h1 style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '3rem', color: '#111827', textAlign: 'center' }}>
-                Đặt lịch Khám
+        <div className="booking-container" style={{ padding: '2rem 1rem' }}>
+            <h1 style={{ fontSize: '3rem', fontWeight: '800', marginBottom: '3rem', textAlign: 'center', background: 'linear-gradient(to right, #1e293b, #3b82f6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '-0.02em' }}>
+                Đặt lịch Khám tại Trung tâm
             </h1>
 
             {/* Stepper */}
@@ -292,84 +294,77 @@ const BookingPage = () => {
                             ← Quay lại
                         </button>
                         <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '1.5rem', color: '#111827', textAlign: 'center' }}>Chọn Chuyên khoa Y tế</h2>
-                        <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'center' }}>
-                            <input 
-                                type="text" 
-                                placeholder="Tìm kiếm chuyên khoa..." 
-                                value={searchSpec}
-                                onChange={e => setSearchSpec(e.target.value)}
-                                style={{ width: '100%', maxWidth: '500px', padding: '1rem', borderRadius: '0.75rem', border: '2px solid #e2e8f0', fontSize: '1rem', outline: 'none' }}
-                                onFocus={e => e.target.style.borderColor = 'var(--primary-color)'}
-                                onBlur={e => e.target.style.borderColor = '#e2e8f0'}
-                            />
+                        <div style={{ marginBottom: '3rem', display: 'flex', justifyContent: 'center' }}>
+                            <div style={{ position: 'relative', width: '100%', maxWidth: '600px' }}>
+                                <input 
+                                    type="text" 
+                                    placeholder="Tìm kiếm chuyên khoa..." 
+                                    value={searchSpec}
+                                    onChange={e => setSearchSpec(e.target.value)}
+                                    style={{ 
+                                        width: '100%', 
+                                        padding: '1.25rem 1.5rem', 
+                                        borderRadius: '1.5rem', 
+                                        border: '2px solid #e2e8f0', 
+                                        fontSize: '1.125rem', 
+                                        outline: 'none',
+                                        transition: 'all 0.2s ease',
+                                        boxSizing: 'border-box',
+                                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)'
+                                    }}
+                                    onFocus={e => {
+                                        e.target.style.borderColor = '#c7d2fe';
+                                        e.target.style.boxShadow = '0 0 0 4px rgba(199, 210, 254, 0.5)';
+                                    }}
+                                    onBlur={e => {
+                                        e.target.style.borderColor = '#e2e8f0';
+                                        e.target.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05)';
+                                    }}
+                                />
+                            </div>
                         </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                            {specialties.filter(spec => spec.name.toLowerCase().includes(searchSpec.toLowerCase())).map(spec => (
-                                <div key={spec.id} style={{
-                                    backgroundColor: 'white',
-                                    borderRadius: '0.5rem',
-                                    overflow: 'hidden',
-                                    boxShadow: '0 2px 4px -1px rgba(0, 0, 0, 0.05)',
-                                    border: '1px solid #e2e8f0',
-                                    transition: 'transform 0.2s, boxShadow 0.2s',
-                                    display: 'flex',
-                                    flexDirection: 'row',
-                                    flexWrap: 'wrap',
-                                    alignItems: 'stretch',
-                                    cursor: 'pointer'
-                                }}
-                                onClick={() => handleSpecSelect(spec.id)}
-                                onMouseOver={(e) => {
-                                    e.currentTarget.style.transform = 'translateY(-2px)';
-                                    e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
-                                    const arrow = e.currentTarget.querySelector('.arrow-icon');
-                                    if (arrow) arrow.style.transform = 'translateX(5px)';
-                                }}
-                                onMouseOut={(e) => {
-                                    e.currentTarget.style.transform = 'translateY(0)';
-                                    e.currentTarget.style.boxShadow = '0 2px 4px -1px rgba(0, 0, 0, 0.05)';
-                                    const arrow = e.currentTarget.querySelector('.arrow-icon');
-                                    if (arrow) arrow.style.transform = 'translateX(0)';
-                                }}
-                                >
-                                    {/* LEFT COLUMN: Icon & Title */}
-                                    <div style={{ padding: '1.5rem', flex: '1 1 300px', display: 'flex', gap: '1.5rem', borderRight: '1px solid #e2e8f0', alignItems: 'center' }}>
-                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '100px' }}>
-                                            <div style={{
-                                                width: '100px',
-                                                height: '100px',
-                                                borderRadius: '50%',
-                                                backgroundColor: '#e0e7ff',
-                                                display: 'flex',
-                                                justifyContent: 'center',
-                                                alignItems: 'center',
-                                                marginBottom: '0.5rem',
-                                                border: '3px solid #c7d2fe',
-                                                color: '#4f46e5'
-                                            }}>
-                                                <Activity size={48} />
-                                            </div>
-                                            <span style={{ color: '#0ea5e9', fontSize: '0.875rem', fontWeight: '500' }}>Chọn</span>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '2rem' }}>
+                            {specialties.filter(spec => spec.name.toLowerCase().includes(searchSpec.toLowerCase())).map(spec => {
+                                const { icon: SpecIcon, color, bg } = getSpecialtyIconAndColor(spec.name);
+                                return (
+                                    <div 
+                                        key={spec.id}
+                                        onClick={() => handleSpecSelect(spec.id)}
+                                        style={{
+                                            padding: '2rem',
+                                            backgroundColor: 'white',
+                                            borderRadius: '1.5rem',
+                                            border: '2px solid #f1f5f9',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            textAlign: 'center',
+                                            gap: '1.5rem',
+                                            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
+                                        }}
+                                        onMouseOver={e => { 
+                                            e.currentTarget.style.borderColor = color; 
+                                            e.currentTarget.style.transform = 'translateY(-6px)'; 
+                                            e.currentTarget.style.boxShadow = `0 20px 25px -5px ${color}20, 0 8px 10px -6px ${color}20`; 
+                                        }}
+                                        onMouseOut={e => { 
+                                            e.currentTarget.style.borderColor = '#f1f5f9'; 
+                                            e.currentTarget.style.transform = 'none'; 
+                                            e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.05)'; 
+                                        }}
+                                    >
+                                        <div style={{ width: '80px', height: '80px', borderRadius: '50%', backgroundColor: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: color, transition: 'all 0.3s' }}>
+                                            <SpecIcon size={40} />
                                         </div>
-
-                                        <div style={{ flex: 1 }}>
-                                            <h3 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#0ea5e9', margin: 0 }}>
-                                                {spec.name}
-                                            </h3>
-                                            <div style={{ fontSize: '0.9rem', color: '#4b5563', marginTop: '0.25rem' }}>
-                                                Chuyên khoa
-                                            </div>
+                                        <div>
+                                            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>{spec.name}</h3>
+                                            <p style={{ fontSize: '1rem', color: '#64748b', margin: '0.5rem 0 0 0' }}>Nhấn để chọn</p>
                                         </div>
                                     </div>
-
-                                    {/* RIGHT COLUMN: Description & Action */}
-                                    <div style={{ padding: '1.5rem', flex: '1 1 300px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                                        <p style={{ color: '#64748b', fontSize: '1rem', lineHeight: '1.6', marginBottom: '1.5rem' }}>
-                                            {spec.description}
-                                        </p>
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
                 )}
@@ -381,16 +376,60 @@ const BookingPage = () => {
                             ← Quay lại Chọn chuyên khoa
                         </button>
                         <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '1.5rem', color: '#111827' }}>Chọn Bác sĩ</h2>
-                        <div style={{ marginBottom: '2rem' }}>
+                        <div style={{ marginBottom: '3rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                             <input 
                                 type="text" 
                                 placeholder="Tìm kiếm bác sĩ..." 
                                 value={searchDoc}
                                 onChange={e => setSearchDoc(e.target.value)}
-                                style={{ width: '100%', maxWidth: '500px', padding: '1rem', borderRadius: '0.75rem', border: '2px solid #e2e8f0', fontSize: '1rem', outline: 'none' }}
-                                onFocus={e => e.target.style.borderColor = 'var(--primary-color)'}
-                                onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+                                style={{ 
+                                    flex: '1', 
+                                    minWidth: '250px', 
+                                    padding: '1.25rem 1.5rem', 
+                                    borderRadius: '1.5rem', 
+                                    border: '2px solid #e2e8f0', 
+                                    fontSize: '1.125rem', 
+                                    outline: 'none',
+                                    transition: 'all 0.2s ease',
+                                    boxSizing: 'border-box',
+                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)'
+                                }}
+                                onFocus={e => {
+                                    e.target.style.borderColor = '#c7d2fe';
+                                    e.target.style.boxShadow = '0 0 0 4px rgba(199, 210, 254, 0.5)';
+                                }}
+                                onBlur={e => {
+                                    e.target.style.borderColor = '#e2e8f0';
+                                    e.target.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05)';
+                                }}
                             />
+                            <select
+                                value={sortOrder}
+                                onChange={e => setSortOrder(e.target.value)}
+                                style={{ 
+                                    padding: '1.25rem 1.5rem', 
+                                    borderRadius: '1.5rem', 
+                                    border: '2px solid #e2e8f0', 
+                                    fontSize: '1.125rem', 
+                                    outline: 'none', 
+                                    minWidth: '220px', 
+                                    backgroundColor: 'white', 
+                                    cursor: 'pointer',
+                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
+                                    transition: 'all 0.2s ease',
+                                    color: '#475569'
+                                }}
+                                onFocus={e => {
+                                    e.target.style.borderColor = '#c7d2fe';
+                                }}
+                                onBlur={e => {
+                                    e.target.style.borderColor = '#e2e8f0';
+                                }}
+                            >
+                                <option value="">Sắp xếp mặc định</option>
+                                <option value="price_asc">Giá khám: Tăng dần</option>
+                                <option value="price_desc">Giá khám: Giảm dần</option>
+                            </select>
                         </div>
                         {filteredDoctors.filter(doc => doc.fullName.toLowerCase().includes(searchDoc.toLowerCase())).length === 0 ? (
                             <div style={{ padding: '3rem', backgroundColor: '#fef2f2', border: '2px dashed #fca5a5', borderRadius: '1rem', textAlign: 'center' }}>
@@ -398,9 +437,17 @@ const BookingPage = () => {
                             </div>
                         ) : (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                                {filteredDoctors.filter(doc => doc.fullName.toLowerCase().includes(searchDoc.toLowerCase())).map(doc => (
-                                    <DoctorCard key={doc.id} doc={doc} onDoctorSelect={handleDoctorSelect} />
-                                ))}
+                                {filteredDoctors
+                                    .filter(doc => doc.fullName.toLowerCase().includes(searchDoc.toLowerCase()))
+                                    .sort((a, b) => {
+                                        if (sortOrder === 'price_asc') return a.consultationFee - b.consultationFee;
+                                        if (sortOrder === 'price_desc') return b.consultationFee - a.consultationFee;
+                                        return 0;
+                                    })
+                                    .map(doc => (
+                                        <DoctorCard key={doc.id} doc={doc} onDoctorSelect={handleDoctorSelect} />
+                                    ))
+                                }
                             </div>
                         )}
                     </div>

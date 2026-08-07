@@ -314,12 +314,12 @@ const ScheduleManager = ({ doctorId, viewTab, appointments = [] }) => {
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                             {isExpired ? (
-                                                <span style={{ backgroundColor: '#f3f4f6', color: '#9ca3af', border: '1px solid #e5e7eb', padding: '0.35rem 0.85rem', borderRadius: '1rem', fontSize: '0.8rem', fontWeight: 'bold' }}>
-                                                    Đã quá giờ đăng ký (Quá hạn)
+                                                <span style={{ backgroundColor: '#f3f4f6', color: '#9ca3af', border: '1px solid #e5e7eb', padding: '0.35rem 0.85rem', borderRadius: '1rem', fontSize: '0.8rem', fontWeight: 'bold', display: 'inline-block', whiteSpace: 'nowrap' }}>
+                                                    Đã kết thúc
                                                 </span>
                                             ) : (
                                                 <>
-                                                    <span style={{ backgroundColor: '#ffedd5', color: '#c2410c', border: '1px solid #fdba74', padding: '0.35rem 0.85rem', borderRadius: '1rem', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                                                    <span style={{ backgroundColor: '#ffedd5', color: '#c2410c', border: '1px solid #fdba74', padding: '0.35rem 0.85rem', borderRadius: '1rem', fontSize: '0.8rem', fontWeight: 'bold', display: 'inline-block', whiteSpace: 'nowrap' }}>
                                                         OPEN – Chờ nhận ca
                                                     </span>
 

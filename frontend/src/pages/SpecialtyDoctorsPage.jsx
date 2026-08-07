@@ -13,6 +13,7 @@ const SpecialtyDoctorsPage = () => {
     const [specialty, setSpecialty] = useState(null);
     const [doctors, setDoctors] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isExpanded, setIsExpanded] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -69,45 +70,63 @@ const SpecialtyDoctorsPage = () => {
                 </button>
 
                 {/* Specialty Header */}
-                <div style={{
-                    backgroundColor: 'white',
-                    padding: '4rem 2rem',
-                    borderRadius: '1.25rem',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
-                    border: '1px solid #f1f5f9',
-                    marginBottom: '3rem',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    textAlign: 'center',
-                    position: 'relative',
-                    overflow: 'hidden'
-                }}>
-                    <div style={{ position: 'absolute', top: 0, right: 0, width: '200px', height: '200px', background: 'radial-gradient(circle at top right, rgba(79, 70, 229, 0.05) 0%, transparent 70%)', borderRadius: '0 1.25rem 0 100%' }}></div>
-                    <div style={{ position: 'absolute', bottom: 0, left: 0, width: '150px', height: '150px', background: 'radial-gradient(circle at bottom left, rgba(79, 70, 229, 0.03) 0%, transparent 70%)', borderRadius: '0 100% 0 1.25rem' }}></div>
-
-                    <div style={{
-                        background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)',
-                        color: '#4f46e5',
-                        width: '80px',
-                        height: '80px',
-                        borderRadius: '24px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        marginBottom: '1.5rem',
-                        boxShadow: '0 4px 6px -1px rgba(79, 70, 229, 0.2)',
-                        position: 'relative',
-                        zIndex: 1
-                    }}>
-                        <Activity size={40} />
-                    </div>
-                    <h1 style={{ fontSize: '2.5rem', fontWeight: '800', color: '#1e293b', marginBottom: '1rem', position: 'relative', zIndex: 1 }}>
+                <div style={{ marginBottom: '3rem', position: 'relative', backgroundColor: 'white', padding: '2rem', borderRadius: '1rem', border: '1px solid #e2e8f0' }}>
+                    <h1 style={{ fontSize: '2rem', fontWeight: '800', color: '#1e293b', marginBottom: '1.5rem', textAlign: 'left' }}>
                         {specialty.name}
                     </h1>
-                    <p style={{ color: '#64748b', fontSize: '1.125rem', maxWidth: '800px', lineHeight: '1.6', position: 'relative', zIndex: 1 }}>
-                        {specialty.description}
-                    </p>
+                    
+                    <div style={{
+                        color: '#334155', 
+                        fontSize: '1.05rem', 
+                        lineHeight: '1.8', 
+                        textAlign: 'left',
+                        position: 'relative'
+                    }}>
+                        {/* Optional faint background image like in screenshot */}
+                        <div style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: '300px',
+                            height: '300px',
+                            background: 'radial-gradient(circle, rgba(14, 165, 233, 0.05) 0%, transparent 70%)',
+                            zIndex: 0,
+                            pointerEvents: 'none'
+                        }}></div>
+
+                        <div 
+                            className="quill-content"
+                            dangerouslySetInnerHTML={{ __html: specialty.description || '' }}
+                            style={{
+                                display: isExpanded ? 'block' : '-webkit-box',
+                                WebkitLineClamp: isExpanded ? 'unset' : 8,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                position: 'relative',
+                                zIndex: 1
+                            }}
+                        />
+                        {specialty.description?.length > 300 && (
+                            <button
+                                onClick={() => setIsExpanded(!isExpanded)}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: '#0ea5e9',
+                                    cursor: 'pointer',
+                                    marginTop: '0.5rem',
+                                    padding: 0,
+                                    fontSize: '0.95rem',
+                                    position: 'relative',
+                                    zIndex: 1
+                                }}
+                            >
+                                {isExpanded ? 'Ẩn bớt' : 'Xem thêm'}
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 {/* Doctors List */}

@@ -147,11 +147,11 @@ const UserManager = () => {
 
     return (
         <div>
-            <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+            <div className="page-header">
                 <h2>Quản lý Người dùng</h2>
-                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                    <div style={{ position: 'relative' }}>
-                        <Search size={18} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#666' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', backgroundColor: 'white', padding: '0.75rem 1rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', flexWrap: 'wrap' }}>
+                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                        <Search size={18} style={{ position: 'absolute', left: '10px', color: '#666' }} />
                         <input
                             type="text"
                             placeholder="Tìm kiếm theo tên, email..."
@@ -231,6 +231,8 @@ const UserManager = () => {
                                         borderRadius: '1rem',
                                         fontSize: '0.8rem',
                                         fontWeight: 'bold',
+                                        display: 'inline-block',
+                                        whiteSpace: 'nowrap',
                                         backgroundColor: u.status === 'ACTIVE' ? '#d1fae5' : (u.status === 'LOCKED' ? '#fee2e2' : '#fef3c7'),
                                         color: u.status === 'ACTIVE' ? '#047857' : (u.status === 'LOCKED' ? '#b91c1c' : '#b45309'),
                                         border: `1px solid ${u.status === 'ACTIVE' ? '#6ee7b7' : (u.status === 'LOCKED' ? '#fca5a5' : '#fde68a')}`

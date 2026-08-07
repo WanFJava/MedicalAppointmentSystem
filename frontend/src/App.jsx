@@ -4,6 +4,7 @@ import { AuthContext } from './context/AuthContext';
 import { Toaster } from 'react-hot-toast';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
 import AdminLayout from './layouts/AdminLayout';
 import Dashboard from './pages/admin/Dashboard';
 import SpecialtyManager from './pages/admin/SpecialtyManager';
@@ -63,6 +64,7 @@ function App() {
         <Route path="/home-visit-doctor/:id" element={<HomeVisitDoctorProfile />} />
         <Route path="/login" element={user ? (['ADMIN', 'RECEPTIONIST', 'DOCTOR'].includes(user.role) ? <Navigate to="/admin" /> : <Navigate to="/" />) : <Login />} />
         <Route path="/register" element={user ? (['ADMIN', 'RECEPTIONIST', 'DOCTOR'].includes(user.role) ? <Navigate to="/admin" /> : <Navigate to="/" />) : <Register />} />
+        <Route path="/forgot-password" element={user ? <Navigate to="/" /> : <ForgotPassword />} />
         <Route path="/book" element={<RoleRoute user={user} roles={['PATIENT']}><BookingPage /></RoleRoute>} />
         <Route path="/book-home-visit" element={<RoleRoute user={user} roles={['PATIENT']}><BookHomeVisit /></RoleRoute>} />
         <Route path="/my-appointments" element={<RoleRoute user={user} roles={['PATIENT']}><MyAppointments /></RoleRoute>} />

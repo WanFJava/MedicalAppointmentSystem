@@ -3,7 +3,7 @@ import Swal from 'sweetalert2';
 import { AuthContext } from '../context/AuthContext';
 import { getPatientAppointments, updateAppointmentStatus } from '../api/appointmentApi';
 import { createComplaint } from '../api/complaintApi';
-import { Calendar, Clock, Stethoscope, FileText, Info, MessageSquare, Star, Home, Building, CreditCard, Activity } from 'lucide-react';
+import { Calendar, Clock, Stethoscope, FileText, Info, MessageSquare, Star, Home, Building, CreditCard, Activity, XCircle, AlertTriangle } from 'lucide-react';
 import { getBillByAppointment, payBill } from '../api/billApi';
 import PatientRecordModal from './PatientRecordModal';
 import PatientBillModal from './PatientBillModal';
@@ -244,13 +244,14 @@ const MyAppointments = () => {
                                         )}
                                     </div>
 
-                                    <div style={{ display: 'flex', gap: '0.75rem', marginTop: 'auto', flexWrap: 'wrap' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.75rem', marginTop: 'auto' }}>
                                         <button
                                             onClick={() => setViewingBookingApt(apt)}
                                             style={{
                                                 padding: '0.5rem 1rem', backgroundColor: '#f1f5f9', color: '#475569',
-                                                border: 'none', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer',
-                                                display: 'flex', alignItems: 'center', gap: '0.5rem', transition: 'all 0.2s'
+                                                border: '1px solid #e2e8f0', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', transition: 'all 0.2s',
+                                                minHeight: '38px', width: '100%'
                                             }}
                                             onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e2e8f0'}
                                             onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
@@ -263,12 +264,14 @@ const MyAppointments = () => {
                                                 onClick={() => handleCancel(apt.id)}
                                                 style={{
                                                     padding: '0.5rem 1rem', backgroundColor: '#fee2e2', color: '#dc2626',
-                                                    border: 'none', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s'
+                                                    border: '1px solid #fecaca', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                                                    minHeight: '38px', width: '100%'
                                                 }}
                                                 onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#fecaca'}
                                                 onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#fee2e2'}
                                             >
-                                                Hủy lịch
+                                                <XCircle size={16} /> Hủy lịch
                                             </button>
                                         )}
 
@@ -277,8 +280,9 @@ const MyAppointments = () => {
                                                 onClick={() => handleQuickPay(apt)}
                                                 style={{
                                                     padding: '0.5rem 1rem', backgroundColor: '#0ea5e9', color: 'white',
-                                                    border: 'none', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s',
-                                                    display: 'flex', alignItems: 'center', gap: '0.5rem'
+                                                    border: '1px solid #0284c7', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                                                    minHeight: '38px', width: '100%'
                                                 }}
                                                 onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#0284c7'}
                                                 onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#0ea5e9'}
@@ -293,13 +297,15 @@ const MyAppointments = () => {
                                                     onClick={() => handleComplaint(apt)}
                                                     style={{
                                                         padding: '0.5rem 1rem', backgroundColor: '#fef2f2', color: '#ef4444',
-                                                        border: '1px solid #fca5a5', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s'
+                                                        border: '1px solid #fca5a5', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s',
+                                                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                                                        minHeight: '38px', width: '100%'
                                                     }}
                                                     onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#fee2e2'}
                                                     onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#fef2f2'}
                                                     title="Gửi phản hồi / khiếu nại"
                                                 >
-                                                    Phản hồi / Khiếu nại
+                                                    <AlertTriangle size={16} /> Khiếu nại
                                                 </button>
                                             ) : (
                                                 <button
@@ -307,12 +313,13 @@ const MyAppointments = () => {
                                                     style={{
                                                         padding: '0.5rem 1rem', backgroundColor: '#eff6ff', color: '#2563eb',
                                                         border: '1px solid #bfdbfe', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer',
-                                                        transition: 'all 0.2s'
+                                                        transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                                                        minHeight: '38px', width: '100%'
                                                     }}
                                                     onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#dbeafe'}
                                                     onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#eff6ff'}
                                                 >
-                                                    Xem phản hồi / khiếu nại
+                                                    <MessageSquare size={16} /> Xem khiếu nại
                                                 </button>
                                             )
                                         )}
@@ -322,9 +329,12 @@ const MyAppointments = () => {
                                                 onClick={() => setViewingRecordApt(apt)}
                                                 style={{
                                                     padding: '0.5rem 1rem', backgroundColor: '#e0e7ff', color: '#4f46e5',
-                                                    border: 'none', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer',
-                                                    display: 'flex', alignItems: 'center', gap: '0.5rem'
+                                                    border: '1px solid #c7d2fe', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', transition: 'all 0.2s',
+                                                    minHeight: '38px', width: '100%'
                                                 }}
+                                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#c7d2fe'}
+                                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#e0e7ff'}
                                             >
                                                 <FileText size={16} /> Bệnh án
                                             </button>
@@ -337,11 +347,14 @@ const MyAppointments = () => {
                                                     padding: '0.5rem 1rem',
                                                     backgroundColor: apt.isReviewed ? '#f3f4f6' : '#fef9c3',
                                                     color: apt.isReviewed ? '#6b7280' : '#854d0e',
-                                                    border: 'none', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer',
-                                                    display: 'flex', alignItems: 'center', gap: '0.5rem'
+                                                    border: `1px solid ${apt.isReviewed ? '#e5e7eb' : '#fde047'}`, borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', transition: 'all 0.2s',
+                                                    minHeight: '38px', width: '100%'
                                                 }}
+                                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = apt.isReviewed ? '#e5e7eb' : '#fef08a'}
+                                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = apt.isReviewed ? '#f3f4f6' : '#fef9c3'}
                                             >
-                                                {apt.isReviewed ? <><Star size={16} /> Xem đánh giá</> : <><MessageSquare size={16} /> Viết đánh giá</>}
+                                                {apt.isReviewed ? <><Star size={16} /> Xem đánh giá</> : <><MessageSquare size={16} /> Đánh giá</>}
                                             </button>
                                         )}
                                     </div>

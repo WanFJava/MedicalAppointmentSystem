@@ -251,68 +251,109 @@ const HomeVisitManager = () => {
     );
 
     return (
-        <div style={{ padding: '20px', backgroundColor: '#f8fafc', minHeight: '100vh' }}>
-            <h2 style={{ marginBottom: '20px', color: '#1e293b' }}>Quản lý Khám Tại Nhà</h2>
+        <div style={{ padding: '30px', backgroundColor: '#f8fafc', minHeight: '100vh' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+                <h2 style={{ color: '#1e293b', fontSize: '2rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <MapPin color="#4f46e5" size={32} /> Quản lý Khám Tại Nhà
+                </h2>
+            </div>
             
-            <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
+            <div style={{ marginBottom: '30px', display: 'inline-flex', backgroundColor: '#e2e8f0', padding: '4px', borderRadius: '12px' }}>
                 <button 
                     onClick={() => setActiveTab('list')}
-                    style={{ padding: '10px 20px', backgroundColor: activeTab === 'list' ? '#3b82f6' : '#e2e8f0', color: activeTab === 'list' ? 'white' : '#475569', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
-                    Danh sách
+                    style={{ 
+                        padding: '10px 24px', 
+                        backgroundColor: activeTab === 'list' ? 'white' : 'transparent', 
+                        color: activeTab === 'list' ? '#3b82f6' : '#64748b', 
+                        border: 'none', 
+                        borderRadius: '10px', 
+                        cursor: 'pointer', 
+                        fontWeight: 700,
+                        fontSize: '15px',
+                        boxShadow: activeTab === 'list' ? '0 2px 4px rgba(0,0,0,0.1)' : 'none',
+                        transition: 'all 0.2s'
+                    }}>
+                    Danh sách Lịch hẹn
                 </button>
                 <button 
                     onClick={() => setActiveTab('create')}
-                    style={{ padding: '10px 20px', backgroundColor: activeTab === 'create' ? '#3b82f6' : '#e2e8f0', color: activeTab === 'create' ? 'white' : '#475569', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
+                    style={{ 
+                        padding: '10px 24px', 
+                        backgroundColor: activeTab === 'create' ? 'white' : 'transparent', 
+                        color: activeTab === 'create' ? '#3b82f6' : '#64748b', 
+                        border: 'none', 
+                        borderRadius: '10px', 
+                        cursor: 'pointer', 
+                        fontWeight: 700,
+                        fontSize: '15px',
+                        boxShadow: activeTab === 'create' ? '0 2px 4px rgba(0,0,0,0.1)' : 'none',
+                        transition: 'all 0.2s'
+                    }}>
                     Tạo Lịch Mới
                 </button>
             </div>
 
             {activeTab === 'list' ? (
-                <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                    <div style={{ marginBottom: '15px' }}>
+                <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)' }}>
+                    <div style={{ marginBottom: '24px', position: 'relative', maxWidth: '500px' }}>
                         <input 
                             type="text" 
                             placeholder="Tìm kiếm theo tên bệnh nhân, bác sĩ, trạng thái..." 
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            style={{ padding: '10px', width: '100%', maxWidth: '400px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                            style={{ 
+                                padding: '12px 16px 12px 40px', 
+                                width: '100%', 
+                                borderRadius: '12px', 
+                                border: '2px solid #e2e8f0',
+                                outline: 'none',
+                                fontSize: '15px',
+                                transition: 'all 0.2s',
+                                boxSizing: 'border-box'
+                            }}
+                            onFocus={e => e.target.style.borderColor = '#93c5fd'}
+                            onBlur={e => e.target.style.borderColor = '#e2e8f0'}
                         />
+                        <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }}>🔍</span>
                     </div>
-                    {loading ? <p>Đang tải...</p> : (
-                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    {loading ? <p style={{ color: '#64748b' }}>Đang tải dữ liệu...</p> : (
+                        <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px' }}>
                             <thead>
-                                <tr style={{ backgroundColor: '#f1f5f9', textAlign: 'left' }}>
-                                    <th style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', verticalAlign: 'middle' }}>Bệnh nhân</th>
-                                    <th style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', verticalAlign: 'middle' }}>Bác sĩ</th>
-                                    <th style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', verticalAlign: 'middle' }}>Thời gian</th>
-                                    <th style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', verticalAlign: 'middle' }}>Trạng thái</th>
-                                    <th style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', verticalAlign: 'middle' }}>Thao tác</th>
+                                <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+                                    <th style={{ padding: '16px 20px', textAlign: 'left', color: '#475569', fontWeight: 600 }}>Bệnh nhân</th>
+                                    <th style={{ padding: '16px 20px', textAlign: 'left', color: '#475569', fontWeight: 600 }}>Bác sĩ</th>
+                                    <th style={{ padding: '16px 20px', textAlign: 'left', color: '#475569', fontWeight: 600 }}>Thời gian</th>
+                                    <th style={{ padding: '16px 20px', textAlign: 'left', color: '#475569', fontWeight: 600 }}>Trạng thái</th>
+                                    <th style={{ padding: '16px 20px', textAlign: 'right', color: '#475569', fontWeight: 600 }}>Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {filteredAppointments.map(app => (
-                                    <tr key={app.id}>
-                                        <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', verticalAlign: 'middle' }}>
-                                            <strong>{app.patientName}</strong><br/>
-                                            <small style={{ color: '#64748b' }}><MapPin size={12}/> {app.homeAddress}</small>
+                                    <tr key={app.id} style={{ borderBottom: '1px solid #f1f5f9', transition: 'background-color 0.2s' }} onMouseOver={e => e.currentTarget.style.backgroundColor = '#f8fafc'} onMouseOut={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+                                        <td style={{ padding: '16px 20px', verticalAlign: 'top' }}>
+                                            <strong style={{ color: '#1e293b', fontSize: '15px' }}>{app.patientName}</strong><br/>
+                                            <span style={{ color: '#64748b', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
+                                                <MapPin size={14}/> {app.homeAddress}
+                                            </span>
                                         </td>
-                                        <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', verticalAlign: 'middle' }}>{app.doctorName}</td>
-                                        <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', verticalAlign: 'middle' }}>
-                                            {app.scheduleDate} <br/> Ca: {app.timeSlot}
-                                            <div style={{ fontSize: '12px', color: '#4338ca', fontWeight: 600, marginTop: '4px' }}>
-                                                Dự kiến: {app.expectedTime || 'Chưa chốt'}
+                                        <td style={{ padding: '16px 20px', verticalAlign: 'top', color: '#334155', fontWeight: 500 }}>{app.doctorName}</td>
+                                        <td style={{ padding: '16px 20px', verticalAlign: 'top' }}>
+                                            {app.scheduleDate} <br/> <span style={{ color: '#64748b', fontSize: '13px' }}>Ca: {app.timeSlot}</span>
+                                            <div style={{ fontSize: '13px', color: '#4f46e5', fontWeight: 600, marginTop: '6px', backgroundColor: '#eef2ff', padding: '4px 8px', borderRadius: '4px', display: 'inline-block' }}>
+                                                Dự kiến đến: {app.expectedTime || 'Chưa chốt'}
                                             </div>
                                             {app.travelFee > 0 && (
-                                                <div style={{ marginTop: '4px', fontSize: '12px', color: '#16a34a', fontWeight: 'bold' }}>
+                                                <div style={{ marginTop: '6px', fontSize: '13px', color: '#10b981', fontWeight: 600 }}>
                                                     + Phí di chuyển: {app.travelFee.toLocaleString('vi-VN')}đ
                                                 </div>
                                             )}
                                         </td>
-                                        <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', verticalAlign: 'middle' }}>
+                                        <td style={{ padding: '16px 20px', verticalAlign: 'top' }}>
                                             {getStatusLabel(app.status)}
                                         </td>
-                                        <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', verticalAlign: 'middle' }}>
-                                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                        <td style={{ padding: '16px 20px', verticalAlign: 'top', textAlign: 'right' }}>
+                                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'flex-end' }}>
                                             {(app.status === 'PENDING' || app.status === 'PENDING_CONFIRMATION' || app.status === 'DECLINED') && (
                                                 <>
                                                     <button onClick={() => handleConfirmHomeVisit(app)} style={{ padding: '6px 12px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -335,20 +376,23 @@ const HomeVisitManager = () => {
                                 )}
                             </tbody>
                         </table>
+                        </div>
                     )}
                 </div>
             ) : (
-                <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', maxWidth: '800px' }}>
-                    <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '20px', gridTemplateColumns: '1fr 1fr' }}>
-                        <div style={{ gridColumn: '1 / -1' }}><h3 style={{ borderBottom: '2px solid #e2e8f0', paddingBottom: '10px' }}>1. Thông tin bệnh nhân</h3></div>
+                <div style={{ backgroundColor: 'white', padding: '32px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)', maxWidth: '900px' }}>
+                    <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '24px', gridTemplateColumns: '1fr 1fr' }}>
+                        <div style={{ gridColumn: '1 / -1' }}><h3 style={{ borderBottom: '2px solid #e2e8f0', paddingBottom: '12px', color: '#1e293b', fontSize: '1.25rem' }}>1. Thông tin bệnh nhân</h3></div>
                         <div style={{ gridColumn: '1 / -1' }}>
-                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Chọn bệnh nhân <span style={{color:'red'}}>*</span></label>
+                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, color: '#334155' }}>Chọn bệnh nhân <span style={{color:'#ef4444'}}>*</span></label>
                             <input 
                                 type="text" 
                                 placeholder="Tìm kiếm bệnh nhân (tên hoặc SĐT)..." 
                                 value={patientSearch}
                                 onChange={(e) => setPatientSearch(e.target.value)}
-                                style={{ border: '1px solid #cbd5e1', borderRadius: '6px', padding: '10px', width: '100%', marginBottom: '10px' }}
+                                style={{ border: '2px solid #e2e8f0', borderRadius: '10px', padding: '12px 16px', width: '100%', marginBottom: '12px', outline: 'none', transition: 'border-color 0.2s', boxSizing: 'border-box' }}
+                                onFocus={e => e.target.style.borderColor = '#93c5fd'}
+                                onBlur={e => e.target.style.borderColor = '#e2e8f0'}
                             />
                             <select required value={formData.patientId} onChange={e => {
                                 const patId = e.target.value;
@@ -398,17 +442,17 @@ const HomeVisitManager = () => {
                             </>
                         )}
 
-                        <div style={{ gridColumn: '1 / -1', marginTop: '10px' }}><h3 style={{ borderBottom: '2px solid #e2e8f0', paddingBottom: '10px' }}>2. Thông tin lịch khám</h3></div>
+                        <div style={{ gridColumn: '1 / -1', marginTop: '16px' }}><h3 style={{ borderBottom: '2px solid #e2e8f0', paddingBottom: '12px', color: '#1e293b', fontSize: '1.25rem' }}>2. Thông tin lịch khám</h3></div>
 
                         <div>
-                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Chuyên khoa <span style={{color:'red'}}>*</span></label>
-                            <select required value={formData.specialtyId} onChange={handleSpecialtyChange} style={{ border: '1px solid #cbd5e1', borderRadius: '6px', padding: '10px', width: '100%' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, color: '#334155' }}>Chuyên khoa <span style={{color:'#ef4444'}}>*</span></label>
+                            <select required value={formData.specialtyId} onChange={handleSpecialtyChange} style={{ border: '2px solid #e2e8f0', borderRadius: '10px', padding: '12px 16px', width: '100%', outline: 'none' }}>
                                 <option value="">-- Chọn chuyên khoa --</option>
                                 {specialties.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                             </select>
                         </div>
                         <div>
-                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Bác sĩ <span style={{color:'red'}}>*</span></label>
+                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, color: '#334155' }}>Bác sĩ <span style={{color:'#ef4444'}}>*</span></label>
                             {formData.specialtyId && (
                                 <input 
                                     type="text" 

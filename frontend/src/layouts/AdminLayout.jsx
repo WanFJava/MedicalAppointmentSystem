@@ -55,15 +55,15 @@ const AdminLayout = () => {
     const badgeCounts = getBadgeCounts();
 
     const menuItems = [
-        { path: '/admin', name: 'Bảng điều khiển', icon: <LayoutDashboard size={20} />, roles: ['ADMIN', 'RECEPTIONIST'], recOrder: 0 },
-        { path: '/admin/specialties', name: 'Chuyên khoa', icon: <Stethoscope size={20} />, roles: ['ADMIN'] },
+        { path: '/admin', name: 'Bảng điều khiển', icon: <LayoutDashboard size={20} />, roles: ['ADMIN', 'RECEPTIONIST'], recOrder: 0, recColor: '#0ea5e9', recBg: '#f0f9ff' },
+        { path: '/admin/specialties', name: 'Chuyên khoa', icon: <Stethoscope size={20} />, roles: ['ADMIN'], recColor: '#ec4899', recBg: '#fdf2f8' },
         { path: '/admin/doctors', name: 'Quản lý bác sĩ', icon: <Users size={20} />, roles: ['ADMIN', 'RECEPTIONIST'], recOrder: 5, recColor: '#7c3aed', recBg: '#f5f3ff' },
-        { path: '/admin/users', name: 'Người dùng', icon: <UserCog size={20} />, roles: ['ADMIN'] },
-        { path: '/admin/schedules', name: 'Lịch làm việc', icon: <Calendar size={20} />, roles: ['ADMIN'] },
-        { path: '/admin/medicines', name: 'Kho thuốc', icon: <Pill size={20} />, roles: ['ADMIN'] },
+        { path: '/admin/users', name: 'Người dùng', icon: <UserCog size={20} />, roles: ['ADMIN'], recColor: '#8b5cf6', recBg: '#f5f3ff' },
+        { path: '/admin/schedules', name: 'Lịch làm việc', icon: <Calendar size={20} />, roles: ['ADMIN'], recColor: '#f59e0b', recBg: '#fffbeb' },
+        { path: '/admin/medicines', name: 'Kho thuốc', icon: <Pill size={20} />, roles: ['ADMIN'], recColor: '#10b981', recBg: '#ecfdf5' },
         { path: '/admin/appointments', name: 'Lịch khám', icon: <Users size={20} />, roles: ['ADMIN', 'RECEPTIONIST'], recOrder: 2, recColor: '#2563eb', recBg: '#eff6ff' },
         { path: '/admin/live-chat', name: 'Chat trực tuyến', icon: <MessagesSquare size={20} />, roles: ['ADMIN', 'RECEPTIONIST'], recOrder: 4, recColor: '#059669', recBg: '#ecfdf5' },
-        { path: '/admin/feedbacks', name: 'Đánh giá', icon: <Star size={20} />, roles: ['ADMIN'] },
+        { path: '/admin/feedbacks', name: 'Đánh giá', icon: <Star size={20} />, roles: ['ADMIN'], recColor: '#eab308', recBg: '#fefce8' },
         { path: '/admin/queue', name: 'Hàng đợi', icon: <ListOrdered size={20} />, roles: ['RECEPTIONIST'], recOrder: 1, recColor: '#2563eb', recBg: '#eff6ff' },
 
         { path: '/admin/my-shifts', name: 'Ca trực của tôi', icon: <UserCog size={20} />, roles: ['DOCTOR'] },
@@ -95,8 +95,8 @@ const AdminLayout = () => {
                         <Link
                             key={item.path}
                             to={item.path}
-                            className={`nav-item ${location.pathname === item.path ? 'active' : ''} ${user?.role === 'RECEPTIONIST' && item.recColor ? 'receptionist-item' : ''}`}
-                            style={user?.role === 'RECEPTIONIST' && item.recColor ? { '--rec-color': item.recColor, '--rec-bg': item.recBg } : {}}
+                            className={`nav-item ${location.pathname === item.path ? 'active' : ''} ${item.recColor ? 'highlight-item' : ''}`}
+                            style={item.recColor ? { '--rec-color': item.recColor, '--rec-bg': item.recBg } : {}}
                         >
                             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
                                 {item.icon}

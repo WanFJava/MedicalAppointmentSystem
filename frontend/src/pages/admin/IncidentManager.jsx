@@ -64,7 +64,7 @@ const IncidentManager = () => {
 
     return (
         <div style={{ padding: '1rem', maxWidth: '1200px', margin: '0 auto' }}>
-            <div className="page-header" style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="page-header">
                 <div>
                     <h2 style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: '0 0 0.5rem 0', display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#1f2937' }}>
                         <AlertCircle color="#ef4444" size={28} /> Báo Cáo Sự Cố & Vi Phạm

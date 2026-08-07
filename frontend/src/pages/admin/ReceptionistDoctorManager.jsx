@@ -111,39 +111,33 @@ const ReceptionistDoctorManager = () => {
 
     return (
         <div>
-            <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="page-header">
                 <h2>Bảng Theo Dõi Bác Sĩ</h2>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#4b5563', fontSize: '0.9rem', fontWeight: 600 }}>
-                    <Calendar size={18} />
-                    <input
-                        type="date"
-                        value={selectedDate}
-                        onChange={(e) => setSelectedDate(e.target.value)}
-                        style={{ padding: '0.4rem 0.5rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', outline: 'none' }}
-                    />
-                </div>
-            </div>
-
-            <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem' }}>
-                <select
-                    value={visitTypeFilter}
-                    onChange={(e) => setVisitTypeFilter(e.target.value)}
-                    style={{ padding: '0.75rem 1rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', outline: 'none', backgroundColor: 'white' }}
-                >
-                    <option value="ALL">Tất cả hình thức</option>
-                    <option value="HOME">Chỉ Khám tại nhà</option>
-                    <option value="CLINIC">Chỉ Khám tại trung tâm</option>
-                    <option value="BOTH">Hỗ trợ cả hai</option>
-                </select>
-                <div style={{ position: 'relative', flex: 1, maxWidth: '400px' }}>
-                    <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#6b7280' }} />
-                    <input
-                        type="text"
-                        placeholder="Tìm bác sĩ, chuyên khoa..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        style={{ width: '100%', padding: '0.75rem 1rem 0.75rem 2.5rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
-                    />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', backgroundColor: 'white', padding: '0.75rem 1rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#4b5563', fontSize: '0.9rem', fontWeight: 600, borderRight: '1px solid #e5e7eb', paddingRight: '0.75rem' }}>
+                        <Calendar size={18} />
+                        <input
+                            type="date"
+                            value={selectedDate}
+                            onChange={(e) => setSelectedDate(e.target.value)}
+                        />
+                    </div>
+                    <select value={visitTypeFilter} onChange={(e) => setVisitTypeFilter(e.target.value)}>
+                        <option value="ALL">Tất cả hình thức</option>
+                        <option value="HOME">Chỉ Khám tại nhà</option>
+                        <option value="CLINIC">Chỉ Khám tại trung tâm</option>
+                        <option value="BOTH">Hỗ trợ cả hai</option>
+                    </select>
+                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                        <Search size={18} style={{ position: 'absolute', left: '10px', color: '#6b7280' }} />
+                        <input
+                            type="text"
+                            placeholder="Tìm bác sĩ, chuyên khoa..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            style={{ paddingLeft: '2.5rem', width: '220px' }}
+                        />
+                    </div>
                 </div>
             </div>
 

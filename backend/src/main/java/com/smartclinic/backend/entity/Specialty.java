@@ -19,6 +19,6 @@ public class Specialty {
     @Column(nullable = false, unique = true)
     private String name;
 
-    @Column(length = 1000)
+    @Column(columnDefinition = "TEXT")
     private String description;
 }

@@ -125,7 +125,7 @@ const QueueManager = () => {
 
     return (
         <div>
-            <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="page-header">
                 <div>
                     <h2>Quản lý Hàng chờ (Queue)</h2>
                     <div style={{ color: 'var(--text-secondary)' }}>Điều phối bệnh nhân vào phòng khám</div>

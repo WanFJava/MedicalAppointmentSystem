@@ -54,47 +54,36 @@ const FeedbackManager = () => {
                         Monitor feedback from every completed appointment.
                     </div>
                 </div>
-                <div style={{
-                    display: 'flex', alignItems: 'center', gap: '0.5rem',
-                    backgroundColor: '#fef3c7', color: '#92400e',
-                    padding: '0.75rem 1rem', borderRadius: '0.75rem', fontWeight: 700
-                }}>
-                    <Star size={18} fill="currentColor" />
-                    {averageRating.toFixed(1)} / 5 ({feedbacks.length})
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', backgroundColor: 'white', padding: '0.75rem 1rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', flexWrap: 'wrap' }}>
+                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                        <Search size={18} style={{ position: 'absolute', left: '10px', color: '#94a3b8' }} />
+                        <input
+                            aria-label="Search feedbacks"
+                            value={query}
+                            onChange={(event) => setQuery(event.target.value)}
+                            placeholder="Search patient, doctor, comment..."
+                            style={{ paddingLeft: '2.5rem', width: '250px' }}
+                        />
+                    </div>
+                    <select
+                        aria-label="Filter by rating"
+                        value={rating}
+                        onChange={(event) => setRating(event.target.value)}
+                    >
+                        <option value="ALL">All ratings</option>
+                        {[5, 4, 3, 2, 1].map((value) => (
+                            <option key={value} value={value}>{value} stars</option>
+                        ))}
+                    </select>
+                    <div style={{
+                        display: 'flex', alignItems: 'center', gap: '0.5rem',
+                        backgroundColor: '#fef3c7', color: '#92400e',
+                        padding: '0.6rem 1rem', borderRadius: '0.5rem', fontWeight: 700
+                    }}>
+                        <Star size={18} fill="currentColor" />
+                        {averageRating.toFixed(1)} / 5
+                    </div>
                 </div>
-            </div>
-
-            <div style={{
-                display: 'flex', gap: '1rem', marginBottom: '1.5rem',
-                backgroundColor: 'white', padding: '1rem', borderRadius: '0.75rem'
-            }}>
-                <div style={{ position: 'relative', flex: 1 }}>
-                    <Search
-                        size={18}
-                        style={{ position: 'absolute', left: '0.75rem', top: '0.75rem', color: '#94a3b8' }}
-                    />
-                    <input
-                        aria-label="Search feedbacks"
-                        value={query}
-                        onChange={(event) => setQuery(event.target.value)}
-                        placeholder="Search patient, doctor, comment or appointment ID"
-                        style={{
-                            width: '100%', padding: '0.65rem 0.75rem 0.65rem 2.25rem',
-                            border: '1px solid var(--border-color)', borderRadius: '0.5rem'
-                        }}
-                    />
-                </div>
-                <select
-                    aria-label="Filter by rating"
-                    value={rating}
-                    onChange={(event) => setRating(event.target.value)}
-                    style={{ padding: '0.65rem 1rem', border: '1px solid var(--border-color)', borderRadius: '0.5rem' }}
-                >
-                    <option value="ALL">All ratings</option>
-                    {[5, 4, 3, 2, 1].map((value) => (
-                        <option key={value} value={value}>{value} stars</option>
-                    ))}
-                </select>
             </div>
 
             {error && (

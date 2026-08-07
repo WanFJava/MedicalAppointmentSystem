@@ -7,7 +7,7 @@ const api = axios.create({
 
 api.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('accessToken');
+        const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
         if (token) {
             config.headers['Authorization'] = `Bearer ${token}`;
         }
@@ -24,6 +24,8 @@ api.interceptors.response.use(
         if (error.response?.status === 401) {
             localStorage.removeItem('user');
             localStorage.removeItem('accessToken');
+            sessionStorage.removeItem('user');
+            sessionStorage.removeItem('accessToken');
 
             if (window.location.pathname !== '/login') {
                 window.location.assign('/login');
@@ -36,6 +38,8 @@ api.interceptors.response.use(
                 toast.error(msg, { duration: 5000 });
                 localStorage.removeItem('user');
                 localStorage.removeItem('accessToken');
+                sessionStorage.removeItem('user');
+                sessionStorage.removeItem('accessToken');
                 if (window.location.pathname !== '/login') {
                     setTimeout(() => {
                         window.location.assign('/login');

@@ -21,6 +21,7 @@ const AdminSchedulePage = () => {
     const [selectedDoctorId, setSelectedDoctorId] = useState(initialDoctorId);
     const [selectedDate, setSelectedDate] = useState(new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]);
     const [schedules, setSchedules] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
 
     // Modal state
@@ -250,16 +251,27 @@ const AdminSchedulePage = () => {
         );
     };
 
+    const filteredSchedules = schedules.filter(sch => {
+        if (!searchTerm) return true;
+        const lowerTerm = searchTerm.toLowerCase();
+        return (
+            (sch.doctorName && sch.doctorName.toLowerCase().includes(lowerTerm)) ||
+            (sch.doctorId && sch.doctorId.toString().includes(lowerTerm)) ||
+            (sch.startTime && sch.startTime.includes(lowerTerm)) ||
+            (sch.endTime && sch.endTime.includes(lowerTerm))
+        );
+    });
+
     return (
         <div style={{ padding: '1rem' }}>
-            <div className="page-header" style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="page-header">
                 <div>
                     <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0 }}>Quản Lý Lịch Khám Bác Sĩ (Schedules)</h2>
                     <p style={{ color: 'var(--text-secondary)', margin: '0.25rem 0 0 0', fontSize: '0.9rem' }}>
                         Tạo ca khám với trạng thái <strong style={{ color: '#4b5563' }}>OPEN</strong> để bác sĩ xác nhận đăng ký ca trực.
                     </p>
                 </div>
-                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
 
                     <button
                         onClick={() => {
@@ -300,6 +312,17 @@ const AdminSchedulePage = () => {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <label style={{ fontSize: '0.9rem', color: '#4b5563' }}>Tìm kiếm:</label>
+                    <input
+                        type="text"
+                        placeholder="Từ khóa (Tên BS, ID, Giờ...)"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        style={{ padding: '0.5rem', borderRadius: '6px', border: '1px solid #d1d5db', minWidth: '220px' }}
+                    />
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <label style={{ fontSize: '0.9rem', color: '#4b5563' }}>Ngày khám:</label>
                     <input
                         type="date"
@@ -307,6 +330,13 @@ const AdminSchedulePage = () => {
                         onChange={(e) => setSelectedDate(e.target.value)}
                         style={{ padding: '0.5rem', borderRadius: '6px', border: '1px solid #d1d5db' }}
                     />
+                    <button
+                        onClick={() => setSelectedDate('')}
+                        style={{ padding: '0.5rem 0.8rem', backgroundColor: selectedDate === '' ? '#3b82f6' : '#f3f4f6', color: selectedDate === '' ? 'white' : 'black', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }}
+                        title="Xem tất cả lịch của các ngày"
+                    >
+                        Xem tất cả
+                    </button>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -359,11 +389,11 @@ const AdminSchedulePage = () => {
             <div className="table-container">
                 {loading ? (
                     <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>Đang tải danh sách ca khám...</div>
-                ) : schedules.length === 0 ? (
+                ) : filteredSchedules.length === 0 ? (
                     <div style={{ padding: '3rem', textAlign: 'center', color: '#6b7280' }}>
                         <Calendar size={48} style={{ margin: '0 auto 1rem', opacity: 0.4 }} />
-                        <div style={{ fontSize: '1.1rem', fontWeight: '500' }}>Không tìm thấy ca khám nào vào ngày {selectedDate}</div>
-                        <div style={{ fontSize: '0.875rem', marginTop: '0.25rem' }}>Hãy bấm nút "Tạo ca khám mới" ở trên.</div>
+                        <div style={{ fontSize: '1.1rem', fontWeight: '500' }}>Không tìm thấy ca khám {selectedDate ? 'vào ngày ' + selectedDate : 'nào'}</div>
+                        <div style={{ fontSize: '0.875rem', marginTop: '0.25rem' }}>Hãy bấm nút "Tạo ca khám mới" hoặc thử thay đổi từ khóa.</div>
                     </div>
                 ) : (
                     <table>
@@ -377,7 +407,7 @@ const AdminSchedulePage = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {schedules.map((sch) => (
+                            {filteredSchedules.map((sch) => (
                                 <tr key={sch.id}>
                                     <td>
                                         <div style={{ fontWeight: '600', color: 'var(--primary-color)' }}>{sch.doctorName || `Doctor #${sch.doctorId}`}</div>
